@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -19,7 +20,11 @@
         body {
             font-family: Arial, sans-serif;
             background:
-                radial-gradient(circle at top, #172554, #020617 55%);
+                radial-gradient(
+                    circle at top,
+                    #172554,
+                    #020617 55%
+                );
             color: white;
             min-height: 100vh;
             padding: 20px;
@@ -60,7 +65,8 @@
             border: 1px solid rgba(255,255,255,.08);
             border-radius: 24px;
             padding: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,.35);
+            box-shadow:
+                0 20px 60px rgba(0,0,0,.35);
         }
 
         .group {
@@ -133,7 +139,12 @@
             font-weight: bold;
             color: white;
             cursor: pointer;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #7c3aed
+                );
         }
 
         button:disabled {
@@ -153,15 +164,19 @@
 
         .success {
             display: block;
-            background: rgba(34,197,94,.12);
-            border: 1px solid rgba(34,197,94,.3);
+            background:
+                rgba(34,197,94,.12);
+            border:
+                1px solid rgba(34,197,94,.3);
             color: #86efac;
         }
 
         .error {
             display: block;
-            background: rgba(239,68,68,.12);
-            border: 1px solid rgba(239,68,68,.3);
+            background:
+                rgba(239,68,68,.12);
+            border:
+                1px solid rgba(239,68,68,.3);
             color: #fca5a5;
         }
 
@@ -171,6 +186,12 @@
             font-size: 11px;
             margin-top: 15px;
         }
+
+        @media (max-width: 500px) {
+            .targets {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -179,6 +200,7 @@
 <div class="container">
 
     <div class="header">
+
         <img
             class="logo"
             src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
@@ -186,100 +208,148 @@
         >
 
         <h1>AURA ARMAN TOUR</h1>
-        <p>Notification Control Panel</p>
+
+        <p>
+            Notification Control Panel
+        </p>
+
     </div>
+
 
     <div class="card">
 
         <div class="group">
-            <label>Notification Target</label>
+
+            <label>
+                Notification Target
+            </label>
 
             <div class="targets">
 
                 <label class="target">
+
                     <input
                         type="radio"
                         name="target"
                         value="all"
                         checked
                     >
-                    <span>All Users</span>
+
+                    <span>
+                        All Users
+                    </span>
+
                 </label>
 
+
                 <label class="target">
+
                     <input
                         type="radio"
                         name="target"
                         value="specific"
                     >
-                    <span>Specific User</span>
+
+                    <span>
+                        Specific User
+                    </span>
+
                 </label>
 
             </div>
 
+
             <div id="specificBox">
-                <label>Firebase UID / External ID</label>
+
+                <label>
+                    Firebase UID / External ID
+                </label>
 
                 <input
                     id="externalId"
                     type="text"
                     placeholder="Enter Firebase UID"
+                    autocomplete="off"
                 >
+
             </div>
+
         </div>
 
 
         <div class="group">
-            <label>Notification Title</label>
+
+            <label>
+                Notification Title
+            </label>
 
             <input
                 id="title"
                 type="text"
                 placeholder="Enter notification title"
+                maxlength="150"
             >
+
         </div>
 
 
         <div class="group">
-            <label>Message</label>
+
+            <label>
+                Message
+            </label>
 
             <textarea
                 id="message"
                 placeholder="Write your notification message..."
+                maxlength="1000"
             ></textarea>
+
         </div>
 
 
         <div class="group">
-            <label>Icon URL (Optional)</label>
+
+            <label>
+                Icon URL (Optional)
+            </label>
 
             <input
                 id="icon"
                 type="url"
                 value="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
             >
+
         </div>
 
 
         <div class="group">
-            <label>Big Image URL (Optional)</label>
+
+            <label>
+                Big Image URL (Optional)
+            </label>
 
             <input
                 id="image"
                 type="url"
                 placeholder="https://example.com/image.jpg"
             >
+
         </div>
 
 
         <div class="group">
-            <label>Click URL (Optional)</label>
+
+            <label>
+                Click URL (Optional)
+            </label>
 
             <input
                 id="url"
                 type="url"
                 value="https://aura-skill-com.onrender.com"
             >
+
         </div>
 
 
@@ -288,9 +358,13 @@
         </button>
 
 
-        <div id="result" class="result"></div>
+        <div
+            id="result"
+            class="result"
+        ></div>
 
     </div>
+
 
     <div class="footer">
         AURA ARMAN TOUR • Secure Notification System
@@ -302,168 +376,375 @@
 <script>
 
 const targetInputs =
-    document.querySelectorAll('input[name="target"]');
+    document.querySelectorAll(
+        'input[name="target"]'
+    );
 
 const specificBox =
-    document.getElementById("specificBox");
+    document.getElementById(
+        "specificBox"
+    );
 
 const sendBtn =
-    document.getElementById("sendBtn");
+    document.getElementById(
+        "sendBtn"
+    );
 
 const result =
-    document.getElementById("result");
+    document.getElementById(
+        "result"
+    );
 
+
+/*
+ * TARGET SWITCH
+ */
 
 targetInputs.forEach(input => {
 
-    input.addEventListener("change", () => {
+    input.addEventListener(
+        "change",
+        () => {
 
-        if (input.checked && input.value === "specific") {
-            specificBox.style.display = "block";
-        } else if (input.checked && input.value === "all") {
-            specificBox.style.display = "none";
+            if (
+                input.checked &&
+                input.value === "specific"
+            ) {
+
+                specificBox.style.display =
+                    "block";
+
+            } else if (
+                input.checked &&
+                input.value === "all"
+            ) {
+
+                specificBox.style.display =
+                    "none";
+
+            }
+
         }
-
-    });
+    );
 
 });
 
 
-sendBtn.addEventListener("click", async () => {
+/*
+ * SEND NOTIFICATION
+ */
 
-    const target =
-        document.querySelector(
-            'input[name="target"]:checked'
-        ).value;
+sendBtn.addEventListener(
+    "click",
+    async () => {
 
-    const externalId =
-        document.getElementById("externalId").value.trim();
-
-    const title =
-        document.getElementById("title").value.trim();
-
-    const message =
-        document.getElementById("message").value.trim();
-
-    const icon =
-        document.getElementById("icon").value.trim();
-
-    const image =
-        document.getElementById("image").value.trim();
-
-    const url =
-        document.getElementById("url").value.trim();
+        if (sendBtn.disabled) {
+            return;
+        }
 
 
-    if (!title) {
-        showResult(
-            "Please enter notification title.",
-            false
-        );
-        return;
-    }
-
-
-    if (!message) {
-        showResult(
-            "Please enter notification message.",
-            false
-        );
-        return;
-    }
-
-
-    if (target === "specific" && !externalId) {
-        showResult(
-            "Please enter Firebase UID.",
-            false
-        );
-        return;
-    }
-
-
-    sendBtn.disabled = true;
-    sendBtn.textContent = "SENDING...";
-
-
-    try {
-
-        const response = await fetch(
-            "/api/notifications/send",
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    target,
-                    externalId,
-                    title,
-                    message,
-                    icon,
-                    image,
-                    url
-                })
-            }
-        );
-
-
-        const data = await response.json();
-
-
-        if (!response.ok || !data.success) {
-
-            throw new Error(
-                data.error ||
-                data.details?.errors?.join(", ") ||
-                "Notification sending failed."
+        const selectedTarget =
+            document.querySelector(
+                'input[name="target"]:checked'
             );
 
+
+        const target =
+            selectedTarget
+                ? selectedTarget.value
+                : "all";
+
+
+        const externalId =
+            document
+                .getElementById("externalId")
+                .value
+                .trim();
+
+
+        const title =
+            document
+                .getElementById("title")
+                .value
+                .trim();
+
+
+        const message =
+            document
+                .getElementById("message")
+                .value
+                .trim();
+
+
+        const icon =
+            document
+                .getElementById("icon")
+                .value
+                .trim();
+
+
+        const image =
+            document
+                .getElementById("image")
+                .value
+                .trim();
+
+
+        const url =
+            document
+                .getElementById("url")
+                .value
+                .trim();
+
+
+        /*
+         * VALIDATION
+         */
+
+        if (!title) {
+
+            showResult(
+                "Please enter notification title.",
+                false
+            );
+
+            return;
         }
 
 
-        showResult(
-            "✅ Notification sent successfully!\n\n" +
-            JSON.stringify(
-                data.onesignal,
-                null,
-                2
-            ),
-            true
-        );
+        if (!message) {
+
+            showResult(
+                "Please enter notification message.",
+                false
+            );
+
+            return;
+        }
 
 
-    } catch (error) {
+        if (
+            target === "specific" &&
+            !externalId
+        ) {
 
-        showResult(
-            "❌ Notification failed\n\n" +
-            error.message,
-            false
-        );
+            showResult(
+                "Please enter Firebase UID / External ID.",
+                false
+            );
 
-    } finally {
+            return;
+        }
 
-        sendBtn.disabled = false;
-        sendBtn.textContent = "SEND NOTIFICATION";
+
+        /*
+         * LOADING
+         */
+
+        sendBtn.disabled = true;
+        sendBtn.textContent =
+            "SENDING...";
+
+        result.style.display =
+            "none";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/notifications/send",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            target,
+
+                            externalId,
+
+                            title,
+
+                            message,
+
+                            icon,
+
+                            image,
+
+                            url
+
+                        })
+                    }
+                );
+
+
+            const rawText =
+                await response.text();
+
+
+            let data;
+
+            try {
+
+                data =
+                    JSON.parse(rawText);
+
+            } catch {
+
+                data = {
+                    success: false,
+                    error:
+                        rawText ||
+                        "Invalid server response."
+                };
+
+            }
+
+
+            /*
+             * ERROR
+             */
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                let errorMessage =
+                    data.error ||
+                    "Notification sending failed.";
+
+
+                if (
+                    data.onesignal &&
+                    Array.isArray(
+                        data.onesignal.errors
+                    )
+                ) {
+
+                    const oneSignalErrors =
+                        data.onesignal.errors.join(
+                            ", "
+                        );
+
+                    errorMessage +=
+                        "\n\nOneSignal: " +
+                        oneSignalErrors;
+                }
+
+
+                throw new Error(
+                    errorMessage
+                );
+            }
+
+
+            /*
+             * SUCCESS
+             */
+
+            showResult(
+
+                "✅ Notification sent successfully!\n\n" +
+
+                JSON.stringify(
+                    data.onesignal || data,
+                    null,
+                    2
+                ),
+
+                true
+
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Notification error:",
+                error
+            );
+
+
+            showResult(
+
+                "❌ Notification failed\n\n" +
+                (
+                    error.message ||
+                    "Something went wrong."
+                ),
+
+                false
+
+            );
+
+        } finally {
+
+            sendBtn.disabled =
+                false;
+
+            sendBtn.textContent =
+                "SEND NOTIFICATION";
+
+        }
 
     }
+);
 
-});
 
+/*
+ * RESULT
+ */
 
-function showResult(text, success) {
+function showResult(
+    text,
+    success
+) {
 
-    result.textContent = text;
+    result.textContent =
+        text;
 
     result.className =
         "result " +
-        (success ? "success" : "error");
+        (
+            success
+                ? "success"
+                : "error"
+        );
 
-    result.style.display = "block";
+    result.style.display =
+        "block";
 
 }
+
+
+/*
+ * ENTER KEY
+ */
+
+document
+    .getElementById("externalId")
+    .addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+                sendBtn.click();
+
+            }
+
+        }
+    );
 
 </script>
 
