@@ -17,16 +17,27 @@ app.get("/", (req, res) => {
 app.get("/api/health", (req, res) => {
     res.json({
         success: true,
-        message: "AURA Notification Server is running"
+        server: "AURA Notification Server",
+        appIdConfigured: !!ONESIGNAL_APP_ID,
+        apiKeyConfigured: !!ONESIGNAL_REST_API_KEY
     });
 });
 
 app.post("/api/notifications/send", async (req, res) => {
+
     try {
-        if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+
+        if (!ONESIGNAL_APP_ID) {
             return res.status(500).json({
                 success: false,
-                error: "OneSignal environment variables are missing."
+                error: "ONESIGNAL_APP_ID is missing in Render Environment Variables."
+            });
+        }
+
+        if (!ONESIGNAL_REST_API_KEY) {
+            return res.status(500).json({
+                success: false,
+                error: "ONESIGNAL_REST_API_KEY is missing in Render Environment Variables."
             });
         }
 
@@ -49,6 +60,7 @@ app.post("/api/notifications/send", async (req, res) => {
 
         const body = {
             app_id: ONESIGNAL_APP_ID,
+            target_channel: "push",
             headings: {
                 en: String(title)
             },
@@ -57,22 +69,12 @@ app.post("/api/notifications/send", async (req, res) => {
             }
         };
 
-        if (icon) {
-            body.chrome_web_icon = String(icon);
-            body.chrome_web_badge = String(icon);
-        }
-
-        if (image) {
-            body.big_picture = String(image);
-            body.chrome_web_image = String(image);
-        }
-
-        if (url) {
-            body.url = String(url);
-            body.web_url = String(url);
-        }
+        /*
+         * TARGET
+         */
 
         if (target === "specific") {
+
             if (!externalId) {
                 return res.status(400).json({
                     success: false,
@@ -84,42 +86,83 @@ app.post("/api/notifications/send", async (req, res) => {
                 external_id: [String(externalId)]
             };
 
-            body.target_channel = "push";
-
         } else {
-            body.included_segments = ["Subscribed Users"];
+
+            body.included_segments = [
+                "Subscribed Users"
+            ];
+
         }
+
+        /*
+         * OPTIONAL ICON
+         */
+
+        if (icon) {
+            body.chrome_web_icon = String(icon);
+            body.chrome_web_badge = String(icon);
+        }
+
+        /*
+         * OPTIONAL IMAGE
+         */
+
+        if (image) {
+            body.chrome_web_image = String(image);
+            body.big_picture = String(image);
+        }
+
+        /*
+         * OPTIONAL CLICK URL
+         */
+
+        if (url) {
+            body.url = String(url);
+            body.web_url = String(url);
+        }
+
+        console.log("========== ONESIGNAL REQUEST ==========");
+        console.log(JSON.stringify(body, null, 2));
 
         const response = await fetch(
             "https://api.onesignal.com/notifications",
             {
                 method: "POST",
+
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Key ${ONESIGNAL_REST_API_KEY}`
+                    "Authorization": "Key " + ONESIGNAL_REST_API_KEY
                 },
+
                 body: JSON.stringify(body)
             }
         );
 
-        const text = await response.text();
+        const responseText = await response.text();
+
+        console.log("========== ONESIGNAL RESPONSE ==========");
+        console.log("HTTP STATUS:", response.status);
+        console.log(responseText);
 
         let result;
 
         try {
-            result = JSON.parse(text);
+            result = JSON.parse(responseText);
         } catch {
             result = {
-                raw: text
+                raw: responseText
             };
         }
 
         if (!response.ok) {
+
             return res.status(response.status).json({
                 success: false,
                 error: "OneSignal rejected the notification.",
+                httpStatus: response.status,
                 details: result
             });
+
         }
 
         return res.json({
@@ -129,15 +172,21 @@ app.post("/api/notifications/send", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Notification error:", error);
+
+        console.error("SERVER ERROR:", error);
 
         return res.status(500).json({
             success: false,
             error: error.message || "Server error"
         });
+
     }
+
 });
 
+
 app.listen(PORT, () => {
-    console.log(`AURA Notification Server running on port ${PORT}`);
+    console.log(
+        `AURA Notification Server running on port ${PORT}`
+    );
 });
