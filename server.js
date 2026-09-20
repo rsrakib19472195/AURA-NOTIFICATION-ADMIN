@@ -16,7 +16,7 @@ const ONESIGNAL_REST_API_KEY =
 
 if (!ONESIGNAL_REST_API_KEY) {
     console.warn(
-        "⚠️ ONESIGNAL_REST_API_KEY is not configured in Render Environment Variables."
+        "⚠️ ONESIGNAL_REST_API_KEY is not configured."
     );
 }
 
@@ -45,31 +45,49 @@ app.post("/api/notifications/send", async (req, res) => {
             url
         } = req.body;
 
+        /* ================================
+           VALIDATION
+        ================================= */
+
         if (!ONESIGNAL_REST_API_KEY) {
             return res.status(500).json({
                 success: false,
                 error:
-                    "OneSignal REST API Key পাওয়া যায়নি। Render Environment Variables চেক করুন।"
+                    "OneSignal REST API Key পাওয়া যায়নি।"
             });
         }
 
-        if (!title || !message) {
+        if (!title || !String(title).trim()) {
             return res.status(400).json({
                 success: false,
                 error:
-                    "Notification title এবং message প্রয়োজন।"
+                    "Notification title দিন।"
             });
         }
+
+        if (!message || !String(message).trim()) {
+            return res.status(400).json({
+                success: false,
+                error:
+                    "Notification message দিন।"
+            });
+        }
+
+        /* ================================
+           BASE NOTIFICATION
+        ================================= */
 
         const notification = {
             app_id: ONESIGNAL_APP_ID,
 
+            target_channel: "push",
+
             headings: {
-                en: String(title)
+                en: String(title).trim()
             },
 
             contents: {
-                en: String(message)
+                en: String(message).trim()
             }
         };
 
@@ -77,7 +95,10 @@ app.post("/api/notifications/send", async (req, res) => {
            ICON
         ================================= */
 
-        if (icon && String(icon).trim()) {
+        if (
+            icon &&
+            String(icon).trim()
+        ) {
             notification.chrome_web_icon =
                 String(icon).trim();
 
@@ -89,7 +110,10 @@ app.post("/api/notifications/send", async (req, res) => {
            IMAGE
         ================================= */
 
-        if (image && String(image).trim()) {
+        if (
+            image &&
+            String(image).trim()
+        ) {
             notification.chrome_web_image =
                 String(image).trim();
 
@@ -101,7 +125,10 @@ app.post("/api/notifications/send", async (req, res) => {
            CLICK URL
         ================================= */
 
-        if (url && String(url).trim()) {
+        if (
+            url &&
+            String(url).trim()
+        ) {
             notification.url =
                 String(url).trim();
 
@@ -113,58 +140,67 @@ app.post("/api/notifications/send", async (req, res) => {
            TARGETING
         ================================= */
 
+        /*
+         * 1️⃣ SPECIFIC SUBSCRIPTION
+         */
+
         if (
             target === "subscription" &&
             subscriptionId &&
             String(subscriptionId).trim()
         ) {
-            /*
-             * DIRECT SUBSCRIPTION TARGET
-             */
-
             notification.include_subscription_ids = [
                 String(subscriptionId).trim()
             ];
         }
+
+        /*
+         * 2️⃣ SPECIFIC USER
+         */
 
         else if (
             target === "specific" &&
             externalId &&
             String(externalId).trim()
         ) {
-            /*
-             * USER / EXTERNAL ID TARGET
-             */
-
             notification.include_aliases = {
                 external_id: [
                     String(externalId).trim()
                 ]
             };
-
-            notification.target_channel =
-                "push";
         }
+
+        /*
+         * 3️⃣ ALL USERS
+         *
+         * IMPORTANT:
+         * OneSignal-এর "Subscribed Users"
+         * segment-এর উপর নির্ভর করছি না।
+         *
+         * এখানে explicit All targeting করা হচ্ছে।
+         */
 
         else {
-            /*
-             * ALL SUBSCRIBED USERS
-             */
-
             notification.included_segments = [
-                "Subscribed Users"
+                "Total Subscriptions"
             ];
-
-            notification.target_channel =
-                "push";
         }
+
+        /* ================================
+           LOG
+        ================================= */
 
         console.log(
             "===================================="
         );
 
         console.log(
-            "📢 Sending OneSignal notification"
+            "📢 AURA NOTIFICATION"
+        );
+
+        console.log(
+            "Target:",
+            target || "all"
         );
 
         console.log(
@@ -180,7 +216,7 @@ app.post("/api/notifications/send", async (req, res) => {
         );
 
         /* ================================
-           ONESIGNAL API
+           ONESIGNAL REQUEST
         ================================= */
 
         const response = await fetch(
@@ -217,12 +253,12 @@ app.post("/api/notifications/send", async (req, res) => {
         }
 
         console.log(
-            "OneSignal HTTP:",
+            "HTTP Status:",
             response.status
         );
 
         console.log(
-            "OneSignal response:",
+            "Response:",
             JSON.stringify(
                 data,
                 null,
@@ -231,7 +267,7 @@ app.post("/api/notifications/send", async (req, res) => {
         );
 
         /* ================================
-           ERROR
+           API ERROR
         ================================= */
 
         if (!response.ok) {
@@ -241,32 +277,30 @@ app.post("/api/notifications/send", async (req, res) => {
                 success: false,
 
                 error:
-                    data?.errors?.join?.(", ") ||
-                    data?.message ||
-                    "OneSignal notification failed.",
+                    Array.isArray(data?.errors)
+                        ? data.errors.join(", ")
+                        : (
+                            data?.message ||
+                            "OneSignal notification failed."
+                        ),
 
                 onesignal: data
             });
         }
 
         /* ================================
-           NO RECIPIENT
+           ONESIGNAL ERROR INSIDE RESPONSE
         ================================= */
 
         if (
-            data?.errors?.includes?.(
-                "All included players are not subscribed"
-            )
+            Array.isArray(data?.errors) &&
+            data.errors.length > 0
         ) {
             return res.status(400).json({
                 success: false,
 
                 error:
-                    target === "subscription"
-                        ? "এই subscription_id বর্তমানে active subscribed নয়।"
-                        : target === "specific"
-                        ? "এই External ID-এর কোনো active push subscription পাওয়া যায়নি।"
-                        : "কোনো subscribed user পাওয়া যায়নি।",
+                    data.errors.join(", "),
 
                 onesignal: data
             });
@@ -276,18 +310,21 @@ app.post("/api/notifications/send", async (req, res) => {
            SUCCESS
         ================================= */
 
-        return res.json({
+        return res.status(200).json({
             success: true,
 
             message:
                 "Notification sent successfully!",
+
+            notificationId:
+                data?.id || null,
 
             onesignal: data
         });
 
     } catch (error) {
         console.error(
-            "❌ Notification error:",
+            "❌ Server Error:",
             error
         );
 
@@ -296,13 +333,13 @@ app.post("/api/notifications/send", async (req, res) => {
 
             error:
                 error?.message ||
-                "Server error occurred."
+                "Internal server error."
         });
     }
 });
 
 /* ================================
-   SERVER
+   SERVER START
 ================================ */
 
 app.listen(PORT, () => {
