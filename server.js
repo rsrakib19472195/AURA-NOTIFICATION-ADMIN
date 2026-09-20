@@ -16,26 +16,13 @@ const ONESIGNAL_REST_API_KEY =
 
 
 /* ================================
-   CHECK API KEY
-================================ */
-
-if (!ONESIGNAL_REST_API_KEY) {
-    console.warn(
-        "⚠️ ONESIGNAL_REST_API_KEY is not configured."
-    );
-}
-
-
-/* ================================
    HOME
 ================================ */
 
 app.get("/", (req, res) => {
-
     res.sendFile(
         __dirname + "/notification.html"
     );
-
 });
 
 
@@ -72,7 +59,7 @@ app.post(
                     success: false,
 
                     error:
-                        "OneSignal REST API Key পাওয়া যায়নি। Render Environment Variables চেক করুন।"
+                        "OneSignal REST API Key পাওয়া যায়নি।"
 
                 });
 
@@ -126,17 +113,13 @@ app.post(
                     "push",
 
                 headings: {
-
                     en:
                         String(title).trim()
-
                 },
 
                 contents: {
-
                     en:
                         String(message).trim()
-
                 }
 
             };
@@ -180,10 +163,6 @@ app.post(
 
             /* ================================
                CLICK URL
-
-               IMPORTANT:
-               শুধু url ব্যবহার করছি।
-               web_url ব্যবহার করছি না।
             ================================= */
 
             if (
@@ -203,7 +182,7 @@ app.post(
 
 
             /*
-             * 1️⃣ SPECIFIC SUBSCRIPTION
+             * SPECIFIC SUBSCRIPTION
              */
 
             if (
@@ -212,8 +191,7 @@ app.post(
                 String(subscriptionId).trim()
             ) {
 
-                notification
-                    .include_subscription_ids = [
+                notification.include_subscription_ids = [
 
                     String(
                         subscriptionId
@@ -225,65 +203,22 @@ app.post(
 
 
             /*
-             * 2️⃣ SPECIFIC USER
+             * SPECIFIC USER
              */
 
             else if (
-                target === "specific"
+                target === "specific" &&
+                externalId &&
+                String(externalId).trim()
             ) {
-
-                if (
-                    !externalId ||
-                    !String(
-                        externalId
-                    ).trim()
-                ) {
-
-                    return res.status(400).json({
-
-                        success: false,
-
-                        error:
-                            "Firebase UID / External ID দিন।"
-
-                    });
-
-                }
-
-
-                const cleanExternalId =
-                    String(
-                        externalId
-                    ).trim();
-
-
-                console.log(
-                    "===================================="
-                );
-
-                console.log(
-                    "🎯 SPECIFIC USER"
-                );
-
-                console.log(
-                    "Firebase UID / External ID:",
-                    cleanExternalId
-                );
-
-                console.log(
-                    "===================================="
-                );
-
-
-                /*
-                 * CURRENT ONESIGNAL USER TARGETING
-                 */
 
                 notification.include_aliases = {
 
                     external_id: [
 
-                        cleanExternalId
+                        String(
+                            externalId
+                        ).trim()
 
                     ]
 
@@ -293,21 +228,16 @@ app.post(
 
 
             /*
-             * 3️⃣ ALL USERS
+             * ALL USERS
              *
-             * তোমার আগের working targeting
+             * ORIGINAL WORKING METHOD
              */
 
             else {
 
-                console.log(
-                    "📢 TARGET: ALL USERS"
-                );
-
-
                 notification.included_segments = [
 
-                    "Subscribed Users"
+                    "Total Subscriptions"
 
                 ];
 
@@ -332,10 +262,6 @@ app.post(
             );
 
             console.log(
-                "Notification:"
-            );
-
-            console.log(
                 JSON.stringify(
                     notification,
                     null,
@@ -349,7 +275,7 @@ app.post(
 
 
             /* ================================
-               ONESIGNAL REQUEST
+               ONESIGNAL API
             ================================= */
 
             const response =
@@ -395,17 +321,14 @@ app.post(
             } catch {
 
                 data = {
-
-                    raw:
-                        rawText
-
+                    raw: rawText
                 };
 
             }
 
 
             /* ================================
-               LOG RESPONSE
+               RESPONSE LOG
             ================================= */
 
             console.log(
@@ -414,10 +337,7 @@ app.post(
             );
 
             console.log(
-                "OneSignal Response:"
-            );
-
-            console.log(
+                "Response:",
                 JSON.stringify(
                     data,
                     null,
@@ -427,7 +347,7 @@ app.post(
 
 
             /* ================================
-               HTTP ERROR
+               ERROR
             ================================= */
 
             if (!response.ok) {
@@ -457,10 +377,6 @@ app.post(
 
             }
 
-
-            /* ================================
-               ONESIGNAL ERROR
-            ================================= */
 
             if (
                 Array.isArray(
@@ -498,12 +414,10 @@ app.post(
                     "Notification sent successfully!",
 
                 notificationId:
-                    data?.id ||
-                    null,
+                    data?.id || null,
 
                 recipients:
-                    data?.recipients ||
-                    0,
+                    data?.recipients || 0,
 
                 onesignal:
                     data
@@ -517,7 +431,6 @@ app.post(
                 "❌ Server Error:",
                 error
             );
-
 
             return res.status(500).json({
 
