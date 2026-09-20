@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AURA ARMAN TOUR - Notification Admin</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background:
+                radial-gradient(circle at top, #172554, #020617 55%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 22px;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,.15);
+            margin-bottom: 12px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .header p {
+            color: #94a3b8;
+            margin-top: 6px;
+            font-size: 13px;
+        }
+
+        .card {
+            background: rgba(15,23,42,.88);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.35);
+        }
+
+        .group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid #334155;
+            background: #020617;
+            color: white;
+            border-radius: 14px;
+            padding: 13px;
+            outline: none;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #3b82f6;
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .targets {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .target {
+            border: 1px solid #334155;
+            background: #020617;
+            border-radius: 15px;
+            padding: 14px;
+            cursor: pointer;
+        }
+
+        .target input {
+            width: auto;
+            margin-right: 7px;
+        }
+
+        .target span {
+            font-size: 13px;
+        }
+
+        #specificBox {
+            display: none;
+            margin-top: 12px;
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 15px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            display: none;
+            margin-top: 18px;
+            padding: 14px;
+            border-radius: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 13px;
+        }
+
+        .success {
+            display: block;
+            background: rgba(34,197,94,.12);
+            border: 1px solid rgba(34,197,94,.3);
+            color: #86efac;
+        }
+
+        .error {
+            display: block;
+            background: rgba(239,68,68,.12);
+            border: 1px solid rgba(239,68,68,.3);
+            color: #fca5a5;
+        }
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 11px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <img
+            class="logo"
+            src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
+            alt="AURA"
+        >
+
+        <h1>AURA ARMAN TOUR</h1>
+        <p>Notification Control Panel</p>
+    </div>
+
+    <div class="card">
+
+        <div class="group">
+            <label>Notification Target</label>
+
+            <div class="targets">
+
+                <label class="target">
+                    <input
+                        type="radio"
+                        name="target"
+                        value="all"
+                        checked
+                    >
+                    <span>All Users</span>
+                </label>
+
+                <label class="target">
+                    <input
+                        type="radio"
+                        name="target"
+                        value="specific"
+                    >
+                    <span>Specific User</span>
+                </label>
+
+            </div>
+
+            <div id="specificBox">
+                <label>Firebase UID / External ID</label>
+
+                <input
+                    id="externalId"
+                    type="text"
+                    placeholder="Enter Firebase UID"
+                >
+            </div>
+        </div>
+
+
+        <div class="group">
+            <label>Notification Title</label>
+
+            <input
+                id="title"
+                type="text"
+                placeholder="Enter notification title"
+            >
+        </div>
+
+
+        <div class="group">
+            <label>Message</label>
+
+            <textarea
+                id="message"
+                placeholder="Write your notification message..."
+            ></textarea>
+        </div>
+
+
+        <div class="group">
+            <label>Icon URL (Optional)</label>
+
+            <input
+                id="icon"
+                type="url"
+                value="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
+            >
+        </div>
+
+
+        <div class="group">
+            <label>Big Image URL (Optional)</label>
+
+            <input
+                id="image"
+                type="url"
+                placeholder="https://example.com/image.jpg"
+            >
+        </div>
+
+
+        <div class="group">
+            <label>Click URL (Optional)</label>
+
+            <input
+                id="url"
+                type="url"
+                value="https://aura-skill-com.onrender.com"
+            >
+        </div>
+
+
+        <button id="sendBtn">
+            SEND NOTIFICATION
+        </button>
+
+
+        <div id="result" class="result"></div>
+
+    </div>
+
+    <div class="footer">
+        AURA ARMAN TOUR • Secure Notification System
+    </div>
+
+</div>
+
+
+<script>
+
+const targetInputs =
+    document.querySelectorAll('input[name="target"]');
+
+const specificBox =
+    document.getElementById("specificBox");
+
+const sendBtn =
+    document.getElementById("sendBtn");
+
+const result =
+    document.getElementById("result");
+
+
+targetInputs.forEach(input => {
+
+    input.addEventListener("change", () => {
+
+        if (input.checked && input.value === "specific") {
+            specificBox.style.display = "block";
+        } else if (input.checked && input.value === "all") {
+            specificBox.style.display = "none";
+        }
+
+    });
+
+});
+
+
+sendBtn.addEventListener("click", async () => {
+
+    const target =
+        document.querySelector(
+            'input[name="target"]:checked'
+        ).value;
+
+    const externalId =
+        document.getElementById("externalId").value.trim();
+
+    const title =
+        document.getElementById("title").value.trim();
+
+    const message =
+        document.getElementById("message").value.trim();
+
+    const icon =
+        document.getElementById("icon").value.trim();
+
+    const image =
+        document.getElementById("image").value.trim();
+
+    const url =
+        document.getElementById("url").value.trim();
+
+
+    if (!title) {
+        showResult(
+            "Please enter notification title.",
+            false
+        );
+        return;
+    }
+
+
+    if (!message) {
+        showResult(
+            "Please enter notification message.",
+            false
+        );
+        return;
+    }
+
+
+    if (target === "specific" && !externalId) {
+        showResult(
+            "Please enter Firebase UID.",
+            false
+        );
+        return;
+    }
+
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = "SENDING...";
+
+
+    try {
+
+        const response = await fetch(
+            "/api/notifications/send",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    target,
+                    externalId,
+                    title,
+                    message,
+                    icon,
+                    image,
+                    url
+                })
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if (!response.ok || !data.success) {
+
+            throw new Error(
+                data.error ||
+                data.details?.errors?.join(", ") ||
+                "Notification sending failed."
+            );
+
+        }
+
+
+        showResult(
+            "✅ Notification sent successfully!\n\n" +
+            JSON.stringify(
+                data.onesignal,
+                null,
+                2
+            ),
+            true
+        );
+
+
+    } catch (error) {
+
+        showResult(
+            "❌ Notification failed\n\n" +
+            error.message,
+            false
+        );
+
+    } finally {
+
+        sendBtn.disabled = false;
+        sendBtn.textContent = "SEND NOTIFICATION";
+
+    }
+
+});
+
+
+function showResult(text, success) {
+
+    result.textContent = text;
+
+    result.className =
+        "result " +
+        (success ? "success" : "error");
+
+    result.style.display = "block";
+
+}
+
+</script>
+
+</body>
+</html>
