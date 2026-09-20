@@ -1,0 +1,12 @@
+{
+  "name": "aura-notification-admin",
+  "version": "1.0.0",
+  "description": "AURA ARMAN TOUR Notification Admin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
