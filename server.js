@@ -2,7 +2,7 @@ const express = require("express");
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
@@ -24,9 +24,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.post("/api/notifications/send", async (req, res) => {
-
     try {
-
         if (!ONESIGNAL_APP_ID) {
             return res.status(500).json({
                 success: false,
@@ -42,30 +40,60 @@ app.post("/api/notifications/send", async (req, res) => {
         }
 
         const {
-            target,
-            externalId,
-            title,
-            message,
-            icon,
-            image,
-            url
-        } = req.body;
+            target = "all",
+            externalId = "",
+            title = "",
+            message = "",
+            icon = "",
+            image = "",
+            url = ""
+        } = req.body || {};
 
-        if (!title || !message) {
+        const cleanTarget = String(target).trim();
+        const cleanExternalId = String(externalId).trim();
+        const cleanTitle = String(title).trim();
+        const cleanMessage = String(message).trim();
+        const cleanIcon = String(icon).trim();
+        const cleanImage = String(image).trim();
+        const cleanUrl = String(url).trim();
+
+        if (!cleanTitle) {
             return res.status(400).json({
                 success: false,
-                error: "Title and message are required."
+                error: "Notification title is required."
             });
         }
 
+        if (!cleanMessage) {
+            return res.status(400).json({
+                success: false,
+                error: "Notification message is required."
+            });
+        }
+
+        if (
+            cleanTarget !== "all" &&
+            cleanTarget !== "specific"
+        ) {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid notification target."
+            });
+        }
+
+        /*
+         * OneSignal notification body
+         */
         const body = {
             app_id: ONESIGNAL_APP_ID,
             target_channel: "push",
+
             headings: {
-                en: String(title)
+                en: cleanTitle
             },
+
             contents: {
-                en: String(message)
+                en: cleanMessage
             }
         };
 
@@ -73,9 +101,8 @@ app.post("/api/notifications/send", async (req, res) => {
          * TARGET
          */
 
-        if (target === "specific") {
-
-            if (!externalId) {
+        if (cleanTarget === "specific") {
+            if (!cleanExternalId) {
                 return res.status(400).json({
                     success: false,
                     error: "Firebase UID / External ID is required."
@@ -83,45 +110,48 @@ app.post("/api/notifications/send", async (req, res) => {
             }
 
             body.include_aliases = {
-                external_id: [String(externalId)]
+                external_id: [cleanExternalId]
             };
 
         } else {
-
+            /*
+             * Send to every currently subscribed push user.
+             */
             body.included_segments = [
                 "Subscribed Users"
             ];
-
         }
 
         /*
-         * OPTIONAL ICON
+         * ICON
          */
 
-        if (icon) {
-            body.chrome_web_icon = String(icon);
-            body.chrome_web_badge = String(icon);
+        if (cleanIcon) {
+            body.chrome_web_icon = cleanIcon;
+            body.chrome_web_badge = cleanIcon;
         }
 
         /*
-         * OPTIONAL IMAGE
+         * IMAGE
          */
 
-        if (image) {
-            body.chrome_web_image = String(image);
-            body.big_picture = String(image);
+        if (cleanImage) {
+            body.chrome_web_image = cleanImage;
+            body.big_picture = cleanImage;
         }
 
         /*
-         * OPTIONAL CLICK URL
+         * CLICK URL
          */
 
-        if (url) {
-            body.url = String(url);
-            body.web_url = String(url);
+        if (cleanUrl) {
+            body.url = cleanUrl;
+            body.web_url = cleanUrl;
         }
 
-        console.log("========== ONESIGNAL REQUEST ==========");
+        console.log("======================================");
+        console.log("AURA NOTIFICATION REQUEST");
+        console.log("======================================");
         console.log(JSON.stringify(body, null, 2));
 
         const response = await fetch(
@@ -131,7 +161,8 @@ app.post("/api/notifications/send", async (req, res) => {
 
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": "Key " + ONESIGNAL_REST_API_KEY
+                    "Authorization":
+                        "Key " + ONESIGNAL_REST_API_KEY
                 },
 
                 body: JSON.stringify(body)
@@ -140,9 +171,11 @@ app.post("/api/notifications/send", async (req, res) => {
 
         const responseText = await response.text();
 
-        console.log("========== ONESIGNAL RESPONSE ==========");
-        console.log("HTTP STATUS:", response.status);
+        console.log("======================================");
+        console.log("ONESIGNAL RESPONSE");
+        console.log("STATUS:", response.status);
         console.log(responseText);
+        console.log("======================================");
 
         let result;
 
@@ -154,36 +187,79 @@ app.post("/api/notifications/send", async (req, res) => {
             };
         }
 
+        /*
+         * OneSignal ERROR
+         */
+
         if (!response.ok) {
+            const errors =
+                Array.isArray(result?.errors)
+                    ? result.errors
+                    : [];
+
+            const errorText =
+                errors.length
+                    ? errors.join(", ")
+                    : (
+                        result?.error ||
+                        result?.message ||
+                        "OneSignal rejected the notification."
+                    );
+
+            if (
+                errorText
+                    .toLowerCase()
+                    .includes("all included players are not subscribed")
+            ) {
+                return res.status(400).json({
+                    success: false,
+
+                    error:
+                        cleanTarget === "specific"
+                            ? "এই User-এর কোনো active notification subscription পাওয়া যায়নি। User-কে notification permission Allow করতে হবে এবং OneSignal subscription তৈরি হতে হবে।"
+                            : "কোনো subscribed user পাওয়া যায়নি। আগে user/device থেকে notification permission Allow করতে হবে।",
+
+                    onesignal: result
+                });
+            }
 
             return res.status(response.status).json({
                 success: false,
-                error: "OneSignal rejected the notification.",
+                error: errorText,
                 httpStatus: response.status,
-                details: result
+                onesignal: result
             });
-
         }
+
+        /*
+         * SUCCESS
+         */
 
         return res.json({
             success: true,
-            message: "Notification sent successfully.",
+
+            message:
+                cleanTarget === "specific"
+                    ? "Specific user notification sent successfully."
+                    : "Notification sent successfully.",
+
             onesignal: result
         });
 
     } catch (error) {
-
-        console.error("SERVER ERROR:", error);
+        console.error("======================================");
+        console.error("SERVER ERROR");
+        console.error(error);
+        console.error("======================================");
 
         return res.status(500).json({
             success: false,
-            error: error.message || "Server error"
+            error:
+                error?.message ||
+                "Notification server error."
         });
-
     }
-
 });
-
 
 app.listen(PORT, () => {
     console.log(
