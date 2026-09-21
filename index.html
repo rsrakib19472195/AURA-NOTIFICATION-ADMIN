@@ -142,7 +142,6 @@
                 </div>
             </div>
 
-            <!-- Gateway Filter Buttons for Deposits -->
             <div class="flex gap-2">
                 <button onclick="filterDepositGateway('bkash')" id="dep-filter-bkash" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition"><i class="fa-solid fa-wallet mr-1"></i> bKash Requests</button>
                 <button onclick="filterDepositGateway('nagad')" id="dep-filter-nagad" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition"><i class="fa-solid fa-wallet mr-1"></i> Nagad Requests</button>
@@ -164,7 +163,6 @@
                 </div>
             </div>
 
-            <!-- Gateway Filter Buttons for Withdraws -->
             <div class="flex gap-2">
                 <button onclick="filterWithdrawGateway('bkash')" id="wd-filter-bkash" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition"><i class="fa-solid fa-wallet mr-1"></i> bKash Withdraws</button>
                 <button onclick="filterWithdrawGateway('nagad')" id="wd-filter-nagad" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition"><i class="fa-solid fa-wallet mr-1"></i> Nagad Withdraws</button>
@@ -191,7 +189,6 @@
             </div>
         </div>
 
-        <!-- AURA ARMAN legacy feature access -->
         <div class="mt-3 flex justify-end">
             <button onclick="openAuraLegacyFeatures()" class="bg-slate-800 hover:bg-slate-700 border border-blue-500/30 text-blue-300 text-[11px] font-bold px-3 py-2 rounded-xl transition">
                 <i class="fa-solid fa-shield-halved mr-1"></i> AURA ARMAN FEATURES
@@ -233,17 +230,20 @@
         import { auth, db, ADMIN_EMAIL, linkOneSignalUser } from "./firebase.js";
         import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, orderBy, limit, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-
-        const auraStorage = getStorage();
-        // Link the logged-in admin Firebase UID to the native Median/OneSignal user.
-        // This is required so the Render server can target the admin device by external_id.
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // ADMIN AUTH GUARD
-        // Admin page must never load Firestore controls before Firebase Auth is ready.
-        // If there is no session, send the user to the existing login page.
-        // Only the configured ADMIN_EMAIL can enter this panel.
         let __adminAuthReady = false;
+        document.addEventListener('DOMContentLoaded', () => {
+            const notificationBtn = document.getElementById('openNotificationBtn');
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.assign('./notification.html');
+                });
+            }
+        });
+
         onAuthStateChanged(auth, (user) => {
             __adminAuthReady = true;
             if (!user) {
@@ -262,11 +262,9 @@
 
             const link = () => linkOneSignalUser(user).catch(err => console.warn('OneSignal admin link failed:', err));
             link();
-            // Median native bridge may become ready shortly after the page loads.
             setTimeout(link, 1500);
             setTimeout(link, 4000);
         });
-
 
         let allSections = [];
         let allGroups = [];
@@ -277,6 +275,10 @@
         let currentDepGateway = 'bkash';
         let currentWdGateway = 'bkash';
         let activeRuleCategory = 'br_headshot';
+
+        window.closeGenericModal = function() {
+            document.getElementById('generic-modal').style.display = 'none';
+        }
 
         window.showToast = function(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -293,6 +295,7 @@
 
         window.loadAllAdminData = async function() {
             try {
+                await cleanupExpiredCompletedTournaments();
                 const [secSnap, groupSnap, tourSnap, bannerSnap, depSnap, depositRequestSnap, wdSnap] = await Promise.all([
                     getDocs(collection(db, "sections")),
                     getDocs(collection(db, "groups")),
@@ -321,13 +324,9 @@
                         if(currentStatus === 'upcoming' && now >= startTime) {
                             currentStatus = 'live';
                             await updateDoc(doc(db, "tournaments", d.id), { status: 'live' });
-                        } else if(currentStatus === 'live' && now >= (startTime + 10 * 60 * 1000)) {
-                            currentStatus = 'completed';
-                            await updateDoc(doc(db, "tournaments", d.id), { status: 'completed', completedAt: now });
                         }
                     }
 
-                    // Completed tournaments stay visible until admin explicitly deletes them.
                     tData.status = currentStatus;
                     allTournaments.push(tData);
                 });
@@ -338,14 +337,12 @@
                 allDeposits = [];
                 let pendingDepCount = 0;
                 const depositIds = new Set();
-                // Current app creates pending deposit requests in `deposits`.
                 depositRequestSnap.forEach(d => {
                     const data = d.data() || {};
                     allDeposits.push({ id: d.id, ...data, __source: 'deposits' });
                     depositIds.add(d.id);
                     if(String(data.status || 'pending').toLowerCase() === 'pending') pendingDepCount++;
                 });
-                // Keep compatibility with the older `transactions` deposit schema.
                 depSnap.forEach(d => {
                     const data = d.data() || {};
                     if((data.type === "Deposit" || data.gateway || data.amount) && !depositIds.has(d.id)) {
@@ -379,7 +376,6 @@
             }
         }
 
-        // Realtime request listeners: support both current `deposits` and legacy `transactions`.
         let __adminRealtimeSeen = new Set();
         function __handleNewAdminRequest(type, change){
             if(change.type !== 'added') return;
@@ -410,14 +406,12 @@
             });
         }
 
-        // --- RULES EDITOR FUNCTIONS ---
         window.loadAdminRuleEditor = async function(cat) {
             activeRuleCategory = cat;
             ['br_headshot', 'lone_wolf_headshot', 'lone_wolf_bodyshot', 'cs_headshot'].forEach(m => {
                 const btn = document.getElementById(`admin-rule-${m}`);
                 if(btn) btn.className = (m === cat) ? "py-2 px-1 rounded-xl text-[11px] font-bold bg-blue-600 text-white truncate" : "py-2 px-1 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 truncate";
             });
-            
             try {
                 const docRef = doc(db, "matchRules", cat);
                 const snap = await getDoc(docRef);
@@ -571,6 +565,94 @@
             } catch(e) { showToast('সমস্যা হয়েছে', 'error'); }
         }
 
+        // --- MY MATCHES ARCHIVE + AUTO DELETE HELPERS ---
+        async function archiveTournamentForMyMatches(tournamentId, t, resultsOverride = null) {
+            const participants = Array.isArray(t?.participants) ? t.participants : [];
+            const results = Array.isArray(resultsOverride) ? resultsOverride : (Array.isArray(t?.results) ? t.results : []);
+            if (!participants.length) return;
+
+            const completedAt = Number(t.completedAt || Date.now());
+            const deleteAfter = Number(t.deleteAfter || (completedAt + 60 * 60 * 1000));
+
+            for (const participant of participants) {
+                const uid = String(participant?.uid || participant?.userId || participant?.firebaseId || '').trim();
+                if (!uid) continue;
+
+                const result = results.find(r => String(r?.userId || r?.uid || '') === uid) || {};
+                const slotCount = Math.max(1, Number(participant?.count || participant?.slotCount || (Array.isArray(participant?.players) ? participant.players.length : 1)));
+                const entryFeePaid = Number(participant?.entryFeePaid ?? participant?.paidEntryFee ?? participant?.amountPaid ?? ((Number(t.entryFee || 0)) * slotCount));
+                const wonAmount = result.winner
+                    ? (Number(result.prize || t.prize || 0) * slotCount) + (Number(result.kills || 0) * Number(t.perKill || 0))
+                    : (result.killOnly ? Number(result.kills || 0) * Number(t.perKill || 0) : 0);
+                const hasResult = Object.keys(result).length > 0;
+                const outcome = result.winner === true ? 'WIN' : (hasResult ? 'LOSS' : 'Result Pending');
+
+                await setDoc(doc(db, 'matchHistory', `${tournamentId}_${uid}`), {
+                    tournamentId,
+                    userId: uid,
+                    userName: participant.userName || participant.username || result.userName || 'User',
+                    name: t.name || 'Tournament',
+                    time: t.time || 'Scheduled',
+                    map: t.map || 'Bermuda',
+                    prize: t.prize || 0,
+                    entryFee: Number(t.entryFee || 0),
+                    entryFeePaid,
+                    wonAmount,
+                    result: outcome,
+                    isWinner: result.winner === true,
+                    winner: result.winner === true,
+                    kills: Number(result.kills || 0),
+                    position: Number(result.position || 0),
+                    points: Number(result.points || 0),
+                    roomId: t.roomId || '',
+                    roomPass: t.roomPass || '',
+                    userPlayers: Array.isArray(participant.players) ? participant.players : [],
+                    registeredAt: Number(participant.registeredAt || 0),
+                    completedAt,
+                    deleteAfter,
+                    archivedAt: Date.now()
+                }, { merge: true });
+            }
+        }
+
+        function scheduleTournamentDeletion(tournamentId, deleteAfter) {
+            const delay = Math.max(0, Number(deleteAfter || 0) - Date.now());
+            if (delay === 0) {
+                deleteDoc(doc(db, 'tournaments', tournamentId)).catch(e => console.warn('Tournament auto-delete failed:', e));
+                return;
+            }
+            setTimeout(async () => {
+                try {
+                    const snap = await getDoc(doc(db, 'tournaments', tournamentId));
+                    if (!snap.exists()) return;
+                    const data = snap.data() || {};
+                    if (String(data.status || '').toLowerCase() === 'completed' && Number(data.deleteAfter || 0) <= Date.now()) {
+                        await deleteDoc(doc(db, 'tournaments', tournamentId));
+                        await loadAllAdminData();
+                    }
+                } catch (e) { console.warn('Tournament auto-delete failed:', e); }
+            }, delay + 1000);
+        }
+
+        async function cleanupExpiredCompletedTournaments() {
+            try {
+                const snap = await getDocs(collection(db, 'tournaments'));
+                const now = Date.now();
+                const jobs = [];
+                snap.forEach(d => {
+                    const data = d.data() || {};
+                    const status = String(data.status || '').toLowerCase();
+                    const deleteAfter = Number(data.deleteAfter || 0);
+                    if (deleteAfter > 0 && deleteAfter <= now && (status === 'completed' || data.completedAt)) {
+                        jobs.push(deleteDoc(doc(db, 'tournaments', d.id)));
+                    } else if (status === 'completed' && deleteAfter > now) {
+                        scheduleTournamentDeletion(d.id, deleteAfter);
+                    }
+                });
+                if (jobs.length) await Promise.allSettled(jobs);
+            } catch (e) { console.warn('Expired tournament cleanup failed:', e); }
+        }
+
         function renderTournamentsList() {
             const list = document.getElementById('admin-tournaments-list');
             if(!list) return;
@@ -579,7 +661,15 @@
                 list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো টুর্নামেন্ট নেই।</p>`;
                 return;
             }
-            allTournaments.forEach(t => {
+            // Completed tournaments are removed from the Admin panel immediately.
+            // The Firestore tournament document is kept until deleteAfter so the user-facing
+            // Complete section can still show it for 1 hour. My Matches history is permanent.
+            const adminVisibleTournaments = allTournaments.filter(t => String(t.status || '').toLowerCase() !== 'completed');
+            if(adminVisibleTournaments.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো active tournament নেই।</p>`;
+                return;
+            }
+            adminVisibleTournaments.forEach(t => {
                 const parentGroup = allGroups.find(g => g.id === t.groupId);
                 list.innerHTML += `
                     <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
@@ -588,9 +678,10 @@
                             <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Status: <b>${t.status || 'upcoming'}</b></span>
                             <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Players/Slot Size: <b>${t.slotSize || 1}</b> | Map: ${t.map || 'Bermuda'} | Fee: ৳${t.entryFee || 0}</span>
                         </div>
-                        <div class="flex space-x-2 items-center">
+                        <div class="flex space-x-2 items-center flex-wrap gap-y-1">
                             <button onclick="openRegistrationsModal('${t.id}', '${t.name}')" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="View Registrations"><i class="fa-solid fa-users mr-1"></i> Regs</button>
                             <button onclick="openTournamentResult('${t.id}')" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="Tournament Result"><i class="fa-solid fa-trophy mr-1"></i> Result</button>
+                            <button onclick="completeTournamentAction('${t.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="Complete Tournament"><i class="fa-solid fa-circle-check mr-1"></i> Complete</button>
                             <button onclick="openRoomDetailsModal('${t.id}')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="Update Room Details"><i class="fa-solid fa-key mr-1"></i> Room</button>
                             <button onclick="editTournament('${t.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg" title="Edit"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteDocItem('tournaments', '${t.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg" title="Delete"><i class="fa-solid fa-trash"></i></button>
@@ -599,6 +690,30 @@
                 `;
             });
         }
+
+        // --- TOURNAMENT COMPLETE ACTION ---
+        window.completeTournamentAction = async function(tournamentId) {
+            if(!confirm('এই টুর্নামেন্টটি কি কমপ্লিট করে দিতে চান? Complete হলে 1 ঘণ্টা পর tournament document auto delete হবে, কিন্তু My Matches history থেকে যাবে।')) return;
+            try {
+                const tourRef = doc(db, "tournaments", tournamentId);
+                const tourSnap = await getDoc(tourRef);
+                if(!tourSnap.exists()) throw new Error('Tournament পাওয়া যায়নি।');
+                const t = tourSnap.data() || {};
+                const completedAt = Date.now();
+                const deleteAfter = completedAt + 60 * 60 * 1000;
+                await archiveTournamentForMyMatches(tournamentId, t, Array.isArray(t.results) ? t.results : []);
+                await updateDoc(tourRef, {
+                    status: 'completed',
+                    completedAt,
+                    deleteAfter
+                });
+                scheduleTournamentDeletion(tournamentId, deleteAfter);
+                showToast('টুর্নামেন্ট কমপ্লিট হয়েছে। My Matches history সংরক্ষিত থাকবে এবং 1 ঘণ্টা পর tournament auto delete হবে!');
+                await loadAllAdminData();
+            } catch(e) {
+                showToast('কমপ্লিট করতে সমস্যা হয়েছে: ' + (e?.message || e), 'error');
+            }
+        };
 
         window.openTournamentModal = function(editData = null) {
             let groupOptions = allGroups.map(g => `<option value="${g.id}" ${editData && editData.groupId === g.id ? 'selected' : ''}>${g.name}</option>`).join('');
@@ -748,8 +863,6 @@
             } catch(e) { showToast('সমস্যা হয়েছে', 'error'); }
         }
 
-
-        // ---------- ROOM DETAILS: isolated update ----------
         window.openRoomDetailsModal = async function(tournamentId) {
             try {
                 const snap = await getDoc(doc(db, "tournaments", tournamentId));
@@ -794,7 +907,6 @@
             }
         };
 
-        // ---------- TOURNAMENT RESULT + ONE-TIME PAYOUT ----------
         const resultEscape = (v) => String(v ?? '')
             .replace(/&/g,'&amp;').replace(/</g,'&lt;')
             .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
@@ -810,7 +922,7 @@
                 const prizePerSlot = Number(t.prize || 0);
                 const killPrice = Number(t.perKill || 0);
 
-                document.getElementById('modal-title').innerText = 'Tournament Result';
+                document.getElementById('modal-title').innerText = 'Tournament Result & Winner Payout';
                 window.__activeResultTournamentId = tournamentId;
                 document.getElementById('generic-modal').setAttribute('data-result-tour-id', tournamentId);
                 document.getElementById('generic-modal').style.display = 'flex';
@@ -823,24 +935,31 @@
                         const name = String(p.userName || p.username || p.ign || (Array.isArray(p.players) ? p.players[0] : '') || 'User');
                         const count = Math.max(1, Number(p.count || p.slotCount || (Array.isArray(p.players) ? p.players.length : 1)));
                         const old = saved.find(r => String(r.userId || r.uid || '') === uid) || saved[i] || {};
-                        const checked = old.winner ? 'checked' : '';
+                        const isWinnerChecked = old.winner ? 'checked' : '';
+                        const isKillOnlyChecked = old.killOnly ? 'checked' : '';
                         const oldKills = old.kills ?? '';
                         const oldPos = old.position ?? '';
                         const oldPoints = old.points ?? '';
-                        rows += `
-                          <div class="result-row bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2"
+                        
+                        return `
+                          <div class="result-row bg-[#050811] border border-slate-800 rounded-xl p-3 mb-3"
                                data-user-id="${resultEscape(uid)}" data-slot-count="${count}">
                             <div class="flex justify-between gap-2 items-start mb-2">
                               <div class="min-w-0">
                                 <div class="font-bold text-white text-sm">${resultEscape(name)}</div>
-                                <div class="text-[10px] text-emerald-400">${count} Slot${uid ? ' • UID: '+resultEscape(uid) : ' • UID missing'}</div>
+                                <div class="text-[10px] text-emerald-400">Registered Slots/Players: <b class="text-white">${count}</b> ${uid ? ' • UID: '+resultEscape(uid) : ' • UID missing'}</div>
                               </div>
-                              <label class="flex items-center gap-1 text-[11px] text-amber-300 whitespace-nowrap">
-                                <input type="checkbox" class="result-winner" ${checked}> Winner
-                              </label>
+                              <div class="flex items-center gap-3">
+                                <label class="flex items-center gap-1 text-[11px] text-amber-300 whitespace-nowrap cursor-pointer">
+                                  <input type="checkbox" class="result-winner" ${isWinnerChecked}> Winner (Prize×${count} + Kill)
+                                </label>
+                                <label class="flex items-center gap-1 text-[11px] text-blue-300 whitespace-nowrap cursor-pointer">
+                                  <input type="checkbox" class="result-kill-only" ${isKillOnlyChecked}> Only Kill Prize
+                                </label>
+                              </div>
                             </div>
                             <input type="hidden" class="result-user-name" value="${resultEscape(name)}">
-                            ${uid ? '' : '<input class="result-user-id w-full mb-2 bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Winner হলে User ID দিন">'}
+                            ${uid ? '' : '<input class="result-user-id w-full mb-2 bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Winner বা Player এর User ID দিন">'}
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                               <input type="number" min="1" class="result-position bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Position" value="${oldPos}">
                               <input type="number" min="0" class="result-kills bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Kills" value="${oldKills}">
@@ -849,41 +968,28 @@
                             </div>
                           </div>`;
                     }).join('');
-                } else if(saved.length) {
-                    rows = saved.map(r => {
-                        const uid = String(r.userId || r.uid || '');
-                        const name = String(r.userName || r.username || 'User');
-                        const count = Math.max(1, Number(r.slotCount || 1));
-                        return `<div class="result-row bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2" data-user-id="${resultEscape(uid)}" data-slot-count="${count}">
-                          <div class="font-bold text-white text-sm mb-2">${resultEscape(name)}</div>
-                          <label class="flex items-center gap-1 text-xs text-amber-300 mb-2"><input type="checkbox" class="result-winner" ${r.winner?'checked':''}> Winner</label>
-                          <input type="hidden" class="result-user-name" value="${resultEscape(name)}">
-                          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <input type="number" min="1" class="result-position bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Position" value="${r.position ?? ''}">
-                            <input type="number" min="0" class="result-kills bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Kills" value="${r.kills ?? ''}">
-                            <input type="number" min="0" class="result-points bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Points" value="${r.points ?? ''}">
-                            <input type="number" min="0" class="result-prize bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Prize / Slot" value="${r.prize ?? prizePerSlot}">
-                          </div>
-                        </div>`;
-                    }).join('');
                 } else {
-                    rows = '<p class="text-center text-slate-500 py-6">কোনো registration পাওয়া যায়নি।</p>';
+                    rows = '<p class="text-center text-slate-500 py-6">কোনো registered player পাওয়া যায়নি। নিচের "+ Add Player" বাটন দিয়ে ম্যানুয়ালি যোগ করতে পারেন।</p>';
                 }
 
                 body.innerHTML = `
                   <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-200 mb-3">
                     Tournament Prize / Slot: <b>৳${prizePerSlot}</b> • Kill Price: <b>৳${killPrice}</b>
-                    <div class="text-slate-300 mt-1">Winner-এর payout = Prize × registered slots + (Kills × Kill Price)। Kill Price 0 হলে kill bonus যাবে না।</div>
+                    <div class="text-slate-300 mt-1">
+                      • <b>Winner সিলেক্ট করলে:</b> (Prize × registered player/slot count) + (Kills × Kill Price) পাবে।<br>
+                      • <b>Only Kill Prize সিলেক্ট করলে:</b> শুধু (Kills × Kill Price) পাবে, মূল প্রাইজ পাবেনা।<br>
+                      • Publish করলেই অটো ইউজারের ওয়ালেটে ব্যালেন্স চলে যাবে এবং টুর্নামেন্ট কমপ্লিট হয়ে যাবে।
+                    </div>
                   </div>
                   <div class="flex items-center justify-between mb-3">
-                    <span class="text-xs text-slate-400">Registered: <b class="text-white">${participants.length}</b></span>
-                    <label class="text-xs text-slate-300 flex items-center gap-2">
-                      <input id="result-publish" type="checkbox" ${t.resultPublished ? 'checked' : ''}> Publish & Pay
+                    <span class="text-xs text-slate-400">Registered Players: <b class="text-white">${participants.length}</b></span>
+                    <label class="text-xs text-slate-300 flex items-center gap-2 cursor-pointer font-bold text-emerald-400">
+                      <input id="result-publish" type="checkbox" ${t.resultPublished ? 'checked' : ''}> Publish Result & Auto Send Prize to Wallet
                     </label>
                   </div>
                   <div id="result-rows" class="max-h-[55vh] overflow-y-auto">${rows}</div>
                   <button onclick="addManualResultRow()" class="w-full mt-2 bg-slate-800 text-white py-2 rounded-xl text-xs font-bold">+ Add Player</button>
-                  <button onclick="saveTournamentResult()" class="w-full mt-2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl font-black">Save / Publish Result</button>`;
+                  <button onclick="saveTournamentResult()" class="w-full mt-3 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl font-black">Save / Publish Result & Payout</button>`;
             } catch(e) {
                 body.innerHTML = `<p class="text-center text-rose-400 py-6">${resultEscape(e.message || 'Result load failed')}</p>`;
             }
@@ -893,15 +999,19 @@
             const box = document.getElementById('result-rows');
             if(!box) return;
             const row = document.createElement('div');
-            row.className = 'result-row bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2';
+            row.className = 'result-row bg-[#050811] border border-slate-800 rounded-xl p-3 mb-3';
             row.setAttribute('data-user-id','');
             row.setAttribute('data-slot-count','1');
             row.innerHTML = `
               <div class="flex gap-2 mb-2">
                 <input class="result-user-name flex-1 bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Username">
-                <input class="result-user-id w-32 bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="User ID">
+                <input class="result-user-id w-32 bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="User UID">
+                <input class="result-slot-count w-20 bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" type="number" min="1" value="1" placeholder="Slots">
               </div>
-              <label class="text-xs text-amber-300 flex items-center gap-2 mb-2"><input type="checkbox" class="result-winner"> Winner</label>
+              <div class="flex gap-4 mb-2">
+                <label class="text-xs text-amber-300 flex items-center gap-1 cursor-pointer"><input type="checkbox" class="result-winner"> Winner</label>
+                <label class="text-xs text-blue-300 flex items-center gap-1 cursor-pointer"><input type="checkbox" class="result-kill-only"> Only Kill Prize</label>
+              </div>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <input type="number" min="1" class="result-position bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Position">
                 <input type="number" min="0" class="result-kills bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Kills">
@@ -925,47 +1035,84 @@
                 const t = tourSnap.data() || {};
                 const perKill = Number(t.perKill || 0);
                 const resultRows = [...resultBox.querySelectorAll('.result-row')];
+                
                 const results = resultRows.map(row => {
                     const userId = row.getAttribute('data-user-id') || row.querySelector('.result-user-id')?.value.trim() || '';
-                    const userName = row.querySelector('.result-user-name')?.value || row.querySelector('.result-user-name')?.textContent || row.querySelector('.result-user-name')?.value || '';
-                    const count = Math.max(1, Number(row.getAttribute('data-slot-count') || 1));
+                    const userName = row.querySelector('.result-user-name')?.value || 'User';
+                    const customSlotInput = row.querySelector('.result-slot-count');
+                    const count = Math.max(1, Number(customSlotInput ? customSlotInput.value : (row.getAttribute('data-slot-count') || 1)));
                     const winner = !!row.querySelector('.result-winner')?.checked;
+                    const killOnly = !!row.querySelector('.result-kill-only')?.checked;
                     const kills = Math.max(0, Number(row.querySelector('.result-kills')?.value || 0));
                     const position = Math.max(0, Number(row.querySelector('.result-position')?.value || 0));
                     const points = Math.max(0, Number(row.querySelector('.result-points')?.value || 0));
                     const prize = Math.max(0, Number(row.querySelector('.result-prize')?.value || t.prize || 0));
-                    return {userId, uid:userId, userName, username:userName, slotCount:count, winner, kills, position, points, prize};
-                }).filter(r => r.userId || r.userName || r.winner || r.kills || r.position || r.points);
+                    return {userId, uid:userId, userName, username:userName, slotCount:count, winner, killOnly, kills, position, points, prize};
+                }).filter(r => r.userId || r.userName || r.winner || r.killOnly || r.kills || r.position || r.points);
 
                 if(published) {
-                    const winners = results.filter(r => r.winner);
-                    for(const w of winners) {
-                        if(!w.userId) throw new Error(`${w.userName || 'Winner'}-এর User ID নেই।`);
-                        const payout = (w.prize * w.slotCount) + (w.kills * perKill);
+                    for(const r of results) {
+                        if((r.winner || r.killOnly) && !r.userId) {
+                            throw new Error(`${r.userName || 'Player'}-এর User ID দেওয়া হয়নি, ব্যালেন্স পাঠানো সম্ভব নয়।`);
+                        }
+                        
+                        let payout = 0;
+                        if(r.winner) {
+                            // Duo/Squad er khetre prize * slotCount + (kills * perKill)
+                            payout = (r.prize * r.slotCount) + (r.kills * perKill);
+                        } else if(r.killOnly) {
+                            // Sudu kill er prize
+                            payout = r.kills * perKill;
+                        }
+
                         if(payout <= 0) continue;
 
-                        const payoutId = `${id}_${encodeURIComponent(w.userId).replace(/%/g,'_')}`;
+                        const payoutId = `${id}_${encodeURIComponent(r.userId).replace(/%/g,'_')}`;
                         const payoutRef = doc(db,'tournamentPayouts',payoutId);
-                        const userRef = doc(db,'users',w.userId);
+                        const userRef = doc(db,'users',r.userId);
 
                         await runTransaction(db, async(tx) => {
                             const payoutSnap = await tx.get(payoutRef);
-                            if(payoutSnap.exists()) return;
+                            if(payoutSnap.exists()) return; // ekbar e payout jeno hoy
                             const userSnap = await tx.get(userRef);
-                            if(!userSnap.exists()) throw new Error(`User পাওয়া যায়নি: ${w.userName || w.userId}`);
+                            if(!userSnap.exists()) throw new Error(`User পাওয়া যায়নি: ${r.userName || r.userId}`);
                             const bal = Number(userSnap.data().balance || 0);
-                            tx.update(userRef,{balance:bal+payout});
-                            tx.set(payoutRef,{tournamentId:id,userId:w.userId,userName:w.userName,slotCount:w.slotCount,prizePerSlot:w.prize,kills:w.kills,killPrice:perKill,amount:payout,createdAt:Date.now(),type:'tournament_prize'});
+                            tx.update(userRef, { balance: bal + payout });
+                            tx.set(payoutRef, {
+                                tournamentId: id,
+                                userId: r.userId,
+                                userName: r.userName,
+                                slotCount: r.slotCount,
+                                prizePerSlot: r.prize,
+                                kills: r.kills,
+                                killPrice: perKill,
+                                amount: payout,
+                                createdAt: Date.now(),
+                                type: 'tournament_prize'
+                            });
                         });
                     }
                 }
 
-                await updateDoc(tourRef, {results, resultPublished:published, resultUpdatedAt:Date.now(), ...(published ? {status:'completed',completedAt:Date.now()} : {})});
-                showToast(published ? 'Result publish হয়েছে এবং winner payout হয়েছে!' : 'Result save হয়েছে!');
+                const resultTime = Date.now();
+                if (published) {
+                    const archiveData = { ...t, results, completedAt: resultTime };
+                    await archiveTournamentForMyMatches(id, archiveData, results);
+                }
+
+                await updateDoc(tourRef, {
+                    results,
+                    resultPublished: published,
+                    resultUpdatedAt: resultTime,
+                    ...(published ? { status: 'completed', completedAt: resultTime, deleteAfter: resultTime + 60 * 60 * 1000 } : {})
+                });
+                if (published) scheduleTournamentDeletion(id, resultTime + 60 * 60 * 1000);
+
+                showToast(published ? 'Result publish হয়েছে এবং বিজয়ী/কিলকারীদের ওয়ালেটে প্রাইজ মানি অটো চলে গেছে!' : 'Result সফলভাবে সেভ হয়েছে!');
                 closeGenericModal();
                 await loadAllAdminData();
             } catch(e) {
-                showToast(e.message || 'Result save failed','error');
+                showToast(e.message || 'Result save failed', 'error');
             }
         };
 
@@ -991,10 +1138,10 @@
                     html += `
                         <div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs flex justify-between items-center">
                             <div>
-                                <span class="text-blue-400 font-bold">#${idx+1} | User: ${p.userName || 'User'}</span>
+                                <span class="text-blue-400 font-bold">#${idx+1} | User: ${p.userName || 'User'} (UID: ${p.userId || p.uid || 'N/A'})</span>
                                 <p class="text-slate-300 mt-1">Players: <b>${namesStr}</b></p>
                             </div>
-                            <span class="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded font-bold">${p.count || 1} Slot</span>
+                            <span class="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded font-bold">${p.count || p.slotCount || 1} Slot</span>
                         </div>
                     `;
                 });
@@ -1039,8 +1186,6 @@
             if(!imageUrl) { showToast('লিংক দিন', 'error'); return; }
 
             try {
-                // Keep the existing banners collection, AND publish the same banner
-                // to the exact Home Page document that index.html reads.
                 await addDoc(collection(db, "banners"), {
                     imageUrl,
                     status: true,
@@ -1052,7 +1197,6 @@
                 const home = homeSnap.exists() ? (homeSnap.data() || {}) : {};
                 const currentMedia = Array.isArray(home.heroMedia) ? home.heroMedia : [];
 
-                // Avoid duplicate banner URLs.
                 const exists = currentMedia.some(m => String(m?.url || '').trim() === imageUrl);
                 const heroMedia = exists ? currentMedia : [
                     ...currentMedia,
@@ -1069,12 +1213,9 @@
                 showToast('Banner সফলভাবে Home Page-এ publish হয়েছে!');
                 await loadAllAdminData();
             } catch(e) {
-                console.error('Banner publish failed:', e);
                 showToast('Banner update করতে সমস্যা হয়েছে: ' + (e?.message || e), 'error');
             }
         }
-
-        // --- DEPOSIT & WITHDRAW FILTER & GATEWAY FUNCTIONS ---
 
         window.filterDepositGateway = function(gw) {
             currentDepGateway = gw;
@@ -1108,13 +1249,13 @@
 
             filtered.forEach(dep => {
                 let action = `<div class="flex gap-2">
-                    <button onclick="approveDeposit('${dep.id}', '${dep.userId}', ${dep.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs">Approve</button>
+                    <button onclick="approveDeposit('${dep.id}', '${dep.userId || dep.uid || ''}', ${dep.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs">Approve</button>
                     <button onclick="rejectDeposit('${dep.id}')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs">Reject</button>
                 </div>`;
                 list.innerHTML += `
                     <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
                         <div>
-                            <h4 class="font-bold text-white text-sm">${dep.userName || 'User'} (${dep.gateway || dep.method || currentDepGateway})</h4>
+                            <h4 class="font-bold text-white text-sm">${dep.userName || dep.userEmail || 'User'} (${dep.gateway || dep.method || currentDepGateway})</h4>
                             <p class="text-[11px] text-slate-300">Amount: <b>৳${dep.amount}</b> | TrxID: <b>${dep.trxId || dep.transactionId || 'N/A'}</b></p>
                             <p class="text-[10px] text-amber-400">Status: <b>${dep.status || 'Pending'}</b></p>
                         </div>
@@ -1126,7 +1267,6 @@
 
         window.approveDeposit = async function(id, userId, amount) {
             try {
-                // New/current schema: deposits/{id}. Older schema: transactions/{id}.
                 const depRef = doc(db, 'deposits', id);
                 const txRef = doc(db, 'transactions', id);
                 const [depSnapNow, txSnapNow] = await Promise.all([getDoc(depRef), getDoc(txRef)]);
@@ -1147,7 +1287,6 @@
                     if(!finalAmount || finalAmount <= 0) throw new Error('Invalid deposit amount.');
 
                     const now = Date.now();
-                    // Prefer users/{uid}; fallback to wallets/{email} used by the older app.
                     let credited = false;
                     if(finalUserId){
                         const userRef = doc(db,'users',finalUserId);
@@ -1170,7 +1309,7 @@
                     transaction.update(ref,{status:'approved',approvedAt:now,reviewedAt:now});
                 });
 
-                showToast('ডিপোজিট অ্যাপ্রুভ হয়েছে এবং টাকা একবারই যোগ হয়েছে!');
+                showToast('ডিপোজিট অ্যাপ্রুভ হয়েছে এবং টাকা যোগ হয়েছে!');
                 await loadAllAdminData();
             } catch(e) {
                 showToast('ত্রুটি: ' + (e.message || e), 'error');
@@ -1265,22 +1404,22 @@
                 await runTransaction(db, async (transaction) => {
                     const snap=await transaction.get(ref);
                     if(!snap.exists()) throw new Error('Withdraw request পাওয়া যায়নি।');
-                    const r=snap.data()||{};
-                    const status=String(r.status||'pending').toLowerCase();
-                    if(status!=='pending') throw new Error(`এই request ইতিমধ্যে ${r.status || 'processed'} হয়েছে।`);
-                    const uid=r.uid||r.userId||'';
-                    const amount=Number(r.amount||0);
+                    const r = snap.data() || {};
+                    const status = String(r.status || 'pending').toLowerCase();
+                    if(status !== 'pending') throw new Error(`এই request ইতিমধ্যে ${r.status || 'processed'} হয়েছে।`);
+                    const uid = r.uid || r.userId || '';
+                    const amount = Number(r.amount || 0);
                     if(!uid) throw new Error('User ID পাওয়া যায়নি।');
-                    if(!amount || amount<=0) throw new Error('Invalid withdraw amount.');
-                    const userRef=doc(db,'users',uid);
-                    const userSnap=await transaction.get(userRef);
+                    if(!amount || amount <= 0) throw new Error('Invalid withdraw amount.');
+                    const userRef = doc(db,'users',uid);
+                    const userSnap = await transaction.get(userRef);
                     if(!userSnap.exists()) throw new Error('User পাওয়া যায়নি।');
-                    const currentBalance=Number(userSnap.data().balance||0);
+                    const currentBalance = Number(userSnap.data().balance || 0);
                     transaction.update(userRef,{balance:currentBalance+amount});
-                    const now=Date.now();
+                    const now = Date.now();
                     transaction.update(ref,{status:'rejected',reviewedAt:now,rejectedAt:now,reason,reviewReason:reason});
                 });
-                showToast('Withdraw reject হয়েছে এবং refund একবারই করা হয়েছে।');
+                showToast('Withdraw reject হয়েছে এবং refund করা হয়েছে।');
                 await loadAllAdminData();
                 renderWithdrawsList();
             }catch(e){showToast(e.message||'Reject failed','error');}
@@ -1304,8 +1443,8 @@
                     else {
                         allDeposits.forEach(d => {
                             html += `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
-                                <div class="flex justify-between font-bold text-white"><span>${d.userName || 'User'} (${d.gateway || 'bKash'})</span><span class="text-emerald-400">৳${d.amount}</span></div>
-                                <div class="text-[10px] text-slate-400 mt-1">TrxID: ${d.trxId || d.transactionId || 'N/A'} | Status: <b>${d.status || 'Pending'}</b> | ${d.reviewedAt ? new Date(d.reviewedAt).toLocaleString() : ''}</div>${d.reason || d.reviewReason ? `<div class="text-[10px] text-rose-300 mt-1">Reason: ${d.reason || d.reviewReason}</div>` : ''}
+                                <div class="flex justify-between font-bold text-white"><span>${d.userName || d.userEmail || 'User'} (${d.gateway || 'bKash'})</span><span class="text-emerald-400">৳${d.amount}</span></div>
+                                <div class="text-[10px] text-slate-400 mt-1">TrxID: ${d.trxId || d.transactionId || 'N/A'} | Status: <b>${d.status || 'Pending'}</b></div>
                             </div>`;
                         });
                     }
@@ -1315,7 +1454,7 @@
                         allWithdraws.forEach(w => {
                             html += `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
                                 <div class="flex justify-between font-bold text-white"><span>${w.userEmail || w.userId || 'User'} (${w.method || 'bKash'})</span><span class="text-amber-400">৳${w.amount}</span></div>
-                                <div class="text-[10px] text-slate-400 mt-1">Number: ${w.number || 'N/A'} | Status: <b>${w.status || 'Pending'}</b> | ${w.reviewedAt ? new Date(w.reviewedAt).toLocaleString() : ''}</div>${w.reason || w.reviewReason ? `<div class="text-[10px] text-rose-300 mt-1">Reason: ${w.reason || w.reviewReason}</div>` : ''}
+                                <div class="text-[10px] text-slate-400 mt-1">Number: ${w.number || 'N/A'} | Status: <b>${w.status || 'Pending'}</b></div>
                             </div>`;
                         });
                     }
@@ -1326,19 +1465,12 @@
             }
         };
 
-        /* =========================================================
-           DEPOSIT PAYMENT NUMBERS — NUMBER EDIT ONLY
-           Method names cannot be added, renamed, or deleted from Admin UI.
-        ========================================================= */
         window.openGatewayModal = async function() {
             document.getElementById('modal-title').innerText = "Deposit Numbers Setup";
             document.getElementById('generic-modal').style.display = 'flex';
             document.getElementById('modal-body').innerHTML = `
                 <div class="space-y-3">
-                    <p class="text-[11px] text-slate-400">
-                        এখানে শুধু existing deposit method-এর <b class="text-white">number</b> edit করা যাবে।
-                        নতুন method add, method name change বা delete করা যাবে না।
-                    </p>
+                    <p class="text-[11px] text-slate-400">এখানে শুধু existing deposit method-এর number edit করা যাবে।</p>
                     <div id="gateway-list-container" class="space-y-2">লোড হচ্ছে...</div>
                 </div>
             `;
@@ -1355,7 +1487,7 @@
                 const container = document.getElementById('gateway-list-container');
                 if(!container) return;
                 if(snap.empty) {
-                    container.innerHTML = `<p class="text-slate-500 text-xs">কোনো existing deposit method পাওয়া যায়নি।</p>`;
+                    container.innerHTML = `<p class="text-slate-500 text-xs">কোনো payment method পাওয়া যায়নি।</p>`;
                     return;
                 }
 
@@ -1368,13 +1500,11 @@
                         <div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
                             <div class="flex items-center justify-between gap-2 mb-2">
                                 <b class="text-white">${name}</b>
-                                <span class="text-[10px] text-slate-500">Method fixed</span>
                             </div>
                             <div class="flex gap-2">
                                 <input id="gateway-number-${rsAdminEsc(d.id)}"
                                     type="text"
                                     value="${number}"
-                                    inputmode="numeric"
                                     class="flex-1 bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white text-xs"
                                     placeholder="Account Number">
                                 <button onclick="saveGatewayNumber('${rsAdminEsc(d.id)}')"
@@ -1386,36 +1516,24 @@
                 });
                 container.innerHTML = html;
             } catch(e) {
-                console.error('Payment methods load failed:', e);
                 const c = document.getElementById('gateway-list-container');
-                if(c) c.innerHTML = `<p class="text-rose-400 text-xs">লোড করতে সমস্যা হয়েছে: ${rsAdminEsc(e?.message || e)}</p>`;
+                if(c) c.innerHTML = `<p class="text-rose-400 text-xs">লোড করতে সমস্যা হয়েছে</p>`;
             }
         };
 
         window.saveGatewayNumber = async function(id) {
             const input = document.getElementById(`gateway-number-${id}`);
             const number = input ? input.value.trim() : '';
-            if(!number) {
-                showToast('Deposit number দিন', 'error');
-                return;
-            }
+            if(!number) { showToast('Deposit number দিন', 'error'); return; }
             try {
-                // IMPORTANT: only the number field is writable here.
-                await updateDoc(doc(db, "paymentMethods", id), {
-                    number,
-                    updatedAt: Date.now()
-                });
+                await updateDoc(doc(db, "paymentMethods", id), { number, updatedAt: Date.now() });
                 showToast('Deposit number update হয়েছে!');
                 loadGatewaySettings();
             } catch(e) {
-                console.error('Payment number update failed:', e);
                 showToast('Number update করতে সমস্যা হয়েছে', 'error');
             }
         };
 
-        /* =========================================================
-           REFER HISTORY
-        ========================================================= */
         window.openReferralHistory = async function() {
             document.getElementById('modal-title').innerText = "Refer History";
             document.getElementById('generic-modal').style.display = 'flex';
@@ -1431,80 +1549,41 @@
             try {
                 const snap = await getDocs(collection(db, "referralHistory"));
                 const rows = snap.docs.map(d => ({ id:d.id, ...(d.data() || {}) }));
-                rows.sort((a,b) => {
-                    const av = a.createdAt?.toMillis ? a.createdAt.toMillis() : Number(a.createdAt || 0);
-                    const bv = b.createdAt?.toMillis ? b.createdAt.toMillis() : Number(b.createdAt || 0);
-                    return bv - av;
-                });
-
                 const summary = document.getElementById('refer-history-summary');
                 const list = document.getElementById('refer-history-list');
-                if(summary) summary.innerHTML = `Total successful referral: <b class="text-emerald-400">${rows.length}</b> &nbsp;•&nbsp; Total reward: <b class="text-emerald-400">৳${rows.reduce((n,x)=>n+Number(x.rewardAmount||0),0)}</b>`;
+                if(summary) summary.innerHTML = `Total successful referral: <b class="text-emerald-400">${rows.length}</b>`;
 
                 if(!rows.length) {
-                    if(list) list.innerHTML = `<p class="text-center text-slate-500 text-xs py-5">কোনো refer history পাওয়া যায়নি।</p>`;
+                    if(list) list.innerHTML = `<p class="text-center text-slate-500 text-xs py-5">কোনো refer history নেই।</p>`;
                     return;
                 }
 
-                if(list) list.innerHTML = rows.map((r, i) => {
-                    const ts = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : (r.createdAt ? new Date(Number(r.createdAt)).toLocaleString() : '—');
-                    return `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
-                        <div class="flex justify-between gap-2 font-bold text-white">
-                            <span>#${i+1} ${rsAdminEsc(r.referredUsername || r.referredEmail || r.referredUid || 'User')}</span>
+                if(list) list.innerHTML = rows.map((r, i) => `
+                    <div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
+                        <div class="flex justify-between font-bold text-white">
+                            <span>#${i+1} ${rsAdminEsc(r.referredUsername || r.referredEmail || 'User')}</span>
                             <span class="text-emerald-400">৳${Number(r.rewardAmount||0)}</span>
                         </div>
-                        <div class="text-[10px] text-slate-400 mt-1">
-                            Refer Code: <b class="text-slate-300">${rsAdminEsc(r.referrerCode || 'N/A')}</b><br>
-                            Referrer UID: ${rsAdminEsc(r.referrerUid || 'N/A')}<br>
-                            Referred UID: ${rsAdminEsc(r.referredUid || 'N/A')}<br>
-                            Email: ${rsAdminEsc(r.referredEmail || 'N/A')}<br>
-                            Deposit/Balance: ৳${Number(r.depositBalanceAtReward||0)}<br>
-                            Status: <b class="text-emerald-400">${rsAdminEsc(r.status || 'paid')}</b> • ${rsAdminEsc(ts)}
-                        </div>
-                    </div>`;
-                }).join('');
+                    </div>`).join('');
             } catch(e) {
-                console.error('Refer history load failed:', e);
                 const list = document.getElementById('refer-history-list');
-                if(list) list.innerHTML = `<p class="text-rose-400 text-center text-xs py-5">Refer history load করতে সমস্যা হয়েছে: ${rsAdminEsc(e?.message || e)}</p>`;
+                if(list) list.innerHTML = `<p class="text-rose-400 text-center text-xs py-5">লোড করতে সমস্যা হয়েছে</p>`;
             }
         };
 
         window.deleteDocItem = async function(colName, docId) {
             if(!confirm('কনফার্ম ডিলিট?')) return;
-
             try {
                 let deletedData = null;
-
-                // If a banner is deleted, remove the same URL from Home Page media too.
                 if(colName === 'banners') {
                     const bannerSnap = await getDoc(doc(db, 'banners', docId));
                     if(bannerSnap.exists()) deletedData = bannerSnap.data() || {};
                 }
-
                 await deleteDoc(doc(db, colName, docId));
-
-                if(colName === 'banners' && deletedData?.imageUrl) {
-                    const homeRef = doc(db, 'settings', 'homePage');
-                    const homeSnap = await getDoc(homeRef);
-                    if(homeSnap.exists()) {
-                        const home = homeSnap.data() || {};
-                        const media = Array.isArray(home.heroMedia) ? home.heroMedia : [];
-                        const nextMedia = media.filter(m => String(m?.url || '').trim() !== String(deletedData.imageUrl).trim());
-
-                        await setDoc(homeRef, {
-                            heroMedia: nextMedia,
-                            heroEnabled: nextMedia.length > 0,
-                            updatedAt: Date.now()
-                        }, { merge: true });
-                    }
-                }
-
                 showToast('ডিলিট সফল হয়েছে!');
                 await loadAllAdminData();
             } catch(e) {
-                console.error('Delete failed:', e);
-                showToast('ডিলিট করতে সমস্যা হয়েছে: ' + (e?.message || e), 'error');
+                showToast('ডিলিট করতে সমস্যা হয়েছে', 'error');
             }
         }
 
@@ -1517,12 +1596,6 @@
                     <button onclick="auraDashboard()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-chart-line text-blue-400 block text-lg mb-1"></i>Dashboard</button>
                     <button onclick="auraUsersWallet()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-users text-emerald-400 block text-lg mb-1"></i>Users & Wallet</button>
                     <button onclick="auraPayments()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-money-bill-transfer text-amber-400 block text-lg mb-1"></i>Payments</button>
-                    <button onclick="auraGiftsSupport()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-gift text-pink-400 block text-lg mb-1"></i>Gift & Support</button>
-                    <button onclick="auraAnalytics()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-chart-pie text-cyan-400 block text-lg mb-1"></i>Analytics</button>
-                    <button onclick="auraGlobalSearch()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-magnifying-glass text-violet-400 block text-lg mb-1"></i>Global Search</button>
-                    <button onclick="auraHomeContent()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-house text-sky-400 block text-lg mb-1"></i>Home Content</button>
-                    <button onclick="auraMediaAPK()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-cloud-arrow-up text-lime-400 block text-lg mb-1"></i>Media / APK</button>
-                    <button onclick="auraMemoryCenter()" class="col-span-2 bg-red-950/40 hover:bg-red-900/50 border border-red-500/30 text-red-200 p-3 rounded-xl font-bold"><i class="fa-solid fa-database text-red-400 mr-1"></i> Memory Centre</button>
                 </div>`;
         };
 
@@ -1539,130 +1612,26 @@
                 ]);
                 auraPanel('AURA ARMAN — Dashboard',`<div class="grid grid-cols-2 gap-2">
                     ${[['Users',u.size,'text-blue-400'],['Tournaments',t.size,'text-emerald-400'],['Sections',s.size,'text-cyan-400'],['Groups',g.size,'text-violet-400'],['Deposits',d.size,'text-amber-400'],['Withdrawals',w.size,'text-pink-400']].map(x=>`<div class="bg-[#050811] border border-slate-800 rounded-xl p-4"><div class="text-xs text-slate-500">${x[0]}</div><div class="text-2xl font-black ${x[2]}">${x[1]}</div></div>`).join('')}</div>`);
-            }catch(e){ auraPanel('Dashboard Error',`<p class="text-rose-400">ডাটা লোড করা যায়নি: ${e.message}</p>`); }
+            }catch(e){ auraPanel('Dashboard Error',`<p class="text-rose-400">${e.message}</p>`); }
         };
 
         window.auraUsersWallet = async function(){
             try{
                 const snap=await getDocs(collection(db,'users'));
-                let rows=''; snap.forEach(d=>{const u=d.data(); rows+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3 flex justify-between gap-2 items-center"><div><b>${u.userName||u.username||u.email||d.id}</b><div class="text-[10px] text-slate-500">${u.email||d.id}</div><div class="text-xs text-emerald-400">Balance: ৳${Number(u.balance||0)}</div></div><div class="flex gap-1"><button class="bg-emerald-700 text-white px-2 py-1 rounded-lg" onclick="auraWalletChange('${d.id}',1)">+৳</button><button class="bg-red-700 text-white px-2 py-1 rounded-lg" onclick="auraWalletChange('${d.id}',-1)">-৳</button></div></div>`});
+                let rows=''; snap.forEach(d=>{const u=d.data(); rows+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3 flex justify-between gap-2 items-center"><div><b>${u.userName||u.username||u.email||d.id}</b><div class="text-[10px] text-slate-500">${u.email||d.id}</div><div class="text-xs text-emerald-400">Balance: ৳${Number(u.balance||0)}</div></div></div>`});
                 auraPanel('Users & Wallet',`<div class="space-y-2 max-h-[60vh] overflow-y-auto">${rows||'<p class="text-slate-500">কোনো user নেই।</p>'}</div>`);
             }catch(e){auraPanel('Users Error',`<p class="text-rose-400">${e.message}</p>`)}
-        };
-        window.auraWalletChange = async function(uid,sign){
-            const amount=Number(prompt(sign>0?'কত টাকা credit করবেন?':'কত টাকা debit করবেন?')||0); if(!amount||amount<0)return;
-            const r=doc(db,'users',uid); const snap=await getDoc(r); if(!snap.exists())return;
-            const bal=Number(snap.data().balance||0); const next=bal+sign*amount; if(next<0){alert('Balance negative হতে পারবে না।');return;}
-            await updateDoc(r,{balance:next}); alert('Wallet update হয়েছে।'); auraUsersWallet();
         };
 
         window.auraPayments = async function(){
             try{
                 const [d,w]=await Promise.all([getDocs(collection(db,'deposits')),getDocs(collection(db,'withdraws'))]);
                 let html='<div class="space-y-2 max-h-[60vh] overflow-y-auto">';
-                d.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Deposit</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span><div class="mt-2"><button class="bg-emerald-700 text-white px-2 py-1 rounded" onclick="auraReviewPayment('deposits','${x.id}','approve')">Approve</button> <button class="bg-red-700 text-white px-2 py-1 rounded" onclick="auraReviewPayment('deposits','${x.id}','reject')">Reject</button></div></div>`});
-                w.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Withdrawal</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span><div class="mt-2"><button class="bg-emerald-700 text-white px-2 py-1 rounded" onclick="adminApproveWithdraw('${x.id}')">Approve</button> <button class="bg-red-700 text-white px-2 py-1 rounded" onclick="adminRejectWithdraw('${x.id}')">Reject</button></div></div>`});
+                d.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Deposit</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span></div>`});
+                w.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Withdrawal</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span></div>`});
                 html+='</div>'; auraPanel('Payment Control',html);
             }catch(e){auraPanel('Payment Error',`<p class="text-rose-400">${e.message}</p>`)}
         };
-        window.auraReviewPayment = async function(col,id,action){
-            try{
-                const ref=doc(db,col,id);
-                await runTransaction(db, async(transaction)=>{
-                    const snap=await transaction.get(ref);
-                    if(!snap.exists()) throw new Error('Payment request পাওয়া যায়নি।');
-                    const v=snap.data()||{};
-                    const status=String(v.status||'pending').toLowerCase();
-                    if(status!=='pending') throw new Error(`এই request ইতিমধ্যে ${v.status || 'processed'} হয়েছে।`);
-
-                    if(action==='approve' && col==='deposits'){
-                        const uid=v.userId||v.uid;
-                        const amount=Number(v.amount||0);
-                        if(!uid) throw new Error('User ID পাওয়া যায়নি।');
-                        if(!amount || amount<=0) throw new Error('Invalid deposit amount.');
-                        const ur=doc(db,'users',uid);
-                        const us=await transaction.get(ur);
-                        if(!us.exists()) throw new Error('User পাওয়া যায়নি।');
-                        const bal=Number(us.data().balance||0);
-                        transaction.update(ur,{balance:bal+amount});
-                    }
-
-                    transaction.update(ref,{status:action==='approve'?'approved':'rejected',reviewedAt:Date.now()});
-                });
-                alert(action==='approve'?'Approved — টাকা একবারই যোগ হয়েছে.':'Rejected');
-                auraPayments();
-            }catch(e){alert(e.message||'Payment process failed');console.error(e);}
-        };
-        window.auraGiftsSupport = async function(){
-            let html=`<div class="space-y-3"><div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><h4 class="font-bold mb-2">Create Gift Code</h4><input id="aura-gift-code" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white mb-2" placeholder="Gift code"><input id="aura-gift-amount" type="number" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white mb-2" placeholder="Amount"><button onclick="auraCreateGift()" class="w-full bg-blue-600 text-white rounded-lg p-2 font-bold">Create</button></div><div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><h4 class="font-bold mb-2">Support Tickets</h4><div id="aura-support-list">লোড হচ্ছে...</div></div></div>`;
-            auraPanel('Gift & Support',html);
-            try{const s=await getDocs(collection(db,'supportTickets'));let out='';s.forEach(d=>{const v=d.data();out+=`<div class="border-b border-slate-800 py-2 text-xs"><b>${v.userEmail||v.userId||'User'}</b><br>${v.message||v.subject||''}<br><span class="text-slate-500">${v.status||'open'}</span></div>`});document.getElementById('aura-support-list').innerHTML=out||'No tickets';}catch(e){document.getElementById('aura-support-list').innerText=e.message}
-        };
-        window.auraCreateGift = async function(){const code=document.getElementById('aura-gift-code').value.trim(),amount=Number(document.getElementById('aura-gift-amount').value||0);if(!code||!amount)return alert('Code এবং amount দিন');await setDoc(doc(db,'giftCodes',code),{code,amount,used:false,createdAt:Date.now()});alert('Gift code created');auraGiftsSupport();};
-
-        window.auraAnalytics = async function(){
-            try{const [u,t,d,w]=await Promise.all([getDocs(collection(db,'users')),getDocs(collection(db,'tournaments')),getDocs(collection(db,'deposits')),getDocs(collection(db,'withdraws'))]);
-            auraPanel('Analytics',`<div class="space-y-2"><div class="bg-[#050811] p-4 rounded-xl">Registered users: <b>${u.size}</b></div><div class="bg-[#050811] p-4 rounded-xl">Tournaments: <b>${t.size}</b></div><div class="bg-[#050811] p-4 rounded-xl">Deposit requests: <b>${d.size}</b></div><div class="bg-[#050811] p-4 rounded-xl">Withdrawal requests: <b>${w.size}</b></div></div>`)}catch(e){auraPanel('Analytics Error',e.message)}
-        };
-
-        window.auraGlobalSearch = function(){auraPanel('Global Search',`<input id="aura-search" oninput="auraRunSearch()" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-white" placeholder="Username, email, tournament, group..."><div id="aura-search-results" class="space-y-2 mt-3"></div>`)};
-        window.auraRunSearch = async function(){const q=(document.getElementById('aura-search')?.value||'').toLowerCase().trim(),box=document.getElementById('aura-search-results');if(!box)return;if(!q){box.innerHTML='';return;}const [u,t,g,s]=await Promise.all([getDocs(collection(db,'users')),getDocs(collection(db,'tournaments')),getDocs(collection(db,'groups')),getDocs(collection(db,'sections'))]);let out='';[[u,'User'],[t,'Tournament'],[g,'Group'],[s,'Section']].forEach(([snap,label])=>snap.forEach(d=>{const v=d.data(),str=JSON.stringify(v).toLowerCase();if(str.includes(q))out+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-2 text-xs"><b>${label}</b> — ${v.name||v.userName||v.username||v.email||d.id}</div>`}));box.innerHTML=out||'<p class="text-slate-500">No result found.</p>';};
-
-        window.auraHomeContent = async function(){
-            try{const r=doc(db,'settings','homePage'),s=await getDoc(r),v=s.exists()?s.data():{};auraPanel('Home Content',`<div class="space-y-3"><label class="text-slate-400">Notice</label><textarea id="aura-notice" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white" rows="3">${v.noticeText||''}</textarea><label class="text-slate-400">Banner lines — type|image URL|optional click/download link</label><textarea id="aura-media" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white" rows="7">${(v.heroMedia||[]).map(x=>[x.type||'image',x.url||'',x.link||''].join('|')).join('\n')}</textarea><button onclick="auraSaveHomeContent()" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold">Save Home Content</button></div>`)}catch(e){auraPanel('Home Error',e.message)}
-        };
-        window.auraSaveHomeContent = async function(){const notice=document.getElementById('aura-notice').value;const lines=document.getElementById('aura-media').value.split('\n').map(x=>x.trim()).filter(Boolean);const heroMedia=lines.map(x=>{const [type,url,link]=x.split('|');return{type:type||'image',url:url||'',link:link||''}}).filter(x=>x.url);await setDoc(doc(db,'settings','homePage'),{noticeText:notice,heroMedia},{merge:true});alert('Home content saved');auraHomeContent();};
-
-        window.auraMediaAPK = function(){auraPanel('Media / APK',`<div class="space-y-3"><div><label class="text-slate-400">Home image/video</label><input id="aura-media-file" type="file" accept="image/*,video/*" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white"><button onclick="auraUploadMedia()" class="w-full bg-blue-600 text-white p-2 rounded-xl mt-2 font-bold">Upload Media</button></div><hr class="border-slate-800"><div><label class="text-slate-400">APK file</label><input id="aura-apk-file" type="file" accept=".apk,application/vnd.android.package-archive" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white"><button onclick="auraUploadAPK()" class="w-full bg-emerald-600 text-white p-2 rounded-xl mt-2 font-bold">Upload APK</button></div><div id="aura-upload-status" class="text-xs text-slate-400"></div></div>`)};
-        window.auraUploadMedia = async function(){const f=document.getElementById('aura-media-file').files[0];if(!f)return alert('File select করুন');const path=`home-media/${Date.now()}_${f.name}`;const r=storageRef(auraStorage,path);document.getElementById('aura-upload-status').innerText='Uploading...';await uploadBytes(r,f);const url=await getDownloadURL(r);const s=await getDoc(doc(db,'settings','homePage'));const v=s.exists()?s.data():{};const arr=Array.isArray(v.heroMedia)?v.heroMedia:[];arr.push({type:f.type.startsWith('video/')?'video':'image',url,link:''});await setDoc(doc(db,'settings','homePage'),{heroMedia:arr},{merge:true});document.getElementById('aura-upload-status').innerText='Media uploaded successfully.';};
-        window.auraUploadAPK = async function(){const f=document.getElementById('aura-apk-file').files[0];if(!f)return alert('APK select করুন');const r=storageRef(auraStorage,`app-downloads/${Date.now()}_${f.name}`);document.getElementById('aura-upload-status').innerText='Uploading APK...';await uploadBytes(r,f,{contentType:'application/vnd.android.package-archive'});const url=await getDownloadURL(r);await setDoc(doc(db,'settings','appDownload'),{url,name:f.name,updatedAt:Date.now()},{merge:true});document.getElementById('aura-upload-status').innerText='APK uploaded successfully.';};
-
-        window.auraMemoryCenter = function(){auraPanel('Memory Centre',`<div class="space-y-3"><p class="text-amber-300 text-xs">⚠️ এগুলো permanent delete হতে পারে। আগে নিশ্চিত হন।</p><div class="grid grid-cols-2 gap-2">${['users','sections','groups','tournaments','registrations','transactions','deposits','withdraws','giftCodes','supportTickets','notifications','banners'].map(c=>`<button onclick="auraClearCollection('${c}')" class="bg-red-950/40 border border-red-500/20 text-red-200 p-2 rounded-lg text-xs font-bold">Clear ${c}</button>`).join('')}</div><button onclick="auraClearStorageFolder('home-media')" class="w-full bg-red-900/40 border border-red-500/30 text-red-200 p-2 rounded-xl font-bold">Clear Home Media Storage</button><button onclick="auraClearStorageFolder('app-downloads')" class="w-full bg-red-900/40 border border-red-500/30 text-red-200 p-2 rounded-xl font-bold">Clear APK Storage</button></div>`)};
-        window.auraClearCollection = async function(col){if(!confirm(`${col} collection-এর সব data delete করবেন?`))return;const snap=await getDocs(collection(db,col));for(const d of snap.docs)await deleteDoc(d.ref);alert(`${col} cleared`);auraMemoryCenter();loadAllAdminData();};
-        window.auraClearStorageFolder = async function(folder){if(!confirm(`${folder} storage folder clear করবেন?`))return;const walk=async p=>{const l=await listAll(storageRef(auraStorage,p));for(const f of l.items)await deleteObject(f);for(const d of l.prefixes)await walk(d.fullPath)};await walk(folder);alert(`${folder} cleared`);};
-
-        window.closeGenericModal = function() {
-            const modal = document.getElementById('generic-modal');
-            modal.style.display = 'none';
-            modal.removeAttribute('data-result-tour-id');
-            window.__activeResultTournamentId = '';
-        }
-    </script>
-
-    <script type="module">
-      import { rtdb } from "./firebase.js";
-      import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-      const $ = id => document.getElementById(id);
-      const show = id => { const e=$(id); if(e){e.style.display='flex';} };
-      const hide = id => { const e=$(id); if(e){e.style.display='none';} };
-      const toast = (m,t='success') => window.showToast ? window.showToast(m,t) : alert(m);
-
-      $('openNotificationBtn')?.addEventListener('click',()=>window.location.href='./notification.html');
-      $('openMaintenanceBtn')?.addEventListener('click',()=>show('maintenanceModal'));
-      $('closeMaintenanceBtn')?.addEventListener('click',()=>hide('maintenanceModal'));
-      $('openAppUpdateBtn')?.addEventListener('click',()=>show('appUpdateModal'));
-      $('closeAppUpdateBtn')?.addEventListener('click',()=>hide('appUpdateModal'));
-
-      onValue(ref(rtdb,'siteControl'), snap=>{
-        const v=snap.val()||{};
-        if($('maintenanceStatus')) $('maintenanceStatus').textContent = v.maintenance ? '🟠 Maintenance ON — Firebase থেকে OFF করতে হবে' : '🟢 Maintenance OFF';
-        if($('appUpdateStatus')) $('appUpdateStatus').textContent = v.appUpdate ? '🔵 App Update ON — Firebase থেকে OFF করতে হবে' : '🟢 App Update OFF';
-        if($('maintenanceMessageInput') && v.maintenanceMessage) $('maintenanceMessageInput').value=v.maintenanceMessage;
-        if($('appUpdateMessageInput') && v.updateMessage) $('appUpdateMessageInput').value=v.updateMessage;
-        if($('appUpdateLinkInput') && v.updateLink) $('appUpdateLinkInput').value=v.updateLink;
-      },e=>console.error('siteControl listener failed:',e));
-
-      $('maintenanceOnBtn')?.addEventListener('click',async()=>{
-        try { const current=(await new Promise(resolve=>onValue(ref(rtdb,'siteControl'),s=>resolve(s.val()||{}),{onlyOnce:true}))); await set(ref(rtdb,'siteControl'),{...current,maintenance:true,maintenanceMessage:$('maintenanceMessageInput')?.value?.trim()||'Maintenance চলছে। পরে আবার চেষ্টা করুন।',updatedAt:Date.now()}); toast('Maintenance ON হয়েছে'); } catch(e){toast('Maintenance ON failed: '+e.message,'error');}
-      });
-      $('maintenanceOffBtn')?.addEventListener('click',()=>toast('OFF করতে Firebase Realtime Database → siteControl/maintenance = false করুন','warning'));
-
-      $('appUpdateOnBtn')?.addEventListener('click',async()=>{
-        const link=$('appUpdateLinkInput')?.value?.trim(); if(!link){toast('Update link দিন','warning');return;}
-        try { const current=(await new Promise(resolve=>onValue(ref(rtdb,'siteControl'),s=>resolve(s.val()||{}),{onlyOnce:true}))); await set(ref(rtdb,'siteControl'),{...current,appUpdate:true,updateMessage:$('appUpdateMessageInput')?.value?.trim()||'নতুন আপডেট এসেছে। Update Now চাপুন।',updateLink:link,updatedAt:Date.now()}); toast('App Update ON হয়েছে'); } catch(e){toast('App Update failed: '+e.message,'error');}
-      });
-      $('appUpdateOffBtn')?.addEventListener('click',()=>toast('OFF করতে Firebase Realtime Database → siteControl/appUpdate = false করুন','warning'));
     </script>
 </body>
 </html>
