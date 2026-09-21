@@ -230,6 +230,7 @@
         import { auth, db, ADMIN_EMAIL, linkOneSignalUser } from "./firebase.js";
         import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, orderBy, limit, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        const auraStorage = getStorage();
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         let __adminAuthReady = false;
@@ -1596,6 +1597,12 @@
                     <button onclick="auraDashboard()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-chart-line text-blue-400 block text-lg mb-1"></i>Dashboard</button>
                     <button onclick="auraUsersWallet()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-users text-emerald-400 block text-lg mb-1"></i>Users & Wallet</button>
                     <button onclick="auraPayments()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-money-bill-transfer text-amber-400 block text-lg mb-1"></i>Payments</button>
+                    <button onclick="auraGiftsSupport()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-gift text-pink-400 block text-lg mb-1"></i>Gift & Support</button>
+                    <button onclick="auraAnalytics()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-chart-pie text-cyan-400 block text-lg mb-1"></i>Analytics</button>
+                    <button onclick="auraGlobalSearch()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-magnifying-glass text-violet-400 block text-lg mb-1"></i>Global Search</button>
+                    <button onclick="auraHomeContent()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-house text-sky-400 block text-lg mb-1"></i>Home Content</button>
+                    <button onclick="auraMediaAPK()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-cloud-arrow-up text-lime-400 block text-lg mb-1"></i>Media / APK</button>
+                    <button onclick="auraMemoryCenter()" class="col-span-2 bg-red-950/40 hover:bg-red-900/50 border border-red-500/30 text-red-200 p-3 rounded-xl font-bold"><i class="fa-solid fa-database text-red-400 mr-1"></i> Memory Centre</button>
                 </div>`;
         };
 
@@ -1612,26 +1619,380 @@
                 ]);
                 auraPanel('AURA ARMAN — Dashboard',`<div class="grid grid-cols-2 gap-2">
                     ${[['Users',u.size,'text-blue-400'],['Tournaments',t.size,'text-emerald-400'],['Sections',s.size,'text-cyan-400'],['Groups',g.size,'text-violet-400'],['Deposits',d.size,'text-amber-400'],['Withdrawals',w.size,'text-pink-400']].map(x=>`<div class="bg-[#050811] border border-slate-800 rounded-xl p-4"><div class="text-xs text-slate-500">${x[0]}</div><div class="text-2xl font-black ${x[2]}">${x[1]}</div></div>`).join('')}</div>`);
-            }catch(e){ auraPanel('Dashboard Error',`<p class="text-rose-400">${e.message}</p>`); }
+            }catch(e){ auraPanel('Dashboard Error',`<p class="text-rose-400">ডাটা লোড করা যায়নি: ${e.message}</p>`); }
         };
 
         window.auraUsersWallet = async function(){
             try{
                 const snap=await getDocs(collection(db,'users'));
-                let rows=''; snap.forEach(d=>{const u=d.data(); rows+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3 flex justify-between gap-2 items-center"><div><b>${u.userName||u.username||u.email||d.id}</b><div class="text-[10px] text-slate-500">${u.email||d.id}</div><div class="text-xs text-emerald-400">Balance: ৳${Number(u.balance||0)}</div></div></div>`});
+                let rows=''; snap.forEach(d=>{const u=d.data(); rows+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3 flex justify-between gap-2 items-center"><div><b>${u.userName||u.username||u.email||d.id}</b><div class="text-[10px] text-slate-500">${u.email||d.id}</div><div class="text-xs text-emerald-400">Balance: ৳${Number(u.balance||0)}</div></div><div class="flex gap-1"><button class="bg-emerald-700 text-white px-2 py-1 rounded-lg" onclick="auraWalletChange('${d.id}',1)">+৳</button><button class="bg-red-700 text-white px-2 py-1 rounded-lg" onclick="auraWalletChange('${d.id}',-1)">-৳</button></div></div>`});
                 auraPanel('Users & Wallet',`<div class="space-y-2 max-h-[60vh] overflow-y-auto">${rows||'<p class="text-slate-500">কোনো user নেই।</p>'}</div>`);
             }catch(e){auraPanel('Users Error',`<p class="text-rose-400">${e.message}</p>`)}
+        };
+        window.auraWalletChange = async function(uid,sign){
+            const amount=Number(prompt(sign>0?'কত টাকা credit করবেন?':'কত টাকা debit করবেন?')||0); if(!amount||amount<0)return;
+            const r=doc(db,'users',uid); const snap=await getDoc(r); if(!snap.exists())return;
+            const bal=Number(snap.data().balance||0); const next=bal+sign*amount; if(next<0){alert('Balance negative হতে পারবে না।');return;}
+            await updateDoc(r,{balance:next}); alert('Wallet update হয়েছে।'); auraUsersWallet();
         };
 
         window.auraPayments = async function(){
             try{
                 const [d,w]=await Promise.all([getDocs(collection(db,'deposits')),getDocs(collection(db,'withdraws'))]);
                 let html='<div class="space-y-2 max-h-[60vh] overflow-y-auto">';
-                d.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Deposit</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span></div>`});
-                w.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Withdrawal</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span></div>`});
+                d.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Deposit</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span><div class="mt-2"><button class="bg-emerald-700 text-white px-2 py-1 rounded" onclick="auraReviewPayment('deposits','${x.id}','approve')">Approve</button> <button class="bg-red-700 text-white px-2 py-1 rounded" onclick="auraReviewPayment('deposits','${x.id}','reject')">Reject</button></div></div>`});
+                w.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Withdrawal</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span><div class="mt-2"><button class="bg-emerald-700 text-white px-2 py-1 rounded" onclick="adminApproveWithdraw('${x.id}')">Approve</button> <button class="bg-red-700 text-white px-2 py-1 rounded" onclick="adminRejectWithdraw('${x.id}')">Reject</button></div></div>`});
                 html+='</div>'; auraPanel('Payment Control',html);
             }catch(e){auraPanel('Payment Error',`<p class="text-rose-400">${e.message}</p>`)}
         };
+        window.auraReviewPayment = async function(col,id,action){
+            try{
+                const ref=doc(db,col,id);
+                await runTransaction(db, async(transaction)=>{
+                    const snap=await transaction.get(ref);
+                    if(!snap.exists()) throw new Error('Payment request পাওয়া যায়নি।');
+                    const v=snap.data()||{};
+                    const status=String(v.status||'pending').toLowerCase();
+                    if(status!=='pending') throw new Error(`এই request ইতিমধ্যে ${v.status || 'processed'} হয়েছে।`);
+
+                    if(action==='approve' && col==='deposits'){
+                        const uid=v.userId||v.uid;
+                        const amount=Number(v.amount||0);
+                        if(!uid) throw new Error('User ID পাওয়া যায়নি।');
+                        if(!amount || amount<=0) throw new Error('Invalid deposit amount.');
+                        const ur=doc(db,'users',uid);
+                        const us=await transaction.get(ur);
+                        if(!us.exists()) throw new Error('User পাওয়া যায়নি।');
+                        const bal=Number(us.data().balance||0);
+                        transaction.update(ur,{balance:bal+amount});
+                    }
+
+                    transaction.update(ref,{status:action==='approve'?'approved':'rejected',reviewedAt:Date.now()});
+                });
+                alert(action==='approve'?'Approved — টাকা একবারই যোগ হয়েছে.':'Rejected');
+                auraPayments();
+            }catch(e){alert(e.message||'Payment process failed');console.error(e);}
+        };
+        window.auraGiftsSupport = async function(){
+            const html=`<div class="space-y-3">
+                <div class="bg-[#050811] border border-slate-800 rounded-xl p-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold">Create Gift Code</h4>
+                        <button onclick="auraGiftHistory()" class="bg-violet-600 hover:bg-violet-500 text-white px-3 py-2 rounded-lg text-xs font-bold">Gift Code History</button>
+                    </div>
+                    <input id="aura-gift-code" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white mb-2" placeholder="Gift code">
+                    <input id="aura-gift-amount" type="number" min="1" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white mb-2" placeholder="Amount per user (৳)">
+                    <label class="block text-xs text-slate-400 mb-1">কতজন user এই code নিতে পারবে?</label>
+                    <input id="aura-gift-max" type="number" min="1" step="1" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white mb-2" placeholder="Maximum users">
+                    <button onclick="auraCreateGift()" class="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-lg p-2 font-bold">🎁 Create Gift Code</button>
+                </div>
+                <div class="bg-[#050811] border border-slate-800 rounded-xl p-3">
+                    <h4 class="font-bold mb-2">Support Tickets</h4>
+                    <div id="aura-support-list">লোড হচ্ছে...</div>
+                </div>
+            </div>`;
+            auraPanel('Gift & Support',html);
+            try{
+                const snap=await getDocs(collection(db,'supportTickets'));
+                let out='';
+                snap.forEach(d=>{const v=d.data();out+=`<div class="border-b border-slate-800 py-2 text-xs"><b>${v.userEmail||v.userId||'User'}</b><br>${v.message||v.subject||''}<br><span class="text-slate-500">${v.status||'open'}</span></div>`});
+                document.getElementById('aura-support-list').innerHTML=out||'No tickets';
+            }catch(e){document.getElementById('aura-support-list').innerText=e.message}
+        };
+
+        window.auraCreateGift = async function(){
+            const code=(document.getElementById('aura-gift-code')?.value||'').trim().toUpperCase().replace(/\s+/g,'');
+            const amount=Number(document.getElementById('aura-gift-amount')?.value||0);
+            const maxUses=Math.floor(Number(document.getElementById('aura-gift-max')?.value||0));
+            if(!code||amount<=0||maxUses<1)return alert('Code, amount এবং maximum users দিন।');
+            try{
+                const ref=doc(db,'giftCodes',code);
+                const old=await getDoc(ref);
+                if(old.exists())return alert('এই gift code আগে থেকেই আছে। অন্য code দিন।');
+                await setDoc(ref,{code,amount,maxUses,usedCount:0,active:true,createdAt:Date.now(),createdBy:auth?.currentUser?.email||'admin'});
+                alert(`Gift code ${code} তৈরি হয়েছে। সর্বোচ্চ ${maxUses} জন নিতে পারবে।`);
+                auraGiftsSupport();
+            }catch(e){alert('Gift code create failed: '+(e.message||e));}
+        };
+
+        window.auraGiftHistory = async function(){
+            try{
+                const snap=await getDocs(collection(db,'giftCodes'));
+                const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+                const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+                const body=`<div class="space-y-3">
+                    <button onclick="auraGiftsSupport()" class="w-full bg-slate-800 hover:bg-slate-700 text-white rounded-lg p-2 text-xs font-bold">← Back to Gift Code Create</button>
+                    ${rows.length?rows.map(r=>{
+                        const used=Number(r.usedCount||0), max=Number(r.maxUses||0);
+                        return `<div class="bg-[#050811] border border-slate-800 rounded-xl p-3">
+                            <div class="flex justify-between gap-2 items-start">
+                                <div><b class="text-white">${esc(r.code||r.id)}</b><div class="text-xs text-slate-400 mt-1">৳${Number(r.amount||0)} / user</div></div>
+                                <span class="text-[10px] px-2 py-1 rounded bg-emerald-500/10 text-emerald-400">${r.active===false?'DISABLED':'ACTIVE'}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+                                <div class="bg-black rounded-lg p-2">Total allowed: <b>${max}</b></div>
+                                <div class="bg-black rounded-lg p-2">Taken: <b>${used}</b></div>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-2">Remaining: ${Math.max(0,max-used)} • Created: ${r.createdAt?new Date(Number(r.createdAt)).toLocaleString():'N/A'}</div>
+                            <div class="grid grid-cols-2 gap-2 mt-3">
+                                <button onclick="auraEditGift('${esc(r.id)}')" class="bg-blue-600 hover:bg-blue-500 text-white rounded-lg p-2 text-xs font-bold">Edit</button>
+                                <button onclick="auraDeleteGift('${esc(r.id)}')" class="bg-rose-600 hover:bg-rose-500 text-white rounded-lg p-2 text-xs font-bold">Delete</button>
+                            </div>
+                        </div>`;
+                    }).join(''):'<div class="text-center text-slate-500 py-10 text-sm">কোনো Gift Code নেই।</div>'}
+                </div>`;
+                auraPanel('Gift Code History',body);
+            }catch(e){alert('Gift code history load failed: '+(e.message||e));}
+        };
+
+        window.auraEditGift = async function(id){
+            try{
+                const snap=await getDoc(doc(db,'giftCodes',id));
+                if(!snap.exists())return alert('Gift code পাওয়া যায়নি।');
+                const v=snap.data();
+                const esc=v=>String(v??'').replace(/"/g,'&quot;');
+                auraPanel('Edit Gift Code',`<div class="space-y-3">
+                    <input id="edit-gift-code" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white" value="${esc(v.code||id)}" readonly>
+                    <input id="edit-gift-amount" type="number" min="1" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white" value="${Number(v.amount||0)}" placeholder="Amount per user">
+                    <input id="edit-gift-max" type="number" min="${Math.max(1,Number(v.usedCount||0))}" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white" value="${Math.max(Number(v.maxUses||0),Number(v.usedCount||0))}" placeholder="Maximum users">
+                    <select id="edit-gift-active" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white"><option value="true" ${v.active!==false?'selected':''}>Active</option><option value="false" ${v.active===false?'selected':''}>Disabled</option></select>
+                    <button onclick="auraSaveGiftEdit('${esc(id)}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-lg p-2 font-bold">Save Changes</button>
+                    <button onclick="auraGiftHistory()" class="w-full bg-slate-800 text-white rounded-lg p-2 text-xs font-bold">Cancel</button>
+                </div>`);
+            }catch(e){alert(e.message||e);}
+        };
+
+        window.auraSaveGiftEdit = async function(id){
+            const amount=Number(document.getElementById('edit-gift-amount')?.value||0);
+            const maxUses=Math.floor(Number(document.getElementById('edit-gift-max')?.value||0));
+            const active=document.getElementById('edit-gift-active')?.value==='true';
+            const current=await getDoc(doc(db,'giftCodes',id));
+            if(!current.exists())return alert('Gift code পাওয়া যায়নি।');
+            const used=Number(current.data().usedCount||0);
+            if(amount<=0||maxUses<used||maxUses<1)return alert(`Maximum users কমপক্ষে ${used} হতে হবে।`);
+            try{await updateDoc(doc(db,'giftCodes',id),{amount,maxUses,active,updatedAt:Date.now()});alert('Gift code updated ✓');auraGiftHistory();}catch(e){alert('Update failed: '+(e.message||e));}
+        };
+
+        window.auraDeleteGift = async function(id){
+            if(!confirm('এই Gift Code এবং এর history permanently delete করবেন?'))return;
+            try{await deleteDoc(doc(db,'giftCodes',id));alert('Gift code deleted ✓');auraGiftHistory();}catch(e){alert('Delete failed: '+(e.message||e));}
+        };
+
+        window.auraAnalytics = async function(){
+            try{const [u,t,d,w]=await Promise.all([getDocs(collection(db,'users')),getDocs(collection(db,'tournaments')),getDocs(collection(db,'deposits')),getDocs(collection(db,'withdraws'))]);
+            auraPanel('Analytics',`<div class="space-y-2"><div class="bg-[#050811] p-4 rounded-xl">Registered users: <b>${u.size}</b></div><div class="bg-[#050811] p-4 rounded-xl">Tournaments: <b>${t.size}</b></div><div class="bg-[#050811] p-4 rounded-xl">Deposit requests: <b>${d.size}</b></div><div class="bg-[#050811] p-4 rounded-xl">Withdrawal requests: <b>${w.size}</b></div></div>`)}catch(e){auraPanel('Analytics Error',e.message)}
+        };
+
+        window.auraGlobalSearch = function(){auraPanel('Global Search',`<input id="aura-search" oninput="auraRunSearch()" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-white" placeholder="Username, email, tournament, group..."><div id="aura-search-results" class="space-y-2 mt-3"></div>`)};
+        window.auraRunSearch = async function(){const q=(document.getElementById('aura-search')?.value||'').toLowerCase().trim(),box=document.getElementById('aura-search-results');if(!box)return;if(!q){box.innerHTML='';return;}const [u,t,g,s]=await Promise.all([getDocs(collection(db,'users')),getDocs(collection(db,'tournaments')),getDocs(collection(db,'groups')),getDocs(collection(db,'sections'))]);let out='';[[u,'User'],[t,'Tournament'],[g,'Group'],[s,'Section']].forEach(([snap,label])=>snap.forEach(d=>{const v=d.data(),str=JSON.stringify(v).toLowerCase();if(str.includes(q))out+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-2 text-xs"><b>${label}</b> — ${v.name||v.userName||v.username||v.email||d.id}</div>`}));box.innerHTML=out||'<p class="text-slate-500">No result found.</p>';};
+
+        window.auraHomeContent = async function(){
+            try{const r=doc(db,'settings','homePage'),s=await getDoc(r),v=s.exists()?s.data():{};auraPanel('Home Content',`<div class="space-y-3"><label class="text-slate-400">Notice</label><textarea id="aura-notice" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white" rows="3">${v.noticeText||''}</textarea><label class="text-slate-400">Banner lines — type|image URL|optional click/download link</label><textarea id="aura-media" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white" rows="7">${(v.heroMedia||[]).map(x=>[x.type||'image',x.url||'',x.link||''].join('|')).join('\n')}</textarea><button onclick="auraSaveHomeContent()" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold">Save Home Content</button></div>`)}catch(e){auraPanel('Home Error',e.message)}
+        };
+        window.auraSaveHomeContent = async function(){const notice=document.getElementById('aura-notice').value;const lines=document.getElementById('aura-media').value.split('\n').map(x=>x.trim()).filter(Boolean);const heroMedia=lines.map(x=>{const [type,url,link]=x.split('|');return{type:type||'image',url:url||'',link:link||''}}).filter(x=>x.url);await setDoc(doc(db,'settings','homePage'),{noticeText:notice,heroMedia},{merge:true});alert('Home content saved');auraHomeContent();};
+
+        window.auraMediaAPK = function(){auraPanel('Media / APK',`<div class="space-y-3"><div><label class="text-slate-400">Home image/video</label><input id="aura-media-file" type="file" accept="image/*,video/*" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white"><button onclick="auraUploadMedia()" class="w-full bg-blue-600 text-white p-2 rounded-xl mt-2 font-bold">Upload Media</button></div><hr class="border-slate-800"><div><label class="text-slate-400">APK file</label><input id="aura-apk-file" type="file" accept=".apk,application/vnd.android.package-archive" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white"><button onclick="auraUploadAPK()" class="w-full bg-emerald-600 text-white p-2 rounded-xl mt-2 font-bold">Upload APK</button></div><div id="aura-upload-status" class="text-xs text-slate-400"></div></div>`)};
+        window.auraUploadMedia = async function(){const f=document.getElementById('aura-media-file').files[0];if(!f)return alert('File select করুন');const path=`home-media/${Date.now()}_${f.name}`;const r=storageRef(auraStorage,path);document.getElementById('aura-upload-status').innerText='Uploading...';await uploadBytes(r,f);const url=await getDownloadURL(r);const s=await getDoc(doc(db,'settings','homePage'));const v=s.exists()?s.data():{};const arr=Array.isArray(v.heroMedia)?v.heroMedia:[];arr.push({type:f.type.startsWith('video/')?'video':'image',url,link:''});await setDoc(doc(db,'settings','homePage'),{heroMedia:arr},{merge:true});document.getElementById('aura-upload-status').innerText='Media uploaded successfully.';};
+        window.auraUploadAPK = async function(){const f=document.getElementById('aura-apk-file').files[0];if(!f)return alert('APK select করুন');const r=storageRef(auraStorage,`app-downloads/${Date.now()}_${f.name}`);document.getElementById('aura-upload-status').innerText='Uploading APK...';await uploadBytes(r,f,{contentType:'application/vnd.android.package-archive'});const url=await getDownloadURL(r);await setDoc(doc(db,'settings','appDownload'),{url,name:f.name,updatedAt:Date.now()},{merge:true});document.getElementById('aura-upload-status').innerText='APK uploaded successfully.';};
+
+        window.auraMemoryCenter = function(){auraPanel('Memory Centre',`<div class="space-y-3"><p class="text-amber-300 text-xs">⚠️ এগুলো permanent delete হতে পারে। আগে নিশ্চিত হন।</p><div class="grid grid-cols-2 gap-2">${['users','sections','groups','tournaments','registrations','transactions','deposits','withdraws','giftCodes','supportTickets','notifications','banners'].map(c=>`<button onclick="auraClearCollection('${c}')" class="bg-red-950/40 border border-red-500/20 text-red-200 p-2 rounded-lg text-xs font-bold">Clear ${c}</button>`).join('')}</div><button onclick="auraClearStorageFolder('home-media')" class="w-full bg-red-900/40 border border-red-500/30 text-red-200 p-2 rounded-xl font-bold">Clear Home Media Storage</button><button onclick="auraClearStorageFolder('app-downloads')" class="w-full bg-red-900/40 border border-red-500/30 text-red-200 p-2 rounded-xl font-bold">Clear APK Storage</button></div>`)};
+        window.auraClearCollection = async function(col){if(!confirm(`${col} collection-এর সব data delete করবেন?`))return;const snap=await getDocs(collection(db,col));for(const d of snap.docs)await deleteDoc(d.ref);alert(`${col} cleared`);auraMemoryCenter();loadAllAdminData();};
+        window.auraClearStorageFolder = async function(folder){if(!confirm(`${folder} storage folder clear করবেন?`))return;const walk=async p=>{const l=await listAll(storageRef(auraStorage,p));for(const f of l.items)await deleteObject(f);for(const d of l.prefixes)await walk(d.fullPath)};await walk(folder);alert(`${folder} cleared`);};
+
+        window.closeGenericModal = function() {
+            document.getElementById('generic-modal').style.display = 'none';
+        }
+    </script>
+
+
+<!-- =========================================================
+     SITE MAINTENANCE CONTROL
+     Firestore: settings/siteMaintenance
+     enabled: boolean
+     reason: string
+========================================================= -->
+<style>
+#siteMaintenanceAdminControl{position:fixed;right:14px;bottom:14px;z-index:999998;width:min(390px,calc(100vw - 28px));font-family:Arial,sans-serif}
+#siteMaintenanceAdminControl .sm-card{background:rgba(8,13,24,.97);border:1px solid rgba(59,130,246,.35);border-radius:18px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);backdrop-filter:blur(14px)}
+#siteMaintenanceAdminControl .sm-title{font-size:13px;font-weight:900;color:#fff;margin-bottom:5px}
+#siteMaintenanceAdminControl .sm-status{font-size:11px;font-weight:800;margin-bottom:10px}
+#siteMaintenanceAdminControl textarea{width:100%;min-height:70px;resize:vertical;box-sizing:border-box;background:#0b1220;color:#fff;border:1px solid #26344d;border-radius:12px;padding:10px;outline:none;font-size:12px}
+#siteMaintenanceAdminControl textarea:focus{border-color:#3b82f6}
+#siteMaintenanceAdminControl .sm-row{display:flex;gap:8px;margin-top:9px}
+#siteMaintenanceAdminControl button{flex:1;border:0;border-radius:11px;padding:10px;font-size:11px;font-weight:900;cursor:pointer}
+#smOnBtn{background:#dc2626;color:#fff} #smOffBtn{background:#16a34a;color:#fff}
+#smReloadBtn{background:#1e293b;color:#cbd5e1}
+#smMaintenanceLock{display:none;position:fixed;inset:0;z-index:999997;background:rgba(2,6,23,.94);align-items:center;justify-content:center;padding:20px;text-align:center;color:#fff}
+#smMaintenanceLock .sm-lock-card{max-width:380px;background:#0f172a;border:1px solid rgba(245,158,11,.35);border-radius:22px;padding:28px;box-shadow:0 25px 80px rgba(0,0,0,.6)}
+</style>
+<div id="siteMaintenanceAdminControl">
+  <div class="sm-card">
+    <div class="sm-title">🛠 SITE MAINTENANCE</div>
+    <div id="smStatus" class="sm-status">Checking...</div>
+    <textarea id="smReason" placeholder="Maintenance reason লিখুন..."></textarea>
+    <div class="sm-row">
+      <button id="smOnBtn" type="button">MAINTENANCE ON</button>
+      <button id="smOffBtn" type="button">SITE OFF</button>
+      <button id="smReloadBtn" type="button">REFRESH</button>
+    </div>
+    <div style="font-size:9px;color:#64748b;margin-top:8px;line-height:1.45">ON করলে user login/index বন্ধ হবে। Maintenance ON থাকা অবস্থায় এই admin panel-এর normal কাজও locked থাকবে। OFF Firebase থেকে <b>settings/siteMaintenance.enabled=false</b> করে করতে পারবেন।</div>
+  </div>
+</div>
+<div id="smMaintenanceLock">
+  <div class="sm-lock-card">
+    <div style="font-size:40px;margin-bottom:12px">🛠️</div>
+    <h2 style="font-size:20px;font-weight:900;margin-bottom:8px">SITE MAINTENANCE ACTIVE</h2>
+    <p id="smLockReason" style="color:#94a3b8;font-size:13px;line-height:1.6"></p>
+    <p style="color:#fbbf24;font-size:11px;margin-top:15px">Admin actions are locked. Turn maintenance OFF from Firebase.</p>
+  </div>
+</div>
+<script type="module" id="site-maintenance-control-v1">
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+const SMDB=getFirestore();
+const smRef=doc(SMDB,'settings','siteMaintenance');
+const smStatus=document.getElementById('smStatus');
+const smReason=document.getElementById('smReason');
+const smLock=document.getElementById('smMaintenanceLock');
+const smLockReason=document.getElementById('smLockReason');
+const smPanel=document.getElementById('siteMaintenanceAdminControl');
+let smActive=false;
+function smApply(data={}){
+  smActive=data.enabled===true;
+  smStatus.textContent=smActive?'🔴 MAINTENANCE ON':'🟢 SITE ONLINE';
+  smStatus.style.color=smActive?'#f87171':'#34d399';
+  if(document.activeElement!==smReason) smReason.value=data.reason||'';
+  if(smActive){
+    smLockReason.textContent=data.reason||'সাইটটি বর্তমানে maintenance-এর মধ্যে আছে।';
+    smLock.style.display='flex';
+    // Lock the admin UI visually while maintenance is active.
+    document.documentElement.style.overflow='hidden';
+    smPanel.style.pointerEvents='none';
+    smPanel.style.opacity='.35';
+  }else{
+    smLock.style.display='none';
+    document.documentElement.style.overflow='';
+    smPanel.style.pointerEvents='auto';
+    smPanel.style.opacity='1';
+  }
+}
+async function smLoad(){try{const s=await getDoc(smRef);smApply(s.exists()?s.data():{});}catch(e){console.error('Maintenance admin load failed',e);smStatus.textContent='Permission / load error';smStatus.style.color='#f87171';}}
+smLoad();
+onSnapshot(smRef,s=>smApply(s.exists()?s.data():{}),e=>{console.error(e);smStatus.textContent='Permission denied';smStatus.style.color='#f87171';});
+document.getElementById('smOnBtn').addEventListener('click',async()=>{
+  if(smActive)return;
+  const reason=String(smReason.value||'').trim()||'সাইটটি বর্তমানে maintenance-এর মধ্যে আছে।';
+  try{await setDoc(smRef,{enabled:true,reason,updatedAt:Date.now()},{merge:true});}catch(e){alert('Maintenance ON failed: '+e.message);}
+});
+document.getElementById('smOffBtn').addEventListener('click',()=>{
+  alert('Maintenance ON থাকা অবস্থায় admin panel থেকে OFF করা যাবে না। Firebase Console → Firestore → settings/siteMaintenance → enabled = false করুন।');
+});
+document.getElementById('smReloadBtn').addEventListener('click',smLoad);
+</script>
+
+
+<script id="maintenance-modal-controller">
+(function(){
+  const modal = document.getElementById("maintenanceModal");
+  const openBtn = document.getElementById("openMaintenanceBtn");
+  const closeBtn = document.getElementById("closeMaintenanceBtn");
+  const reasonInput = document.getElementById("maintenanceReasonInput");
+  const onBtn = document.getElementById("maintenanceOnBtn");
+  const offBtn = document.getElementById("maintenanceOffBtn");
+  const statusEl = document.getElementById("maintenanceStatus");
+
+  if(!modal || !openBtn) return;
+
+  function openModal(){
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden","false");
+  }
+  function closeModal(){
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden","true");
+  }
+
+  openBtn.addEventListener("click", openModal);
+  closeBtn?.addEventListener("click", closeModal);
+  modal.addEventListener("click", e => {
+    if(e.target === modal) closeModal();
+  });
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape") closeModal();
+  });
+
+  // Works with the existing Firebase db variable used by the admin file.
+  async function getMaintenance(){
+    try{
+      if(typeof db === "undefined"){
+        statusEl.textContent = "Firebase database পাওয়া যায়নি।";
+        return;
+      }
+      const snap = await getDoc(doc(db, "settings", "siteMaintenance"));
+      const data = snap.exists() ? (snap.data() || {}) : {};
+      if(data.enabled === true){
+        reasonInput.value = data.reason || "";
+        statusEl.innerHTML = '<span style="color:#fbbf24;font-weight:800">● MAINTENANCE ON</span>';
+      }else{
+        statusEl.innerHTML = '<span style="color:#34d399;font-weight:800">● MAINTENANCE OFF</span>';
+      }
+    }catch(e){
+      console.error("Maintenance status error:", e);
+      statusEl.textContent = "Status check failed: " + e.message;
+    }
+  }
+
+  onBtn?.addEventListener("click", async ()=>{
+    const reason = reasonInput.value.trim();
+    if(!reason){
+      alert("Maintenance reason দিন।");
+      reasonInput.focus();
+      return;
+    }
+    try{
+      onBtn.disabled = true;
+      onBtn.textContent = "TURNING ON...";
+      await setDoc(doc(db, "settings", "siteMaintenance"), {
+        enabled:true,
+        reason:reason,
+        updatedAt:Date.now()
+      }, {merge:true});
+      statusEl.innerHTML = '<span style="color:#fbbf24;font-weight:800">● MAINTENANCE ON</span>';
+      alert("Maintenance Mode ON হয়েছে।");
+      closeModal();
+    }catch(e){
+      console.error(e);
+      alert("Maintenance ON failed: " + e.message);
+    }finally{
+      onBtn.disabled = false;
+      onBtn.textContent = "TURN ON";
+    }
+  });
+
+  offBtn?.addEventListener("click", async ()=>{
+    try{
+      offBtn.disabled = true;
+      offBtn.textContent = "TURNING OFF...";
+      await setDoc(doc(db, "settings", "siteMaintenance"), {
+        enabled:false,
+        reason:"",
+        updatedAt:Date.now()
+      }, {merge:true});
+      statusEl.innerHTML = '<span style="color:#34d399;font-weight:800">● MAINTENANCE OFF</span>';
+      alert("Maintenance Mode OFF হয়েছে।");
+      closeModal();
+    }catch(e){
+      console.error(e);
+      alert("Maintenance OFF failed: " + e.message);
+    }finally{
+      offBtn.disabled = false;
+      offBtn.textContent = "TURN OFF";
+    }
+  });
+
+  // Initial status check only when modal is opened.
+  openBtn.addEventListener("click", getMaintenance);
+})();
+
     </script>
 </body>
 </html>
