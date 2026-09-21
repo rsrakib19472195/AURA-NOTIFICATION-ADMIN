@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Changer - Admin Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #050811; color: #f8fafc; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(30, 41, 59, 0.9); }
+        
+        #toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-left: 4px solid #3b82f6;
+            color: #fff; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+        .toast.success { border-left-color: #10b981; }
+        .toast.error { border-left-color: #ef4444; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20">
+
+    <div id="toast-container"></div>
+
+    <header class="bg-[#0b0f1a] px-6 py-4 border-b border-slate-900 flex justify-between items-center sticky top-0 z-30 shadow-md">
+        <div class="flex items-center space-x-3">
+            <div class="bg-blue-600/30 border border-blue-500/40 text-blue-400 px-3 py-1.5 rounded-xl text-xs font-black tracking-wider">
+                <i class="fa-solid fa-shield-halved mr-1"></i> ADMIN DASHBOARD
+            </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap justify-end">
+            <button id="openNotificationBtn" type="button" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                <i class="fa-solid fa-bell mr-1"></i> Notifications
+            </button>
+            <button id="openAppUpdateBtn" type="button" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                <i class="fa-solid fa-mobile-screen-button mr-1"></i> App Update
+            </button>
+            <button id="openMaintenanceBtn" type="button" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                <i class="fa-solid fa-screwdriver-wrench mr-1"></i> Maintenance
+            </button>
+            <a href="index.html" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                <i class="fa-solid fa-house mr-1"></i> Home View
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 w-full space-y-6">
+
+        <!-- Live Counters Dashboard Box -->
+        <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+            <div class="glass-card p-4 rounded-2xl border border-amber-500/30 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase">Pending Deposits</p>
+                    <h3 id="live-pending-deposits" class="text-2xl font-black text-amber-400 mt-1">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+            </div>
+            <div class="glass-card p-4 rounded-2xl border border-rose-500/30 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase">Pending Withdraws</p>
+                    <h3 id="live-pending-withdraws" class="text-2xl font-black text-rose-400 mt-1">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 md:grid-cols-7 gap-1.5 bg-[#0d1322] p-1.5 rounded-2xl border border-slate-800">
+            <button onclick="switchTab('sections')" id="tab-btn-sections" class="py-2.5 text-[11px] font-bold rounded-xl bg-blue-600 text-white shadow transition">Categories</button>
+            <button onclick="switchTab('groups')" id="tab-btn-groups" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Groups</button>
+            <button onclick="switchTab('tournaments')" id="tab-btn-tournaments" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Tournaments</button>
+            <button onclick="switchTab('banners')" id="tab-btn-banners" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Banners</button>
+            <button onclick="switchTab('deposits')" id="tab-btn-deposits" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Deposits</button>
+            <button onclick="switchTab('withdraws')" id="tab-btn-withdraws" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Withdraws</button>
+            <button onclick="switchTab('rules')" id="tab-btn-rules" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Rules</button>
+        </div>
+
+        <div id="tab-sections" class="space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Category Management</h3>
+                <button onclick="openSectionModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Category
+                </button>
+            </div>
+            <div id="admin-sections-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <div id="tab-groups" class="space-y-4" style="display: none;">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Group Management</h3>
+                <button onclick="openGroupModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Group
+                </button>
+            </div>
+            <div id="admin-groups-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <div id="tab-tournaments" class="space-y-4" style="display: none;">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Tournament Management</h3>
+                <button onclick="openTournamentModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Tournament
+                </button>
+            </div>
+            <div id="admin-tournaments-list" class="space-y-3"></div>
+        </div>
+
+        <div id="tab-banners" class="space-y-4" style="display: none;">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Home Banner Management</h3>
+                <button onclick="openBannerModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Banner
+                </button>
+            </div>
+            <div id="admin-banners-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- DEPOSITS TAB -->
+        <div id="tab-deposits" class="space-y-4" style="display: none;">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-[#0f172a] p-4 rounded-2xl border border-slate-800">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Deposit Management & Gateway Setup</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">bKash ba Nagad select kore request dekhun ebong gateway numbers manage korun.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openGatewayModal()" class="bg-slate-800 hover:bg-slate-700 text-blue-400 text-xs font-bold px-3 py-2 rounded-xl border border-blue-500/30"><i class="fa-solid fa-gear mr-1"></i> Edit Deposit Numbers</button>
+                    <button onclick="openReferralHistory()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-link mr-1"></i> Refer History</button>
+                    <button onclick="openHistoryModal('Deposit')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Deposit & Withdraw History</button>
+                </div>
+            </div>
+
+            <!-- Gateway Filter Buttons for Deposits -->
+            <div class="flex gap-2">
+                <button onclick="filterDepositGateway('bkash')" id="dep-filter-bkash" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition"><i class="fa-solid fa-wallet mr-1"></i> bKash Requests</button>
+                <button onclick="filterDepositGateway('nagad')" id="dep-filter-nagad" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition"><i class="fa-solid fa-wallet mr-1"></i> Nagad Requests</button>
+            </div>
+
+            <div id="admin-deposits-list" class="space-y-3"></div>
+        </div>
+
+        <!-- WITHDRAWS TAB -->
+        <div id="tab-withdraws" class="space-y-4" style="display: none;">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-[#0f172a] p-4 rounded-2xl border border-slate-800">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Withdraw Requests Management</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">bKash ba Nagad select kore pending request approve/reject korun.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openHistoryModal('Withdraw')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Deposit & Withdraw History</button>
+                    <button onclick="renderWithdrawsList()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
+                </div>
+            </div>
+
+            <!-- Gateway Filter Buttons for Withdraws -->
+            <div class="flex gap-2">
+                <button onclick="filterWithdrawGateway('bkash')" id="wd-filter-bkash" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition"><i class="fa-solid fa-wallet mr-1"></i> bKash Withdraws</button>
+                <button onclick="filterWithdrawGateway('nagad')" id="wd-filter-nagad" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition"><i class="fa-solid fa-wallet mr-1"></i> Nagad Withdraws</button>
+            </div>
+
+            <div id="admin-withdraws-list" class="space-y-3"></div>
+        </div>
+
+        <!-- RULES MANAGEMENT TAB -->
+        <div id="tab-rules" class="space-y-4" style="display: none;">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Match Rules Management</h3>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                <button onclick="loadAdminRuleEditor('br_headshot')" id="admin-rule-br_headshot" class="py-2 px-1 rounded-xl text-[11px] font-bold bg-blue-600 text-white truncate">BR HEADSHOT</button>
+                <button onclick="loadAdminRuleEditor('lone_wolf_headshot')" id="admin-rule-lone_wolf_headshot" class="py-2 px-1 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 truncate">LONE WOLF HEADSHOT</button>
+                <button onclick="loadAdminRuleEditor('lone_wolf_bodyshot')" id="admin-rule-lone_wolf_bodyshot" class="py-2 px-1 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 truncate">LONE WOLF BODYSHOT</button>
+                <button onclick="loadAdminRuleEditor('cs_headshot')" id="admin-rule-cs_headshot" class="py-2 px-1 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 truncate">CS HEADSHOT</button>
+            </div>
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <label class="text-xs text-slate-400 block font-bold">Edit Rules Text:</label>
+                <textarea id="admin-rule-textarea" rows="10" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-xs text-white leading-relaxed" placeholder="নিয়মাবলী লিখুন..."></textarea>
+                <button onclick="saveMatchRules()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs">Update Rules</button>
+            </div>
+        </div>
+
+        <!-- AURA ARMAN legacy feature access -->
+        <div class="mt-3 flex justify-end">
+            <button onclick="openAuraLegacyFeatures()" class="bg-slate-800 hover:bg-slate-700 border border-blue-500/30 text-blue-300 text-[11px] font-bold px-3 py-2 rounded-xl transition">
+                <i class="fa-solid fa-shield-halved mr-1"></i> AURA ARMAN FEATURES
+            </button>
+        </div>
+
+    </main>
+
+    <div id="maintenanceModal" class="fixed inset-0 z-[99999] items-center justify-center bg-black/80 backdrop-blur-sm px-4" style="display:none;">
+      <div class="bg-[#0f172a] border border-amber-500/30 rounded-2xl p-5 max-w-md w-full shadow-2xl">
+        <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white">Maintenance Mode</h3><button id="closeMaintenanceBtn" class="text-slate-400 text-xl">×</button></div>
+        <textarea id="maintenanceMessageInput" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-xs text-white" rows="4" placeholder="Maintenance message..."></textarea>
+        <div id="maintenanceStatus" class="mt-3 text-xs text-slate-400">Status checking...</div>
+        <div class="flex gap-2 mt-3"><button id="maintenanceOnBtn" class="flex-1 bg-amber-500 text-black font-bold py-2.5 rounded-xl">MAINTENANCE ON</button><button id="maintenanceOffBtn" class="flex-1 bg-red-600 text-white font-bold py-2.5 rounded-xl">OFF</button></div>
+      </div>
+    </div>
+
+    <div id="appUpdateModal" class="fixed inset-0 z-[99999] items-center justify-center bg-black/80 backdrop-blur-sm px-4" style="display:none;">
+      <div class="bg-[#0f172a] border border-blue-500/30 rounded-2xl p-5 max-w-md w-full shadow-2xl">
+        <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white">App Update</h3><button id="closeAppUpdateBtn" class="text-slate-400 text-xl">×</button></div>
+        <textarea id="appUpdateMessageInput" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-xs text-white" rows="3" placeholder="Update message..."></textarea>
+        <input id="appUpdateLinkInput" class="w-full mt-2 bg-[#050811] border border-slate-800 rounded-xl p-3 text-xs text-white" placeholder="https://...">
+        <div id="appUpdateStatus" class="mt-3 text-xs text-slate-400">Status checking...</div>
+        <div class="flex gap-2 mt-3"><button id="appUpdateOnBtn" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-xl">UPDATE ON</button><button id="appUpdateOffBtn" class="flex-1 bg-red-600 text-white font-bold py-2.5 rounded-xl">OFF</button></div>
+      </div>
+    </div>
+
+    <div id="generic-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4" style="display: none;">
+        <div class="bg-[#0f172a] border border-blue-500/40 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-sm font-bold text-white uppercase tracking-wider">Form</h3>
+                <button onclick="closeGenericModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="modal-body" class="space-y-3 text-xs"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, ADMIN_EMAIL, linkOneSignalUser } from "./firebase.js";
+        import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, orderBy, limit, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        const auraStorage = getStorage();
+        // Link the logged-in admin Firebase UID to the native Median/OneSignal user.
+        // This is required so the Render server can target the admin device by external_id.
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // ADMIN AUTH GUARD
+        // Admin page must never load Firestore controls before Firebase Auth is ready.
+        // If there is no session, send the user to the existing login page.
+        // Only the configured ADMIN_EMAIL can enter this panel.
+        let __adminAuthReady = false;
+        onAuthStateChanged(auth, (user) => {
+            __adminAuthReady = true;
+            if (!user) {
+                window.location.replace('./login.html?next=index.html');
+                return;
+            }
+
+            const signedEmail = String(user.email || '').trim().toLowerCase();
+            const adminEmail = String(ADMIN_EMAIL || '').trim().toLowerCase();
+            if (!adminEmail || signedEmail !== adminEmail) {
+                console.warn('Admin access denied for:', signedEmail);
+                alert('Admin access denied. এই account দিয়ে Admin Panel ব্যবহার করা যাবে না।');
+                window.location.replace('./login.html?next=index.html');
+                return;
+            }
+
+            const link = () => linkOneSignalUser(user).catch(err => console.warn('OneSignal admin link failed:', err));
+            link();
+            // Median native bridge may become ready shortly after the page loads.
+            setTimeout(link, 1500);
+            setTimeout(link, 4000);
+        });
+
+
+        let allSections = [];
+        let allGroups = [];
+        let allTournaments = [];
+        let allBanners = [];
+        let allDeposits = [];
+        let allWithdraws = [];
+        let currentDepGateway = 'bkash';
+        let currentWdGateway = 'bkash';
+        let activeRuleCategory = 'br_headshot';
+
+        window.showToast = function(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+            if(type === 'error') icon = '<i class="fa-solid fa-circle-exclamation text-rose-400"></i>';
+
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        window.loadAllAdminData = async function() {
+            try {
+                const [secSnap, groupSnap, tourSnap, bannerSnap, depSnap, depositRequestSnap, wdSnap] = await Promise.all([
+                    getDocs(collection(db, "sections")),
+                    getDocs(collection(db, "groups")),
+                    getDocs(collection(db, "tournaments")),
+                    getDocs(collection(db, "banners")),
+                    getDocs(collection(db, "transactions")),
+                    getDocs(collection(db, "deposits")),
+                    getDocs(collection(db, "withdraws"))
+                ]);
+
+                allSections = [];
+                secSnap.forEach(d => allSections.push({ id: d.id, ...d.data() }));
+
+                allGroups = [];
+                groupSnap.forEach(d => allGroups.push({ id: d.id, ...d.data() }));
+
+                allTournaments = [];
+                const now = Date.now();
+                
+                tourSnap.forEach(async (d) => {
+                    let tData = { id: d.id, ...d.data() };
+                    const startTime = Number(tData.startTime || 0);
+                    let currentStatus = String(tData.status || 'upcoming').toLowerCase();
+
+                    if(startTime > 0) {
+                        if(currentStatus === 'upcoming' && now >= startTime) {
+                            currentStatus = 'live';
+                            await updateDoc(doc(db, "tournaments", d.id), { status: 'live' });
+                        } else if(currentStatus === 'live' && now >= (startTime + 10 * 60 * 1000)) {
+                            currentStatus = 'completed';
+                            await updateDoc(doc(db, "tournaments", d.id), { status: 'completed', completedAt: now });
+                        }
+                    }
+
+                    // Do not auto-delete completed tournaments here.
+                    // Room Details updates must never make a match disappear, and match history/registrations
+                    // should remain available unless an admin explicitly deletes the tournament.
+                    tData.status = currentStatus;
+                    allTournaments.push(tData);
+                });
+
+                allBanners = [];
+                bannerSnap.forEach(d => allBanners.push({ id: d.id, ...d.data() }));
+
+                allDeposits = [];
+                let pendingDepCount = 0;
+                const depositIds = new Set();
+                // Current app creates pending deposit requests in `deposits`.
+                depositRequestSnap.forEach(d => {
+                    const data = d.data() || {};
+                    allDeposits.push({ id: d.id, ...data, __source: 'deposits' });
+                    depositIds.add(d.id);
+                    if(String(data.status || 'pending').toLowerCase() === 'pending') pendingDepCount++;
+                });
+                // Keep compatibility with the older `transactions` deposit schema.
+                depSnap.forEach(d => {
+                    const data = d.data() || {};
+                    if((data.type === "Deposit" || data.gateway || data.amount) && !depositIds.has(d.id)) {
+                        allDeposits.push({ id: d.id, ...data, __source: 'transactions' });
+                        if(String(data.status || 'pending').toLowerCase() === 'pending') pendingDepCount++;
+                    }
+                });
+
+                allWithdraws = [];
+                let pendingWdCount = 0;
+                wdSnap.forEach(d => {
+                    const data = d.data();
+                    allWithdraws.push({ id: d.id, ...data });
+                    if(String(data.status || 'pending').toLowerCase() === 'pending') {
+                        pendingWdCount++;
+                    }
+                });
+
+                document.getElementById('live-pending-deposits').innerText = pendingDepCount;
+                document.getElementById('live-pending-withdraws').innerText = pendingWdCount;
+
+                renderSectionsList();
+                renderGroupsList();
+                renderTournamentsList();
+                renderBannersList();
+                renderDepositsList();
+                renderWithdrawsList();
+                loadAdminRuleEditor(activeRuleCategory);
+            } catch(e) {
+                console.error("Error loading admin data:", e);
+            }
+        }
+
+        // Realtime request listeners: support both current `deposits` and legacy `transactions`.
+        let __adminRealtimeSeen = new Set();
+        function __handleNewAdminRequest(type, change){
+            if(change.type !== 'added') return;
+            const d=change.doc.data()||{};
+            if(String(d.status||'pending').toLowerCase()!=='pending') return;
+            const key=type+'_'+change.doc.id;
+            if(__adminRealtimeSeen.has(key)) return;
+            __adminRealtimeSeen.add(key);
+            const amount=Number(d.amount||0);
+            const user=d.userName||d.username||d.userEmail||d.email||d.userId||d.uid||'User';
+            const method=d.gateway||d.method||'';
+            showToast(`নতুন ${type==='deposit'?'ডিপোজিট':'উইথড্র'} রিকোয়েস্ট: ৳${amount}${method?' ('+method+')':''} — ${user}`,'warning');
+        }
+        onSnapshot(collection(db,'deposits'),snap=>snap.docChanges().forEach(c=>__handleNewAdminRequest('deposit',c)),e=>console.error('Deposits realtime listener failed:',e));
+        onSnapshot(collection(db,'transactions'),snap=>snap.docChanges().forEach(c=>{const d=c.doc.data()||{}; if(d.type==='Deposit'||d.gateway||(d.amount!=null&&!d.method&&!d.withdraw)) __handleNewAdminRequest('deposit',c)}),e=>console.error('Transactions realtime listener failed:',e));
+        onSnapshot(collection(db,'withdraws'),snap=>snap.docChanges().forEach(c=>__handleNewAdminRequest('withdraw',c)),e=>console.error('Withdraw realtime listener failed:',e));
+
+        loadAllAdminData();
+        setInterval(loadAllAdminData, 15000);
+
+        window.switchTab = function(tabName) {
+            ['sections', 'groups', 'tournaments', 'banners', 'deposits', 'withdraws', 'rules'].forEach(t => {
+                document.getElementById(`tab-${t}`).style.display = (t === tabName) ? 'block' : 'none';
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if(btn) {
+                    btn.className = (t === tabName) ? "py-2.5 text-[11px] font-bold rounded-xl bg-blue-600 text-white shadow transition" : "py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition";
+                }
+            });
+        }
+
+        // --- RULES EDITOR FUNCTIONS ---
+        window.loadAdminRuleEditor = async function(cat) {
+            activeRuleCategory = cat;
+            ['br_headshot', 'lone_wolf_headshot', 'lone_wolf_bodyshot', 'cs_headshot'].forEach(m => {
+                const btn = document.getElementById(`admin-rule-${m}`);
+                if(btn) btn.className = (m === cat) ? "py-2 px-1 rounded-xl text-[11px] font-bold bg-blue-600 text-white truncate" : "py-2 px-1 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 truncate";
+            });
+            
+            try {
+                const docRef = doc(db, "matchRules", cat);
+                const snap = await getDoc(docRef);
+                document.getElementById('admin-rule-textarea').value = snap.exists() ? (snap.data().text || '') : '';
+            } catch(e) {
+                showToast('নিয়ম লোড করতে সমস্যা হয়েছে', 'error');
+            }
+        };
+
+        window.saveMatchRules = async function() {
+            const text = document.getElementById('admin-rule-textarea').value;
+            try {
+                await setDoc(doc(db, "matchRules", activeRuleCategory), { text, updatedAt: Date.now() }, { merge: true });
+                showToast('রুলস সফলভাবে আপডেট করা হয়েছে!');
+            } catch(e) {
+                showToast('আপডেট করতে সমস্যা হয়েছে', 'error');
+            }
+        };
+
+        function renderSectionsList() {
+            const list = document.getElementById('admin-sections-list');
+            if(!list) return;
+            list.innerHTML = "";
+            if(allSections.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs">কোনো ক্যাটাগরি নেই।</p>`;
+                return;
+            }
+            allSections.forEach(sec => {
+                list.innerHTML += `
+                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400"><i class="${sec.icon || 'fa-solid fa-gamepad'}"></i></div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">${sec.name}</h4>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editSection('${sec.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteDocItem('sections', '${sec.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.openSectionModal = function(editData = null) {
+            document.getElementById('modal-title').innerText = editData ? "Edit Category" : "Add New Category";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <input type="hidden" id="sec-id" value="${editData ? editData.id : ''}">
+                <div>
+                    <label class="text-slate-400 block mb-1">Category Name</label>
+                    <input type="text" id="sec-name" value="${editData ? editData.name : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-slate-400 block mb-1">FontAwesome Icon Class (e.g. fa-solid fa-gamepad)</label>
+                    <input type="text" id="sec-icon" value="${editData ? (editData.icon || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <button onclick="saveSection()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl mt-2">Save Category</button>
+            `;
+        }
+
+        window.editSection = function(id) {
+            const sec = allSections.find(s => s.id === id);
+            if(sec) openSectionModal(sec);
+        }
+
+        window.saveSection = async function() {
+            const id = document.getElementById('sec-id').value;
+            const name = document.getElementById('sec-name').value;
+            const icon = document.getElementById('sec-icon').value;
+            if(!name) { showToast('ক্যাটাগরির নাম দিন', 'error'); return; }
+
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "sections", id), { name, icon });
+                    showToast('ক্যাটাগরি আপডেট হয়েছে!');
+                } else {
+                    await addDoc(collection(db, "sections"), { name, icon, status: true });
+                    showToast('নতুন ক্যাটাগরি তৈরি হয়েছে!');
+                }
+                closeGenericModal();
+                loadAllAdminData();
+            } catch(e) { showToast('সমস্যা হয়েছে!', 'error'); }
+        }
+
+        function renderGroupsList() {
+            const list = document.getElementById('admin-groups-list');
+            if(!list) return;
+            list.innerHTML = "";
+            if(allGroups.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs">কোনো গ্রুপ নেই।</p>`;
+                return;
+            }
+            allGroups.forEach(g => {
+                const parentSec = allSections.find(s => s.id === g.sectionId);
+                list.innerHTML += `
+                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${g.name}</h4>
+                            <span class="text-[10px] text-blue-400 font-semibold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">Category: ${parentSec ? parentSec.name : 'Unknown'}</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editGroup('${g.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteDocItem('groups', '${g.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.openGroupModal = function(editData = null) {
+            let options = allSections.map(s => `<option value="${s.id}" ${editData && editData.sectionId === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+            document.getElementById('modal-title').innerText = editData ? "Edit Group" : "Add New Group";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <input type="hidden" id="group-id" value="${editData ? editData.id : ''}">
+                <div>
+                    <label class="text-slate-400 block mb-1">Select Parent Category</label>
+                    <select id="group-section" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">${options}</select>
+                </div>
+                <div>
+                    <label class="text-slate-400 block mb-1">Group Name</label>
+                    <input type="text" id="group-name" value="${editData ? editData.name : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <button onclick="saveGroup()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl mt-2">Save Group</button>
+            `;
+        }
+
+        window.editGroup = function(id) {
+            const g = allGroups.find(item => item.id === id);
+            if(g) openGroupModal(g);
+        }
+
+        window.saveGroup = async function() {
+            const id = document.getElementById('group-id').value;
+            const sectionId = document.getElementById('group-section').value;
+            const name = document.getElementById('group-name').value;
+            if(!name || !sectionId) { showToast('সব ফিল্ড পূরণ করুন', 'error'); return; }
+
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "groups", id), { name, sectionId });
+                    showToast('গ্রুপ আপডেট সফল হয়েছে!');
+                } else {
+                    await addDoc(collection(db, "groups"), { name, sectionId, status: true });
+                    showToast('নতুন গ্রুপ তৈরি সফল হয়েছে!');
+                }
+                closeGenericModal();
+                loadAllAdminData();
+            } catch(e) { showToast('সমস্যা হয়েছে', 'error'); }
+        }
+
+        function renderTournamentsList() {
+            const list = document.getElementById('admin-tournaments-list');
+            if(!list) return;
+            list.innerHTML = "";
+            if(allTournaments.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো টুর্নামেন্ট নেই।</p>`;
+                return;
+            }
+            allTournaments.forEach(t => {
+                const parentGroup = allGroups.find(g => g.id === t.groupId);
+                list.innerHTML += `
+                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${t.name}</h4>
+                            <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Status: <b>${t.status || 'upcoming'}</b></span>
+                            <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Players/Slot Size: <b>${t.slotSize || 1}</b> | Map: ${t.map || 'Bermuda'} | Fee: ৳${t.entryFee || 0}</span>
+                        </div>
+                        <div class="flex space-x-2 items-center">
+                            <button onclick="openRegistrationsModal('${t.id}', '${t.name}')" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="View Registrations"><i class="fa-solid fa-users mr-1"></i> Regs</button>
+                            <button onclick="openRoomDetailsModal('${t.id}')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="Update Room Details"><i class="fa-solid fa-key mr-1"></i> Room</button>
+                            <button onclick="editTournament('${t.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteDocItem('tournaments', '${t.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.openTournamentModal = function(editData = null) {
+            let groupOptions = allGroups.map(g => `<option value="${g.id}" ${editData && editData.groupId === g.id ? 'selected' : ''}>${g.name}</option>`).join('');
+            let defaultDateTime = '';
+            if(editData && editData.startTime) {
+                const dt = new Date(editData.startTime);
+                defaultDateTime = dt.toISOString().slice(0, 16);
+            }
+
+            document.getElementById('modal-title').innerText = editData ? "Edit Tournament" : "Add New Tournament";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <input type="hidden" id="tour-id" value="${editData ? editData.id : ''}">
+                <div>
+                    <label class="text-slate-400 block mb-1">Select Group</label>
+                    <select id="tour-group" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">${groupOptions}</select>
+                </div>
+                <div>
+                    <label class="text-slate-400 block mb-1">Tournament Match Name</label>
+                    <input type="text" id="tour-name" value="${editData ? editData.name : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-slate-400 block mb-1">Prize Pool</label>
+                        <input type="text" id="tour-prize" value="${editData ? (editData.prize || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Per Kill</label>
+                        <input type="text" id="tour-perkill" value="${editData ? (editData.perKill || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Entry Fee</label>
+                        <input type="number" id="tour-fee" value="${editData ? (editData.entryFee || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-slate-400 block mb-1">Match Type</label>
+                        <select id="tour-type" onchange="syncTeamSizeField()" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                            <option value="Solo" ${editData && String(editData.type || editData.matchType || 'Solo').toLowerCase() === 'solo' ? 'selected' : ''}>Solo — 1 Player</option>
+                            <option value="Duo" ${editData && String(editData.type || editData.matchType || '').toLowerCase() === 'duo' ? 'selected' : ''}>Duo — Up to 2 Players</option>
+                            <option value="Squad" ${editData && String(editData.type || editData.matchType || '').toLowerCase() === 'squad' ? 'selected' : ''}>Squad — Up to 4 Players</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-blue-400 font-bold block mb-1">Max Players / Team</label>
+                        <input type="number" id="tour-slot-size" value="${editData ? (editData.slotSize || 1) : 1}" min="1" max="4" readonly class="w-full bg-[#050811] border border-blue-500/50 rounded-xl p-2.5 text-white font-bold opacity-80">
+                        <p class="text-[9px] text-slate-500 mt-1">Solo = 1, Duo = 2, Squad = 4</p>
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Map</label>
+                        <input type="text" id="tour-map" value="${editData ? (editData.map || 'Bermuda') : 'Bermuda'}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-slate-400 block mb-1">Slots Limit (e.g. 12/50)</label>
+                        <input type="text" id="tour-slots" value="${editData ? (editData.slots || '0 / 50') : '0 / 50'}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Status</label>
+                        <select id="tour-status" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                            <option value="upcoming" ${editData && editData.status === 'upcoming' ? 'selected' : ''}>upcoming</option>
+                            <option value="live" ${editData && editData.status === 'live' ? 'selected' : ''}>live</option>
+                            <option value="completed" ${editData && editData.status === 'completed' ? 'selected' : ''}>complete</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-slate-400 block mb-1">Start Date & Time</label>
+                    <input type="datetime-local" id="tour-start-time" value="${defaultDateTime}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2 border-t border-slate-800 pt-2 mt-2">
+                    <div>
+                        <label class="text-blue-400 font-bold block mb-1">Room ID</label>
+                        <input type="text" id="tour-room-id" value="${editData ? (editData.roomId || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-blue-400 font-bold block mb-1">Room Password</label>
+                        <input type="text" id="tour-room-pass" value="${editData ? (editData.roomPass || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-slate-400 block mb-1">Prizes Breakdown Details</label>
+                    <textarea id="tour-prize-details" rows="2" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white" placeholder="প্রাইজ বিবরণ লিখুন...">${editData ? (editData.prizeDetails || '') : ''}</textarea>
+                </div>
+                <button onclick="saveTournament()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl mt-2">Save Tournament</button>
+            `;
+            syncTeamSizeField();
+        }
+
+        window.syncTeamSizeField = function() {
+            const typeEl = document.getElementById('tour-type');
+            const sizeEl = document.getElementById('tour-slot-size');
+            if(!typeEl || !sizeEl) return;
+            const type = typeEl.value.toLowerCase();
+            sizeEl.value = type === 'solo' ? 1 : (type === 'duo' ? 2 : 4);
+        }
+
+        window.editTournament = function(id) {
+            const t = allTournaments.find(item => item.id === id);
+            if(t) openTournamentModal(t);
+        }
+
+        window.saveTournament = async function() {
+            const id = document.getElementById('tour-id').value;
+            const groupId = document.getElementById('tour-group').value;
+            const name = document.getElementById('tour-name').value;
+            const prize = document.getElementById('tour-prize').value;
+            const perKill = document.getElementById('tour-perkill').value;
+            const entryFee = Number(document.getElementById('tour-fee').value || 0);
+            const type = document.getElementById('tour-type').value;
+            const typeLower = type.toLowerCase();
+            const slotSize = typeLower === 'solo' ? 1 : (typeLower === 'duo' ? 2 : 4);
+            const map = document.getElementById('tour-map').value;
+            const slotsRaw = document.getElementById('tour-slots').value.trim();
+            const slotsMatch = slotsRaw.match(/(?:\/|of)\s*(\d+)$/i);
+            const totalSlots = slotsMatch ? Number(slotsMatch[1]) : Math.max(1, Number(slotsRaw.replace(/\D/g, '') || 50));
+            const slots = `0 / ${totalSlots}`;
+            const startTimeVal = document.getElementById('tour-start-time').value;
+            const statusRaw = document.getElementById('tour-status').value;
+            const status = statusRaw === 'complete' ? 'completed' : statusRaw;
+            const roomId = document.getElementById('tour-room-id').value.trim();
+            const roomPass = document.getElementById('tour-room-pass').value.trim();
+            const prizeDetails = document.getElementById('tour-prize-details').value;
+
+            if(!name || !groupId) { showToast('নাম ও গ্রুপ সিলেক্ট করুন', 'error'); return; }
+
+            let startTime = startTimeVal ? new Date(startTimeVal).getTime() : Date.now();
+            let timeStr = startTimeVal ? new Date(startTimeVal).toLocaleString() : '';
+
+            const payload = {
+                groupId, name, prize, perKill, entryFee, type, matchType: type,
+                slotSize, maxPlayersPerTeam: slotSize, map, slots, totalSlots,
+                startTime, time: timeStr, status, roomId, roomPass, prizeDetails
+            };
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "tournaments", id), payload);
+                    showToast('টুর্নামেন্ট আপডেট হয়েছে!');
+                } else {
+                    await addDoc(collection(db, "tournaments"), payload);
+                    showToast('নতুন টুর্নামেন্ট তৈরি হয়েছে!');
+                }
+                closeGenericModal();
+                loadAllAdminData();
+            } catch(e) { showToast('সমস্যা হয়েছে', 'error'); }
+        }
+
+        // ROOM DETAILS ONLY UPDATE
+        // This intentionally updates ONLY room fields on the existing tournament document.
+        // It never creates, replaces, or deletes the tournament, participants, registrations, slots, etc.
+        window.openRoomDetailsModal = async function(tournamentId) {
+            try {
+                const snap = await getDoc(doc(db, "tournaments", tournamentId));
+                if(!snap.exists()) { showToast('ম্যাচ পাওয়া যায়নি', 'error'); return; }
+                const t = { id: tournamentId, ...snap.data() };
+
+                document.getElementById('modal-title').innerText = "Update Room Details";
+                document.getElementById('generic-modal').style.display = 'flex';
+                document.getElementById('modal-body').innerHTML = `
+                    <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 mb-2">
+                        <p class="text-emerald-400 font-bold text-xs">${t.name || 'Tournament'}</p>
+                        <p class="text-[10px] text-slate-500 mt-1">শুধু Room ID/Password আপডেট হবে। Registration/Players/Match data অপরিবর্তিত থাকবে।</p>
+                    </div>
+                    <input type="hidden" id="room-tour-id" value="${tournamentId}">
+                    <div>
+                        <label class="text-blue-400 font-bold block mb-1">Room ID</label>
+                        <input type="text" id="room-details-id" value="${t.roomId || ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white" autocomplete="off">
+                    </div>
+                    <div>
+                        <label class="text-blue-400 font-bold block mb-1">Room Password</label>
+                        <input type="text" id="room-details-pass" value="${t.roomPass || ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white" autocomplete="off">
+                    </div>
+                    <button onclick="updateRoomDetails()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl mt-2">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Update Room Details
+                    </button>
+                `;
+            } catch(e) {
+                console.error('Room details load failed:', e);
+                showToast('Room details লোড করতে সমস্যা হয়েছে', 'error');
+            }
+        };
+
+        window.updateRoomDetails = async function() {
+            const id = document.getElementById('room-tour-id')?.value;
+            const roomId = document.getElementById('room-details-id')?.value.trim() || '';
+            const roomPass = document.getElementById('room-details-pass')?.value.trim() || '';
+
+            if(!id) { showToast('Match ID পাওয়া যায়নি', 'error'); return; }
+
+            try {
+                // IMPORTANT: updateDoc changes only these two fields.
+                // Existing tournament document and all registrations/participants remain intact.
+                const tournamentRef = doc(db, "tournaments", id);
+                const snap = await getDoc(tournamentRef);
+                if(!snap.exists()) { showToast('ম্যাচ পাওয়া যায়নি', 'error'); return; }
+
+                await updateDoc(tournamentRef, {
+                    roomId,
+                    roomPass,
+                    roomDetailsUpdatedAt: Date.now()
+                });
+
+                closeGenericModal();
+                showToast('Room Details সফলভাবে আপডেট হয়েছে!');
+                await loadAllAdminData();
+            } catch(e) {
+                console.error('Room details update failed:', e);
+                showToast('Room Details আপডেট করতে সমস্যা হয়েছে: ' + (e?.message || e), 'error');
+            }
+        };
+
+        window.openRegistrationsModal = async function(tournamentId, matchName) {
+            document.getElementById('modal-title').innerText = "Registrations: " + matchName;
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `<p class="text-center text-slate-400 py-4">লোড হচ্ছে...</p>`;
+
+            try {
+                const tourSnap = await getDoc(doc(db, "tournaments", tournamentId));
+                if(!tourSnap.exists()) return;
+                const data = tourSnap.data();
+                const participants = data.participants || [];
+
+                if(participants.length === 0) {
+                    document.getElementById('modal-body').innerHTML = `<p class="text-center text-slate-400 py-4">এখনো কেউ রেজিস্ট্রেশন করেনি।</p>`;
+                    return;
+                }
+
+                let html = `<div class="space-y-3 max-h-60 overflow-y-auto">`;
+                participants.forEach((p, idx) => {
+                    const namesStr = Array.isArray(p.players) ? p.players.join(', ') : (p.ign || 'Unknown');
+                    html += `
+                        <div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs flex justify-between items-center">
+                            <div>
+                                <span class="text-blue-400 font-bold">#${idx+1} | User: ${p.userName || 'User'}</span>
+                                <p class="text-slate-300 mt-1">Players: <b>${namesStr}</b></p>
+                            </div>
+                            <span class="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded font-bold">${p.count || 1} Slot</span>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                document.getElementById('modal-body').innerHTML = html;
+            } catch(e) {
+                document.getElementById('modal-body').innerHTML = `<p class="text-center text-rose-400 py-4">ডাটা লোড করতে সমস্যা হয়েছে!</p>`;
+            }
+        }
+
+        window.renderBannersList = function() {
+            const list = document.getElementById('admin-banners-list');
+            if(!list) return;
+            list.innerHTML = "";
+            allBanners.forEach(b => {
+                list.innerHTML += `
+                    <div class="glass-card p-3 rounded-xl flex justify-between items-center shadow">
+                        <div class="flex items-center space-x-3">
+                            <img src="${b.imageUrl}" class="w-16 h-10 object-cover rounded-lg">
+                            <h4 class="font-bold text-white text-xs">${b.title || 'Banner'}</h4>
+                        </div>
+                        <button onclick="deleteDocItem('banners', '${b.id}')" class="bg-red-600/20 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        window.openBannerModal = function() {
+            document.getElementById('modal-title').innerText = "Add Banner";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <div>
+                    <label class="text-slate-400 block mb-1">Image URL</label>
+                    <input type="text" id="banner-image" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <button onclick="saveBanner()" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl mt-2">Add</button>
+            `;
+        }
+
+        window.saveBanner = async function() {
+            const imageUrl = document.getElementById('banner-image').value.trim();
+            if(!imageUrl) { showToast('লিংক দিন', 'error'); return; }
+
+            try {
+                // Keep the existing banners collection, AND publish the same banner
+                // to the exact Home Page document that index.html reads.
+                await addDoc(collection(db, "banners"), {
+                    imageUrl,
+                    status: true,
+                    createdAt: Date.now()
+                });
+
+                const homeRef = doc(db, "settings", "homePage");
+                const homeSnap = await getDoc(homeRef);
+                const home = homeSnap.exists() ? (homeSnap.data() || {}) : {};
+                const currentMedia = Array.isArray(home.heroMedia) ? home.heroMedia : [];
+
+                // Avoid duplicate banner URLs.
+                const exists = currentMedia.some(m => String(m?.url || '').trim() === imageUrl);
+                const heroMedia = exists ? currentMedia : [
+                    ...currentMedia,
+                    { type: 'image', url: imageUrl, link: '' }
+                ];
+
+                await setDoc(homeRef, {
+                    heroEnabled: true,
+                    heroMedia,
+                    updatedAt: Date.now()
+                }, { merge: true });
+
+                closeGenericModal();
+                showToast('Banner সফলভাবে Home Page-এ publish হয়েছে!');
+                await loadAllAdminData();
+            } catch(e) {
+                console.error('Banner publish failed:', e);
+                showToast('Banner update করতে সমস্যা হয়েছে: ' + (e?.message || e), 'error');
+            }
+        }
+
+        // --- DEPOSIT & WITHDRAW FILTER & GATEWAY FUNCTIONS ---
+
+        window.filterDepositGateway = function(gw) {
+            currentDepGateway = gw;
+            document.getElementById('dep-filter-bkash').className = gw === 'bkash' ? 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition' : 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition';
+            document.getElementById('dep-filter-nagad').className = gw === 'nagad' ? 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition' : 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition';
+            renderDepositsList();
+        }
+
+        window.filterWithdrawGateway = function(gw) {
+            currentWdGateway = gw;
+            document.getElementById('wd-filter-bkash').className = gw === 'bkash' ? 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition' : 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition';
+            document.getElementById('wd-filter-nagad').className = gw === 'nagad' ? 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition' : 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition';
+            renderWithdrawsList();
+        }
+
+        function renderDepositsList() {
+            const list = document.getElementById('admin-deposits-list');
+            if(!list) return;
+            list.innerHTML = "";
+            
+            const filtered = allDeposits.filter(dep => {
+                const gw = String(dep.gateway || dep.method || 'bkash').toLowerCase();
+                const status = String(dep.status || 'pending').toLowerCase();
+                return gw.includes(currentDepGateway) && status === 'pending';
+            });
+
+            if(filtered.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো ${currentDepGateway.toUpperCase()} ডিপোজিট রিকোয়েস্ট নেই।</p>`;
+                return;
+            }
+
+            filtered.forEach(dep => {
+                let action = `<div class="flex gap-2">
+                    <button onclick="approveDeposit('${dep.id}', '${dep.userId}', ${dep.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs">Approve</button>
+                    <button onclick="rejectDeposit('${dep.id}')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs">Reject</button>
+                </div>`;
+                list.innerHTML += `
+                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${dep.userName || 'User'} (${dep.gateway || dep.method || currentDepGateway})</h4>
+                            <p class="text-[11px] text-slate-300">Amount: <b>৳${dep.amount}</b> | TrxID: <b>${dep.trxId || dep.transactionId || 'N/A'}</b></p>
+                            <p class="text-[10px] text-amber-400">Status: <b>${dep.status || 'Pending'}</b></p>
+                        </div>
+                        <div>${action}</div>
+                    </div>
+                `;
+            });
+        }
+
+        window.approveDeposit = async function(id, userId, amount) {
+            try {
+                // New/current schema: deposits/{id}. Older schema: transactions/{id}.
+                const depRef = doc(db, 'deposits', id);
+                const txRef = doc(db, 'transactions', id);
+                const [depSnapNow, txSnapNow] = await Promise.all([getDoc(depRef), getDoc(txRef)]);
+                const ref = depSnapNow.exists() ? depRef : txRef;
+                const sourceSnap = depSnapNow.exists() ? depSnapNow : txSnapNow;
+                if(!sourceSnap.exists()) throw new Error('Deposit request পাওয়া যায়নি।');
+
+                await runTransaction(db, async (transaction) => {
+                    const snap = await transaction.get(ref);
+                    if(!snap.exists()) throw new Error('Deposit request পাওয়া যায়নি।');
+                    const deposit = snap.data() || {};
+                    const status = String(deposit.status || 'pending').toLowerCase();
+                    if(status !== 'pending') throw new Error(`এই deposit request ইতিমধ্যে ${deposit.status || 'processed'} হয়েছে।`);
+
+                    const finalUserId = deposit.userId || deposit.uid || userId || '';
+                    const finalEmail = deposit.userEmail || deposit.email || '';
+                    const finalAmount = Number(deposit.amount ?? amount ?? 0);
+                    if(!finalAmount || finalAmount <= 0) throw new Error('Invalid deposit amount.');
+
+                    const now = Date.now();
+                    // Prefer users/{uid}; fallback to wallets/{email} used by the older app.
+                    let credited = false;
+                    if(finalUserId){
+                        const userRef = doc(db,'users',finalUserId);
+                        const userSnap = await transaction.get(userRef);
+                        if(userSnap.exists()){
+                            const currentBal = Number(userSnap.data().balance || 0);
+                            transaction.update(userRef,{balance:currentBal+finalAmount});
+                            credited = true;
+                        }
+                    }
+                    if(!credited && finalEmail){
+                        const walletRef = doc(db,'wallets',finalEmail);
+                        const walletSnap = await transaction.get(walletRef);
+                        const currentBal = Number(walletSnap.exists() ? walletSnap.data().balance || 0 : 0);
+                        transaction.set(walletRef,{balance:currentBal+finalAmount,userEmail:finalEmail,updatedAt:now},{merge:true});
+                        credited = true;
+                    }
+                    if(!credited) throw new Error('User/Wallet পাওয়া যায়নি।');
+
+                    transaction.update(ref,{status:'approved',approvedAt:now,reviewedAt:now});
+                });
+
+                showToast('ডিপোজিট অ্যাপ্রুভ হয়েছে এবং টাকা একবারই যোগ হয়েছে!');
+                await loadAllAdminData();
+            } catch(e) {
+                showToast('ত্রুটি: ' + (e.message || e), 'error');
+            }
+        };
+
+        window.rejectDeposit = async function(id){
+            const reason=(prompt('Reject করার কারণ লিখুন:','Deposit verification failed')||'').trim();
+            if(!reason) return;
+            try{
+                const depRef=doc(db,'deposits',id);
+                const txRef=doc(db,'transactions',id);
+                const [depSnapNow,txSnapNow]=await Promise.all([getDoc(depRef),getDoc(txRef)]);
+                const ref=depSnapNow.exists()?depRef:txRef;
+                if(!(depSnapNow.exists()||txSnapNow.exists())) throw new Error('Deposit request পাওয়া যায়নি।');
+                await runTransaction(db,async(transaction)=>{
+                    const snap=await transaction.get(ref);
+                    if(!snap.exists()) throw new Error('Deposit request পাওয়া যায়নি।');
+                    const d=snap.data()||{};
+                    const status=String(d.status||'pending').toLowerCase();
+                    if(status!=='pending') throw new Error(`এই request ইতিমধ্যে ${d.status||'processed'} হয়েছে।`);
+                    const now=Date.now();
+                    transaction.update(ref,{status:'rejected',reviewedAt:now,rejectedAt:now,reason,reviewReason:reason});
+                });
+                showToast('Deposit reject হয়েছে।');
+                await loadAllAdminData();
+            }catch(e){showToast(e.message||'Reject failed','error');}
+        };
+
+        window.renderWithdrawsList = async function() {
+            const list = document.getElementById('admin-withdraws-list');
+            if(!list) return;
+            list.innerHTML = '<p class="text-slate-500 text-xs text-center py-6">Withdraw requests লোড হচ্ছে...</p>';
+            try {
+                const rows = allWithdraws.filter(r => {
+                    const method = String(r.method || 'bkash').toLowerCase();
+                    return method.includes(currentWdGateway);
+                }).sort((a,b)=>(Number(b.timestamp||b.createdAt||0)-Number(a.timestamp||a.createdAt||0)));
+
+                if(!rows.length){ list.innerHTML=`<p class="text-slate-500 text-xs text-center py-8">কোনো ${currentWdGateway.toUpperCase()} withdraw request পাওয়া যায়নি।</p>`; return; }
+                list.innerHTML = rows.map(r => {
+                    const status = String(r.status||'pending').toLowerCase();
+                    const pending = status === 'pending';
+                    const uid = r.uid || r.userId || '';
+                    const user = r.userEmail || r.email || r.username || uid || 'Unknown user';
+                    const amount = Number(r.amount||0);
+                    const method = r.method || currentWdGateway;
+                    const number = r.number || r.accountNumber || '';
+                    return `<div class="glass-card rounded-2xl p-4 border border-slate-800">
+                        <div class="flex justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="font-bold text-white text-sm">${user}</div>
+                                <div class="text-[10px] text-slate-500 break-all">UID: ${uid}</div>
+                                <div class="text-xs text-slate-300 mt-2">${method} • ${number}</div>
+                                <div class="text-lg font-black text-amber-400 mt-1">৳${amount}</div>
+                            </div>
+                            <span class="h-fit text-[10px] font-bold px-2 py-1 rounded-lg ${pending?'bg-amber-500/10 text-amber-300':'bg-slate-800 text-slate-300'}">${status.toUpperCase()}</span>
+                        </div>
+                        ${pending ? `<div class="grid grid-cols-2 gap-2 mt-3">
+                            <button onclick="adminApproveWithdraw('${r.id}')" class="bg-emerald-700 hover:bg-emerald-600 text-white py-2 rounded-xl text-xs font-bold"><i class="fa-solid fa-check mr-1"></i>Approve</button>
+                            <button onclick="adminRejectWithdraw('${r.id}')" class="bg-red-700 hover:bg-red-600 text-white py-2 rounded-xl text-xs font-bold"><i class="fa-solid fa-xmark mr-1"></i>Reject + Refund</button>
+                        </div>` : `<div class="text-[10px] text-slate-500 mt-3">Reviewed: ${r.reviewedAt ? new Date(r.reviewedAt).toLocaleString() : '—'}</div>`}
+                    </div>`;
+                }).join('');
+            } catch(e){ list.innerHTML=`<p class="text-rose-400 text-xs">Withdraw load failed: ${e.message}</p>`; }
+        };
+
+        window.adminApproveWithdraw = async function(id){
+            if(!confirm('এই withdraw request-টি approved হিসেবে mark করবেন?')) return;
+            try{
+                const ref = doc(db,'withdraws',id);
+                await runTransaction(db, async (transaction) => {
+                    const snap = await transaction.get(ref);
+                    if(!snap.exists()) throw new Error('Withdraw request পাওয়া যায়নি।');
+                    const r = snap.data() || {};
+                    const status = String(r.status || 'pending').toLowerCase();
+                    if(status !== 'pending') throw new Error(`এই request ইতিমধ্যে ${r.status || 'processed'} হয়েছে।`);
+                    const now = Date.now();
+                    transaction.update(ref,{status:'approved',reviewedAt:now,approvedAt:now});
+                });
+                showToast('Withdraw approved হয়েছে।');
+                await loadAllAdminData();
+                renderWithdrawsList();
+            }catch(e){showToast(e.message||'Approve failed','error');}
+        };
+
+        window.adminRejectWithdraw = async function(id){
+            const reason=(prompt('Reject করার কারণ লিখুন:','Withdraw verification failed')||'').trim();
+            if(!reason) return;
+            try{
+                const ref=doc(db,'withdraws',id);
+                await runTransaction(db, async (transaction) => {
+                    const snap=await transaction.get(ref);
+                    if(!snap.exists()) throw new Error('Withdraw request পাওয়া যায়নি।');
+                    const r=snap.data()||{};
+                    const status=String(r.status||'pending').toLowerCase();
+                    if(status!=='pending') throw new Error(`এই request ইতিমধ্যে ${r.status || 'processed'} হয়েছে।`);
+                    const uid=r.uid||r.userId||'';
+                    const amount=Number(r.amount||0);
+                    if(!uid) throw new Error('User ID পাওয়া যায়নি।');
+                    if(!amount || amount<=0) throw new Error('Invalid withdraw amount.');
+                    const userRef=doc(db,'users',uid);
+                    const userSnap=await transaction.get(userRef);
+                    if(!userSnap.exists()) throw new Error('User পাওয়া যায়নি।');
+                    const currentBalance=Number(userSnap.data().balance||0);
+                    transaction.update(userRef,{balance:currentBalance+amount});
+                    const now=Date.now();
+                    transaction.update(ref,{status:'rejected',reviewedAt:now,rejectedAt:now,reason,reviewReason:reason});
+                });
+                showToast('Withdraw reject হয়েছে এবং refund একবারই করা হয়েছে।');
+                await loadAllAdminData();
+                renderWithdrawsList();
+            }catch(e){showToast(e.message||'Reject failed','error');}
+        };
+
+        window.openHistoryModal = async function(type = 'Deposit') {
+            document.getElementById('modal-title').innerText = `${type} History`;
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <div class="flex gap-2 mb-3">
+                    <button onclick="openHistoryModal('Deposit')" class="flex-1 py-1.5 rounded-lg text-xs font-bold ${type === 'Deposit' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}">Deposit History</button>
+                    <button onclick="openHistoryModal('Withdraw')" class="flex-1 py-1.5 rounded-lg text-xs font-bold ${type === 'Withdraw' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}">Withdraw History</button>
+                </div>
+                <div id="history-modal-list" class="space-y-2 max-h-[60vh] overflow-y-auto"><p class="text-center text-slate-400 py-4">লোড হচ্ছে...</p></div>
+            `;
+
+            try {
+                let html = '';
+                if(type === 'Deposit') {
+                    if(allDeposits.length === 0) html = '<p class="text-center text-slate-400 py-4">কোনো ডিপোজিট হিস্টরি নেই।</p>';
+                    else {
+                        allDeposits.forEach(d => {
+                            html += `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
+                                <div class="flex justify-between font-bold text-white"><span>${d.userName || 'User'} (${d.gateway || 'bKash'})</span><span class="text-emerald-400">৳${d.amount}</span></div>
+                                <div class="text-[10px] text-slate-400 mt-1">TrxID: ${d.trxId || d.transactionId || 'N/A'} | Status: <b>${d.status || 'Pending'}</b> | ${d.reviewedAt ? new Date(d.reviewedAt).toLocaleString() : ''}</div>${d.reason || d.reviewReason ? `<div class="text-[10px] text-rose-300 mt-1">Reason: ${d.reason || d.reviewReason}</div>` : ''}
+                            </div>`;
+                        });
+                    }
+                } else {
+                    if(allWithdraws.length === 0) html = '<p class="text-center text-slate-400 py-4">কোনো উইথড্র হিস্টরি নেই।</p>';
+                    else {
+                        allWithdraws.forEach(w => {
+                            html += `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
+                                <div class="flex justify-between font-bold text-white"><span>${w.userEmail || w.userId || 'User'} (${w.method || 'bKash'})</span><span class="text-amber-400">৳${w.amount}</span></div>
+                                <div class="text-[10px] text-slate-400 mt-1">Number: ${w.number || 'N/A'} | Status: <b>${w.status || 'Pending'}</b> | ${w.reviewedAt ? new Date(w.reviewedAt).toLocaleString() : ''}</div>${w.reason || w.reviewReason ? `<div class="text-[10px] text-rose-300 mt-1">Reason: ${w.reason || w.reviewReason}</div>` : ''}
+                            </div>`;
+                        });
+                    }
+                }
+                document.getElementById('history-modal-list').innerHTML = html;
+            } catch(e) {
+                document.getElementById('history-modal-list').innerHTML = `<p class="text-rose-400 text-center py-4">লোড করতে সমস্যা হয়েছে!</p>`;
+            }
+        };
+
+        /* =========================================================
+           DEPOSIT PAYMENT NUMBERS — NUMBER EDIT ONLY
+           Method names cannot be added, renamed, or deleted from Admin UI.
+        ========================================================= */
+        window.openGatewayModal = async function() {
+            document.getElementById('modal-title').innerText = "Deposit Numbers Setup";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <div class="space-y-3">
+                    <p class="text-[11px] text-slate-400">
+                        এখানে শুধু existing deposit method-এর <b class="text-white">number</b> edit করা যাবে।
+                        নতুন method add, method name change বা delete করা যাবে না।
+                    </p>
+                    <div id="gateway-list-container" class="space-y-2">লোড হচ্ছে...</div>
+                </div>
+            `;
+            loadGatewaySettings();
+        };
+
+        const rsAdminEsc = (v) => String(v ?? '').replace(/[&<>"']/g, m => ({
+            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+        }[m]));
+
+        window.loadGatewaySettings = async function() {
+            try {
+                const snap = await getDocs(collection(db, "paymentMethods"));
+                const container = document.getElementById('gateway-list-container');
+                if(!container) return;
+                if(snap.empty) {
+                    container.innerHTML = `<p class="text-slate-500 text-xs">কোনো existing deposit method পাওয়া যায়নি।</p>`;
+                    return;
+                }
+
+                let html = '';
+                snap.forEach(d => {
+                    const item = d.data() || {};
+                    const name = rsAdminEsc(item.name || d.id);
+                    const number = rsAdminEsc(item.number || '');
+                    html += `
+                        <div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <b class="text-white">${name}</b>
+                                <span class="text-[10px] text-slate-500">Method fixed</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <input id="gateway-number-${rsAdminEsc(d.id)}"
+                                    type="text"
+                                    value="${number}"
+                                    inputmode="numeric"
+                                    class="flex-1 bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white text-xs"
+                                    placeholder="Account Number">
+                                <button onclick="saveGatewayNumber('${rsAdminEsc(d.id)}')"
+                                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 rounded-xl text-xs">
+                                    Save
+                                </button>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = html;
+            } catch(e) {
+                console.error('Payment methods load failed:', e);
+                const c = document.getElementById('gateway-list-container');
+                if(c) c.innerHTML = `<p class="text-rose-400 text-xs">লোড করতে সমস্যা হয়েছে: ${rsAdminEsc(e?.message || e)}</p>`;
+            }
+        };
+
+        window.saveGatewayNumber = async function(id) {
+            const input = document.getElementById(`gateway-number-${id}`);
+            const number = input ? input.value.trim() : '';
+            if(!number) {
+                showToast('Deposit number দিন', 'error');
+                return;
+            }
+            try {
+                // IMPORTANT: only the number field is writable here.
+                await updateDoc(doc(db, "paymentMethods", id), {
+                    number,
+                    updatedAt: Date.now()
+                });
+                showToast('Deposit number update হয়েছে!');
+                loadGatewaySettings();
+            } catch(e) {
+                console.error('Payment number update failed:', e);
+                showToast('Number update করতে সমস্যা হয়েছে', 'error');
+            }
+        };
+
+        /* =========================================================
+           REFER HISTORY
+        ========================================================= */
+        window.openReferralHistory = async function() {
+            document.getElementById('modal-title').innerText = "Refer History";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800">
+                        <div id="refer-history-summary" class="text-xs text-slate-300">লোড হচ্ছে...</div>
+                    </div>
+                    <div id="refer-history-list" class="space-y-2">লোড হচ্ছে...</div>
+                </div>
+            `;
+
+            try {
+                const snap = await getDocs(collection(db, "referralHistory"));
+                const rows = snap.docs.map(d => ({ id:d.id, ...(d.data() || {}) }));
+                rows.sort((a,b) => {
+                    const av = a.createdAt?.toMillis ? a.createdAt.toMillis() : Number(a.createdAt || 0);
+                    const bv = b.createdAt?.toMillis ? b.createdAt.toMillis() : Number(b.createdAt || 0);
+                    return bv - av;
+                });
+
+                const summary = document.getElementById('refer-history-summary');
+                const list = document.getElementById('refer-history-list');
+                if(summary) summary.innerHTML = `Total successful referral: <b class="text-emerald-400">${rows.length}</b> &nbsp;•&nbsp; Total reward: <b class="text-emerald-400">৳${rows.reduce((n,x)=>n+Number(x.rewardAmount||0),0)}</b>`;
+
+                if(!rows.length) {
+                    if(list) list.innerHTML = `<p class="text-center text-slate-500 text-xs py-5">কোনো refer history পাওয়া যায়নি।</p>`;
+                    return;
+                }
+
+                if(list) list.innerHTML = rows.map((r, i) => {
+                    const ts = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : (r.createdAt ? new Date(Number(r.createdAt)).toLocaleString() : '—');
+                    return `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
+                        <div class="flex justify-between gap-2 font-bold text-white">
+                            <span>#${i+1} ${rsAdminEsc(r.referredUsername || r.referredEmail || r.referredUid || 'User')}</span>
+                            <span class="text-emerald-400">৳${Number(r.rewardAmount||0)}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-1">
+                            Refer Code: <b class="text-slate-300">${rsAdminEsc(r.referrerCode || 'N/A')}</b><br>
+                            Referrer UID: ${rsAdminEsc(r.referrerUid || 'N/A')}<br>
+                            Referred UID: ${rsAdminEsc(r.referredUid || 'N/A')}<br>
+                            Email: ${rsAdminEsc(r.referredEmail || 'N/A')}<br>
+                            Deposit/Balance: ৳${Number(r.depositBalanceAtReward||0)}<br>
+                            Status: <b class="text-emerald-400">${rsAdminEsc(r.status || 'paid')}</b> • ${rsAdminEsc(ts)}
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) {
+                console.error('Refer history load failed:', e);
+                const list = document.getElementById('refer-history-list');
+                if(list) list.innerHTML = `<p class="text-rose-400 text-center text-xs py-5">Refer history load করতে সমস্যা হয়েছে: ${rsAdminEsc(e?.message || e)}</p>`;
+            }
+        };
+
+        window.deleteDocItem = async function(colName, docId) {
+            if(!confirm('কনফার্ম ডিলিট?')) return;
+
+            try {
+                let deletedData = null;
+
+                // If a banner is deleted, remove the same URL from Home Page media too.
+                if(colName === 'banners') {
+                    const bannerSnap = await getDoc(doc(db, 'banners', docId));
+                    if(bannerSnap.exists()) deletedData = bannerSnap.data() || {};
+                }
+
+                await deleteDoc(doc(db, colName, docId));
+
+                if(colName === 'banners' && deletedData?.imageUrl) {
+                    const homeRef = doc(db, 'settings', 'homePage');
+                    const homeSnap = await getDoc(homeRef);
+                    if(homeSnap.exists()) {
+                        const home = homeSnap.data() || {};
+                        const media = Array.isArray(home.heroMedia) ? home.heroMedia : [];
+                        const nextMedia = media.filter(m => String(m?.url || '').trim() !== String(deletedData.imageUrl).trim());
+
+                        await setDoc(homeRef, {
+                            heroMedia: nextMedia,
+                            heroEnabled: nextMedia.length > 0,
+                            updatedAt: Date.now()
+                        }, { merge: true });
+                    }
+                }
+
+                showToast('ডিলিট সফল হয়েছে!');
+                await loadAllAdminData();
+            } catch(e) {
+                console.error('Delete failed:', e);
+                showToast('ডিলিট করতে সমস্যা হয়েছে: ' + (e?.message || e), 'error');
+            }
+        }
+
+        window.openAuraLegacyFeatures = function(){
+            const modal=document.getElementById('generic-modal');
+            document.getElementById('modal-title').innerText='AURA ARMAN — Admin Features';
+            modal.style.display='flex';
+            document.getElementById('modal-body').innerHTML=`
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="auraDashboard()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-chart-line text-blue-400 block text-lg mb-1"></i>Dashboard</button>
+                    <button onclick="auraUsersWallet()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-users text-emerald-400 block text-lg mb-1"></i>Users & Wallet</button>
+                    <button onclick="auraPayments()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-money-bill-transfer text-amber-400 block text-lg mb-1"></i>Payments</button>
+                    <button onclick="auraGiftsSupport()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-gift text-pink-400 block text-lg mb-1"></i>Gift & Support</button>
+                    <button onclick="auraAnalytics()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-chart-pie text-cyan-400 block text-lg mb-1"></i>Analytics</button>
+                    <button onclick="auraGlobalSearch()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-magnifying-glass text-violet-400 block text-lg mb-1"></i>Global Search</button>
+                    <button onclick="auraHomeContent()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-house text-sky-400 block text-lg mb-1"></i>Home Content</button>
+                    <button onclick="auraMediaAPK()" class="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl font-bold"><i class="fa-solid fa-cloud-arrow-up text-lime-400 block text-lg mb-1"></i>Media / APK</button>
+                    <button onclick="auraMemoryCenter()" class="col-span-2 bg-red-950/40 hover:bg-red-900/50 border border-red-500/30 text-red-200 p-3 rounded-xl font-bold"><i class="fa-solid fa-database text-red-400 mr-1"></i> Memory Centre</button>
+                </div>`;
+        };
+
+        window.auraPanel = function(title, body){
+            document.getElementById('modal-title').innerText=title;
+            document.getElementById('modal-body').innerHTML=body;
+        };
+
+        window.auraDashboard = async function(){
+            try{
+                const [u,t,s,g,d,w]=await Promise.all([
+                    getDocs(collection(db,'users')),getDocs(collection(db,'tournaments')),getDocs(collection(db,'sections')),
+                    getDocs(collection(db,'groups')),getDocs(collection(db,'deposits')),getDocs(collection(db,'withdraws'))
+                ]);
+                auraPanel('AURA ARMAN — Dashboard',`<div class="grid grid-cols-2 gap-2">
+                    ${[['Users',u.size,'text-blue-400'],['Tournaments',t.size,'text-emerald-400'],['Sections',s.size,'text-cyan-400'],['Groups',g.size,'text-violet-400'],['Deposits',d.size,'text-amber-400'],['Withdrawals',w.size,'text-pink-400']].map(x=>`<div class="bg-[#050811] border border-slate-800 rounded-xl p-4"><div class="text-xs text-slate-500">${x[0]}</div><div class="text-2xl font-black ${x[2]}">${x[1]}</div></div>`).join('')}</div>`);
+            }catch(e){ auraPanel('Dashboard Error',`<p class="text-rose-400">ডাটা লোড করা যায়নি: ${e.message}</p>`); }
+        };
+
+        window.auraUsersWallet = async function(){
+            try{
+                const snap=await getDocs(collection(db,'users'));
+                let rows=''; snap.forEach(d=>{const u=d.data(); rows+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3 flex justify-between gap-2 items-center"><div><b>${u.userName||u.username||u.email||d.id}</b><div class="text-[10px] text-slate-500">${u.email||d.id}</div><div class="text-xs text-emerald-400">Balance: ৳${Number(u.balance||0)}</div></div><div class="flex gap-1"><button class="bg-emerald-700 text-white px-2 py-1 rounded-lg" onclick="auraWalletChange('${d.id}',1)">+৳</button><button class="bg-red-700 text-white px-2 py-1 rounded-lg" onclick="auraWalletChange('${d.id}',-1)">-৳</button></div></div>`});
+                auraPanel('Users & Wallet',`<div class="space-y-2 max-h-[60vh] overflow-y-auto">${rows||'<p class="text-slate-500">কোনো user নেই।</p>'}</div>`);
+            }catch(e){auraPanel('Users Error',`<p class="text-rose-400">${e.message}</p>`)}
+        };
+        window.auraWalletChange = async function(uid,sign){
+            const amount=Number(prompt(sign>0?'কত টাকা credit করবেন?':'কত টাকা debit করবেন?')||0); if(!amount||amount<0)return;
+            const r=doc(db,'users',uid); const snap=await getDoc(r); if(!snap.exists())return;
+            const bal=Number(snap.data().balance||0); const next=bal+sign*amount; if(next<0){alert('Balance negative হতে পারবে না।');return;}
+            await updateDoc(r,{balance:next}); alert('Wallet update হয়েছে।'); auraUsersWallet();
+        };
+
+        window.auraPayments = async function(){
+            try{
+                const [d,w]=await Promise.all([getDocs(collection(db,'deposits')),getDocs(collection(db,'withdraws'))]);
+                let html='<div class="space-y-2 max-h-[60vh] overflow-y-auto">';
+                d.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Deposit</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span><div class="mt-2"><button class="bg-emerald-700 text-white px-2 py-1 rounded" onclick="auraReviewPayment('deposits','${x.id}','approve')">Approve</button> <button class="bg-red-700 text-white px-2 py-1 rounded" onclick="auraReviewPayment('deposits','${x.id}','reject')">Reject</button></div></div>`});
+                w.forEach(x=>{const v=x.data(); html+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><b>Withdrawal</b> — ${v.userEmail||v.userId||''}<br>৳${v.amount||0} — <span class="text-amber-400">${v.status||'pending'}</span><div class="mt-2"><button class="bg-emerald-700 text-white px-2 py-1 rounded" onclick="adminApproveWithdraw('${x.id}')">Approve</button> <button class="bg-red-700 text-white px-2 py-1 rounded" onclick="adminRejectWithdraw('${x.id}')">Reject</button></div></div>`});
+                html+='</div>'; auraPanel('Payment Control',html);
+            }catch(e){auraPanel('Payment Error',`<p class="text-rose-400">${e.message}</p>`)}
+        };
+        window.auraReviewPayment = async function(col,id,action){
+            try{
+                const ref=doc(db,col,id);
+                await runTransaction(db, async(transaction)=>{
+                    const snap=await transaction.get(ref);
+                    if(!snap.exists()) throw new Error('Payment request পাওয়া যায়নি।');
+                    const v=snap.data()||{};
+                    const status=String(v.status||'pending').toLowerCase();
+                    if(status!=='pending') throw new Error(`এই request ইতিমধ্যে ${v.status || 'processed'} হয়েছে।`);
+
+                    if(action==='approve' && col==='deposits'){
+                        const uid=v.userId||v.uid;
+                        const amount=Number(v.amount||0);
+                        if(!uid) throw new Error('User ID পাওয়া যায়নি।');
+                        if(!amount || amount<=0) throw new Error('Invalid deposit amount.');
+                        const ur=doc(db,'users',uid);
+                        const us=await transaction.get(ur);
+                        if(!us.exists()) throw new Error('User পাওয়া যায়নি।');
+                        const bal=Number(us.data().balance||0);
+                        transaction.update(ur,{balance:bal+amount});
+                    }
+
+                    transaction.update(ref,{status:action==='approve'?'approved':'rejected',reviewedAt:Date.now()});
+                });
+                alert(action==='approve'?'Approved — টাকা একবারই যোগ হয়েছে.':'Rejected');
+                auraPayments();
+            }catch(e){alert(e.message||'Payment process failed');console.error(e);}
+        };
+        window.auraGiftsSupport = async function(){
+            let html=`<div class="space-y-3"><div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><h4 class="font-bold mb-2">Create Gift Code</h4><input id="aura-gift-code" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white mb-2" placeholder="Gift code"><input id="aura-gift-amount" type="number" class="w-full bg-black border border-slate-800 rounded-lg p-2 text-white mb-2" placeholder="Amount"><button onclick="auraCreateGift()" class="w-full bg-blue-600 text-white rounded-lg p-2 font-bold">Create</button></div><div class="bg-[#050811] border border-slate-800 rounded-xl p-3"><h4 class="font-bold mb-2">Support Tickets</h4><div id="aura-support-list">লোড হচ্ছে...</div></div></div>`;
+            auraPanel('Gift & Support',html);
+            try{const s=await getDocs(collection(db,'supportTickets'));let out='';s.forEach(d=>{const v=d.data();out+=`<div class="border-b border-slate-800 py-2 text-xs"><b>${v.userEmail||v.userId||'User'}</b><br>${v.message||v.subject||''}<br><span class="text-slate-500">${v.status||'open'}</span></div>`});document.getElementById('aura-support-list').innerHTML=out||'No tickets';}catch(e){document.getElementById('aura-support-list').innerText=e.message}
+        };
+        window.auraCreateGift = async function(){const code=document.getElementById('aura-gift-code').value.trim(),amount=Number(document.getElementById('aura-gift-amount').value||0);if(!code||!amount)return alert('Code এবং amount দিন');await setDoc(doc(db,'giftCodes',code),{code,amount,used:false,createdAt:Date.now()});alert('Gift code created');auraGiftsSupport();};
+
+        window.auraAnalytics = async function(){
+            try{const [u,t,d,w]=await Promise.all([getDocs(collection(db,'users')),getDocs(collection(db,'tournaments')),getDocs(collection(db,'deposits')),getDocs(collection(db,'withdraws'))]);
+            auraPanel('Analytics',`<div class="space-y-2"><div class="bg-[#050811] p-4 rounded-xl">Registered users: <b>${u.size}</b></div><div class="bg-[#050811] p-4 rounded-xl">Tournaments: <b>${t.size}</b></div><div class="bg-[#050811] p-4 rounded-xl">Deposit requests: <b>${d.size}</b></div><div class="bg-[#050811] p-4 rounded-xl">Withdrawal requests: <b>${w.size}</b></div></div>`)}catch(e){auraPanel('Analytics Error',e.message)}
+        };
+
+        window.auraGlobalSearch = function(){auraPanel('Global Search',`<input id="aura-search" oninput="auraRunSearch()" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-white" placeholder="Username, email, tournament, group..."><div id="aura-search-results" class="space-y-2 mt-3"></div>`)};
+        window.auraRunSearch = async function(){const q=(document.getElementById('aura-search')?.value||'').toLowerCase().trim(),box=document.getElementById('aura-search-results');if(!box)return;if(!q){box.innerHTML='';return;}const [u,t,g,s]=await Promise.all([getDocs(collection(db,'users')),getDocs(collection(db,'tournaments')),getDocs(collection(db,'groups')),getDocs(collection(db,'sections'))]);let out='';[[u,'User'],[t,'Tournament'],[g,'Group'],[s,'Section']].forEach(([snap,label])=>snap.forEach(d=>{const v=d.data(),str=JSON.stringify(v).toLowerCase();if(str.includes(q))out+=`<div class="bg-[#050811] border border-slate-800 rounded-xl p-2 text-xs"><b>${label}</b> — ${v.name||v.userName||v.username||v.email||d.id}</div>`}));box.innerHTML=out||'<p class="text-slate-500">No result found.</p>';};
+
+        window.auraHomeContent = async function(){
+            try{const r=doc(db,'settings','homePage'),s=await getDoc(r),v=s.exists()?s.data():{};auraPanel('Home Content',`<div class="space-y-3"><label class="text-slate-400">Notice</label><textarea id="aura-notice" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white" rows="3">${v.noticeText||''}</textarea><label class="text-slate-400">Banner lines — type|image URL|optional click/download link</label><textarea id="aura-media" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white" rows="7">${(v.heroMedia||[]).map(x=>[x.type||'image',x.url||'',x.link||''].join('|')).join('\n')}</textarea><button onclick="auraSaveHomeContent()" class="w-full bg-blue-600 text-white p-2 rounded-xl font-bold">Save Home Content</button></div>`)}catch(e){auraPanel('Home Error',e.message)}
+        };
+        window.auraSaveHomeContent = async function(){const notice=document.getElementById('aura-notice').value;const lines=document.getElementById('aura-media').value.split('\n').map(x=>x.trim()).filter(Boolean);const heroMedia=lines.map(x=>{const [type,url,link]=x.split('|');return{type:type||'image',url:url||'',link:link||''}}).filter(x=>x.url);await setDoc(doc(db,'settings','homePage'),{noticeText:notice,heroMedia},{merge:true});alert('Home content saved');auraHomeContent();};
+
+        window.auraMediaAPK = function(){auraPanel('Media / APK',`<div class="space-y-3"><div><label class="text-slate-400">Home image/video</label><input id="aura-media-file" type="file" accept="image/*,video/*" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white"><button onclick="auraUploadMedia()" class="w-full bg-blue-600 text-white p-2 rounded-xl mt-2 font-bold">Upload Media</button></div><hr class="border-slate-800"><div><label class="text-slate-400">APK file</label><input id="aura-apk-file" type="file" accept=".apk,application/vnd.android.package-archive" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white"><button onclick="auraUploadAPK()" class="w-full bg-emerald-600 text-white p-2 rounded-xl mt-2 font-bold">Upload APK</button></div><div id="aura-upload-status" class="text-xs text-slate-400"></div></div>`)};
+        window.auraUploadMedia = async function(){const f=document.getElementById('aura-media-file').files[0];if(!f)return alert('File select করুন');const path=`home-media/${Date.now()}_${f.name}`;const r=storageRef(auraStorage,path);document.getElementById('aura-upload-status').innerText='Uploading...';await uploadBytes(r,f);const url=await getDownloadURL(r);const s=await getDoc(doc(db,'settings','homePage'));const v=s.exists()?s.data():{};const arr=Array.isArray(v.heroMedia)?v.heroMedia:[];arr.push({type:f.type.startsWith('video/')?'video':'image',url,link:''});await setDoc(doc(db,'settings','homePage'),{heroMedia:arr},{merge:true});document.getElementById('aura-upload-status').innerText='Media uploaded successfully.';};
+        window.auraUploadAPK = async function(){const f=document.getElementById('aura-apk-file').files[0];if(!f)return alert('APK select করুন');const r=storageRef(auraStorage,`app-downloads/${Date.now()}_${f.name}`);document.getElementById('aura-upload-status').innerText='Uploading APK...';await uploadBytes(r,f,{contentType:'application/vnd.android.package-archive'});const url=await getDownloadURL(r);await setDoc(doc(db,'settings','appDownload'),{url,name:f.name,updatedAt:Date.now()},{merge:true});document.getElementById('aura-upload-status').innerText='APK uploaded successfully.';};
+
+        window.auraMemoryCenter = function(){auraPanel('Memory Centre',`<div class="space-y-3"><p class="text-amber-300 text-xs">⚠️ এগুলো permanent delete হতে পারে। আগে নিশ্চিত হন।</p><div class="grid grid-cols-2 gap-2">${['users','sections','groups','tournaments','registrations','transactions','deposits','withdraws','giftCodes','supportTickets','notifications','banners'].map(c=>`<button onclick="auraClearCollection('${c}')" class="bg-red-950/40 border border-red-500/20 text-red-200 p-2 rounded-lg text-xs font-bold">Clear ${c}</button>`).join('')}</div><button onclick="auraClearStorageFolder('home-media')" class="w-full bg-red-900/40 border border-red-500/30 text-red-200 p-2 rounded-xl font-bold">Clear Home Media Storage</button><button onclick="auraClearStorageFolder('app-downloads')" class="w-full bg-red-900/40 border border-red-500/30 text-red-200 p-2 rounded-xl font-bold">Clear APK Storage</button></div>`)};
+        window.auraClearCollection = async function(col){if(!confirm(`${col} collection-এর সব data delete করবেন?`))return;const snap=await getDocs(collection(db,col));for(const d of snap.docs)await deleteDoc(d.ref);alert(`${col} cleared`);auraMemoryCenter();loadAllAdminData();};
+        window.auraClearStorageFolder = async function(folder){if(!confirm(`${folder} storage folder clear করবেন?`))return;const walk=async p=>{const l=await listAll(storageRef(auraStorage,p));for(const f of l.items)await deleteObject(f);for(const d of l.prefixes)await walk(d.fullPath)};await walk(folder);alert(`${folder} cleared`);};
+
+        window.closeGenericModal = function() {
+            document.getElementById('generic-modal').style.display = 'none';
+        }
+    </script>
+
+    <script type="module">
+      import { rtdb } from "./firebase.js";
+      import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+      const $ = id => document.getElementById(id);
+      const show = id => { const e=$(id); if(e){e.style.display='flex';} };
+      const hide = id => { const e=$(id); if(e){e.style.display='none';} };
+      const toast = (m,t='success') => window.showToast ? window.showToast(m,t) : alert(m);
+
+      $('openNotificationBtn')?.addEventListener('click',()=>window.location.href='./notification.html');
+      $('openMaintenanceBtn')?.addEventListener('click',()=>show('maintenanceModal'));
+      $('closeMaintenanceBtn')?.addEventListener('click',()=>hide('maintenanceModal'));
+      $('openAppUpdateBtn')?.addEventListener('click',()=>show('appUpdateModal'));
+      $('closeAppUpdateBtn')?.addEventListener('click',()=>hide('appUpdateModal'));
+
+      onValue(ref(rtdb,'siteControl'), snap=>{
+        const v=snap.val()||{};
+        if($('maintenanceStatus')) $('maintenanceStatus').textContent = v.maintenance ? '🟠 Maintenance ON — Firebase থেকে OFF করতে হবে' : '🟢 Maintenance OFF';
+        if($('appUpdateStatus')) $('appUpdateStatus').textContent = v.appUpdate ? '🔵 App Update ON — Firebase থেকে OFF করতে হবে' : '🟢 App Update OFF';
+        if($('maintenanceMessageInput') && v.maintenanceMessage) $('maintenanceMessageInput').value=v.maintenanceMessage;
+        if($('appUpdateMessageInput') && v.updateMessage) $('appUpdateMessageInput').value=v.updateMessage;
+        if($('appUpdateLinkInput') && v.updateLink) $('appUpdateLinkInput').value=v.updateLink;
+      },e=>console.error('siteControl listener failed:',e));
+
+      $('maintenanceOnBtn')?.addEventListener('click',async()=>{
+        try { const current=(await new Promise(resolve=>onValue(ref(rtdb,'siteControl'),s=>resolve(s.val()||{}),{onlyOnce:true}))); await set(ref(rtdb,'siteControl'),{...current,maintenance:true,maintenanceMessage:$('maintenanceMessageInput')?.value?.trim()||'Maintenance চলছে। পরে আবার চেষ্টা করুন।',updatedAt:Date.now()}); toast('Maintenance ON হয়েছে'); } catch(e){toast('Maintenance ON failed: '+e.message,'error');}
+      });
+      $('maintenanceOffBtn')?.addEventListener('click',()=>toast('OFF করতে Firebase Realtime Database → siteControl/maintenance = false করুন','warning'));
+
+      $('appUpdateOnBtn')?.addEventListener('click',async()=>{
+        const link=$('appUpdateLinkInput')?.value?.trim(); if(!link){toast('Update link দিন','warning');return;}
+        try { const current=(await new Promise(resolve=>onValue(ref(rtdb,'siteControl'),s=>resolve(s.val()||{}),{onlyOnce:true}))); await set(ref(rtdb,'siteControl'),{...current,appUpdate:true,updateMessage:$('appUpdateMessageInput')?.value?.trim()||'নতুন আপডেট এসেছে। Update Now চাপুন।',updateLink:link,updatedAt:Date.now()}); toast('App Update ON হয়েছে'); } catch(e){toast('App Update failed: '+e.message,'error');}
+      });
+      $('appUpdateOffBtn')?.addEventListener('click',()=>toast('OFF করতে Firebase Realtime Database → siteControl/appUpdate = false করুন','warning'));
+    </script>
+</body>
+</html>
