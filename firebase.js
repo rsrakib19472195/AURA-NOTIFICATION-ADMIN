@@ -35,7 +35,7 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
-export const db = getFirestore(app);
+export const db = getFirestore(app);\n\nexport const rtdb = getDatabase(app);
 
 
 // ============================================================
@@ -418,75 +418,45 @@ export async function linkOneSignalUser(user) {
 
     try {
 
-        console.log(
-            "================================"
-        );
+        console.log("🔗 OneSignal linking শুরু:", uid);
 
-        console.log(
-            "🔗 OneSignal linking শুরু"
-        );
+        // Median.co native OneSignal bridge.
+        // REST API key is NEVER used in the APK/frontend.
+        if (
+            window.median &&
+            window.median.onesignal &&
+            typeof window.median.onesignal.login === "function"
+        ) {
+            const result = await window.median.onesignal.login(uid);
+            console.log("✅ Median OneSignal login:", result);
 
-        console.log(
-            "Firebase UID:",
-            uid
-        );
+            try {
+                if (typeof window.median.onesignal.info === "function") {
+                    const info = await window.median.onesignal.info();
+                    console.log("📌 Median OneSignal info:", info);
+                }
+            } catch (infoError) {
+                console.warn("Median OneSignal info unavailable:", infoError);
+            }
 
-        console.log(
-            "================================"
-        );
+            return result?.success !== false;
+        }
 
-
-        const OneSignal =
-            await initOneSignal();
-
+        // Browser fallback: OneSignal Web SDK.
+        const OneSignal = await initOneSignal();
 
         if (!OneSignal) {
-
-            console.warn(
-                "⚠️ OneSignal unavailable."
-            );
-
+            console.warn("⚠️ OneSignal unavailable.");
             return false;
         }
 
-
-        // ----------------------------------------------------
-        // IMPORTANT
-        // ----------------------------------------------------
-
         await OneSignal.login(uid);
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
+        const externalId = OneSignal.User?.externalId || null;
+        console.log("Firebase UID:", uid, "External ID:", externalId);
 
-        console.log(
-            "✅ OneSignal.login() completed"
-        );
-
-
-        // একটু সময় দিই identity sync হওয়ার জন্য
-        await new Promise(
-            resolve =>
-                setTimeout(resolve, 2000)
-        );
-
-
-        const externalId =
-            OneSignal.User?.externalId ||
-            null;
-
-
-        const oneSignalId =
-            OneSignal.User?.onesignalId ||
-            null;
-
-
-        const subscriptionId =
-            OneSignal.User?.PushSubscription?.id ||
-            null;
-
-
-        const optedIn =
-            OneSignal.User?.PushSubscription?.optedIn ??
-            null;
+        return externalId === uid;
 
 
         console.log(

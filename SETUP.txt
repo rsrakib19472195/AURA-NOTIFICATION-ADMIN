@@ -1,0 +1,104 @@
+# AURA ARMAN TOUR — Median.co + Render + OneSignal
+
+## IMPORTANT SECURITY
+- OneSignal App ID may be public and is kept in `firebase.js`.
+- NEVER put the OneSignal REST API Key in `firebase.js`, `admin.html`, or the APK.
+- Keep `ONESIGNAL_REST_API_KEY` only in Render Environment Variables.
+
+## Render environment variables
+
+Required:
+- `ONESIGNAL_REST_API_KEY`
+
+Required for automatic Deposit/Withdraw background push:
+- `FIREBASE_SERVICE_ACCOUNT_JSON`
+
+Optional alternative to FIREBASE_SERVICE_ACCOUNT_JSON:
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY`
+
+Recommended:
+- `ONESIGNAL_APP_ID`
+- `ADMIN_EMAIL`
+
+Optional:
+- `ADMIN_ONESIGNAL_EXTERNAL_ID`
+
+`ADMIN_ONESIGNAL_EXTERNAL_ID` can be the Firebase UID of the admin. If omitted, the server looks up `ADMIN_EMAIL` in Firebase Authentication.
+
+## Firebase service account
+Firebase Console → Project Settings → Service accounts → Generate new private key.
+
+For Render, the easiest safe setup is to store the entire downloaded JSON as:
+`FIREBASE_SERVICE_ACCOUNT_JSON`
+
+Do not commit that JSON to GitHub.
+
+## Median.co
+1. Enable JavaScript Bridge.
+2. Native Plugins → OneSignal.
+3. Enter the OneSignal App ID.
+4. Save and rebuild.
+5. Test on a real Android/iOS device.
+
+The site code uses `median.onesignal.login(uid)` when the Median native bridge exists. Browser fallback uses the OneSignal web SDK.
+
+## Automatic admin push
+The Render server watches:
+- `transactions` for Deposit requests
+- `withdraws` for Withdraw requests
+
+Only new pending requests are sent.
+Duplicate sending is prevented with:
+`adminPushSent/{deposit|withdraw_request_id}`
+
+The server also catches recent pending requests after a restart.
+
+## Maintenance / App Update
+Admin writes to Realtime Database:
+`siteControl`
+
+Fields:
+- `maintenance`
+- `maintenanceMessage`
+- `appUpdate`
+- `updateMessage`
+- `updateLink`
+
+The supplied `site-control.js` must be loaded on the user-facing pages:
+
+<script type="module" src="./site-control.js"></script>
+
+When maintenance/appUpdate is ON, users are blocked immediately by the full-screen lock.
+OFF is intentionally controlled from Firebase Realtime Database.
+
+## Firebase Realtime Database rules
+Your signed-in admin must have write access to `siteControl`, while normal users should only have read access to that path.
+
+Example concept (adapt to your existing auth rules):
+{
+  "rules": {
+    "siteControl": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email == 'teamgamechangerofficial@gmail.com'"
+    }
+  }
+}
+
+Do not replace your entire existing database rules blindly; merge this path into your current rules.
+
+## Health check
+Open:
+`/health`
+
+It should return:
+- success: true
+- firebaseAdmin: true
+- onesignalConfigured: true
+
+## OneSignal notification click
+For Median.co, the server puts:
+`data.targetUrl`
+
+This is preferred for opening an internal page in the app.
