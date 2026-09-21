@@ -327,9 +327,7 @@
                         }
                     }
 
-                    // Do not auto-delete completed tournaments here.
-                    // Room Details updates must never make a match disappear, and match history/registrations
-                    // should remain available unless an admin explicitly deletes the tournament.
+                    // Completed tournaments stay visible until admin explicitly deletes them.
                     tData.status = currentStatus;
                     allTournaments.push(tData);
                 });
@@ -587,12 +585,12 @@
                     <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
                         <div>
                             <h4 class="font-bold text-white text-sm">${t.name}</h4>
-                            <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Status: <b>${t.status || 'upcoming'}</b>${t.resultPublished ? ' | <b class="text-emerald-400">RESULT PUBLISHED</b>' : ''}</span>
+                            <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Status: <b>${t.status || 'upcoming'}</b></span>
                             <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Players/Slot Size: <b>${t.slotSize || 1}</b> | Map: ${t.map || 'Bermuda'} | Fee: ৳${t.entryFee || 0}</span>
                         </div>
                         <div class="flex space-x-2 items-center">
                             <button onclick="openRegistrationsModal('${t.id}', '${t.name}')" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="View Registrations"><i class="fa-solid fa-users mr-1"></i> Regs</button>
-                            <button onclick="openResultModal('${t.id}', '${t.name}')" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="Tournament Result"><i class="fa-solid fa-trophy mr-1"></i> Result</button>
+                            <button onclick="openTournamentResult('${t.id}')" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="Tournament Result"><i class="fa-solid fa-trophy mr-1"></i> Result</button>
                             <button onclick="openRoomDetailsModal('${t.id}')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="Update Room Details"><i class="fa-solid fa-key mr-1"></i> Room</button>
                             <button onclick="editTournament('${t.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg" title="Edit"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteDocItem('tournaments', '${t.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg" title="Delete"><i class="fa-solid fa-trash"></i></button>
@@ -703,107 +701,7 @@
         window.editTournament = function(id) {
             const t = allTournaments.find(item => item.id === id);
             if(t) openTournamentModal(t);
-        }\n\n        // Tournament Result + Auto Prize Payout System
-        // Publish করলে selected winner-এর wallet-এ একবারই payout যাবে।
-        // Team/Duo/Squad-এর registered slot count অনুযায়ী base prize multiplier হবে।
-        window.openResultModal = async function(tournamentId, matchName) {
-            const modal = document.getElementById('generic-modal');
-            const body = document.getElementById('modal-body');
-            document.getElementById('modal-title').innerText = 'Result: ' + matchName;
-            modal.style.display = 'flex';
-            body.innerHTML = '<p class="text-center text-slate-400 py-6">Result লোড হচ্ছে...</p>';
-            try {
-                const snap = await getDoc(doc(db, 'tournaments', tournamentId));
-                if(!snap.exists()) throw new Error('Tournament পাওয়া যায়নি।');
-                const data = snap.data() || {};
-                const participants = Array.isArray(data.participants) ? data.participants : [];
-                const results = Array.isArray(data.results) ? data.results : [];
-                const defaultPrize = Number(data.prize || 0);
-                const perKill = Number(data.perKill || 0);
-                const byUser = new Map(results.map(r => [String(r.userId || r.uid || r.email || r.username || r.userName || r.name || ''), r]));
-
-                let rows = '';
-                if(participants.length) {
-                    rows = participants.map((p,i) => {
-                        const userId = String(p.userId || p.uid || p.id || p.email || p.username || p.userName || '');
-                        const display = p.userName || p.username || p.name || p.email || p.uid || p.userId || ('Player ' + (i+1));
-                        const slotCount = Math.max(1, Number(p.count || p.slotCount || p.slots || 1));
-                        const r = byUser.get(userId) || results[i] || {};
-                        const prize = r.prize ?? defaultPrize;
-                        const winner = r.winner === true || Number(r.position || 0) > 0;
-                        const safe = v => String(v ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-                        return `<div class="bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2 result-row" data-user-id="${safe(userId)}" data-slot-count="${slotCount}">
-                            <div class="flex items-center justify-between gap-2 mb-2"><div class="min-w-0"><div class="font-bold text-white text-sm truncate">${safe(display)}</div><div class="text-[10px] text-slate-500 break-all">UID: ${safe(userId || 'No user ID')}</div></div><span class="text-[10px] text-emerald-400 font-bold">${slotCount} Slot</span></div>
-                            <label class="flex items-center gap-2 text-xs text-amber-300 mb-2"><input type="checkbox" class="result-winner" ${winner ? 'checked' : ''}> Winner / Prize পাবে</label>
-                            <input type="hidden" class="result-user-name" value="${safe(display)}">
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><input type="number" min="1" class="result-position w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Position" value="${r.position ?? ''}"><input type="number" min="0" class="result-kills w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Kills" value="${r.kills ?? ''}"><input type="number" min="0" class="result-points w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Points" value="${r.points ?? ''}"><input type="number" min="0" class="result-prize w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Prize / Slot ৳" value="${prize || ''}"></div>
-                            <div class="text-[10px] text-slate-500 mt-2">Payout = Prize × ${slotCount} slot + Kill Bonus (${perKill || 0} × kills)</div>
-                        </div>`;
-                    }).join('');
-                } else if(results.length) {
-                    rows = results.map((r,i)=>{
-                        const userId=String(r.userId||r.uid||''); const name=r.userName||r.username||r.name||r.email||('Player '+(i+1)); const slotCount=Math.max(1,Number(r.slotCount||r.count||1)); const prize=r.prize??defaultPrize; const winner=r.winner===true||Number(r.position||0)>0;
-                        return `<div class="bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2 result-row" data-user-id="${String(userId).replace(/"/g,'&quot;')}" data-slot-count="${slotCount}"><div class="font-bold text-white text-sm mb-2">${name} <span class="text-[10px] text-emerald-400">${slotCount} Slot</span></div><label class="flex items-center gap-2 text-xs text-amber-300 mb-2"><input type="checkbox" class="result-winner" ${winner?'checked':''}> Winner / Prize পাবে</label><input type="hidden" class="result-user-name" value="${String(name).replace(/"/g,'&quot;')}"><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><input type="number" min="1" class="result-position w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Position" value="${r.position??''}"><input type="number" min="0" class="result-kills w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Kills" value="${r.kills??''}"><input type="number" min="0" class="result-points w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Points" value="${r.points??''}"><input type="number" min="0" class="result-prize w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Prize / Slot ৳" value="${prize||''}"></div></div>`;
-                    }).join('');
-                } else {
-                    rows='<div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 text-sm text-slate-400">কোনো registered player পাওয়া যায়নি। নিচের Add Player দিয়ে result যোগ করতে পারবেন।</div>';
-                }
-
-                body.innerHTML = `<input type="hidden" id="result-tour-id" value="${tournamentId}"><div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-3 text-xs text-amber-200">Tournament Prize: <b>৳${defaultPrize}</b> | Kill Price: <b>৳${perKill}</b><br><span class="text-slate-300">Winner select করলে Publish-এর সময় Prize × registered slot এবং থাকলে Kill Price × kills wallet-এ যাবে।</span></div><div class="flex items-center justify-between gap-2 mb-3"><div class="text-xs text-slate-400">Registered players: <b class="text-white">${participants.length}</b></div><label class="flex items-center gap-2 text-xs text-slate-300"><input id="result-published" type="checkbox" ${data.resultPublished ? 'checked' : ''}> Publish Result & Pay</label></div><div id="result-rows" class="max-h-[55vh] overflow-y-auto pr-1">${rows}</div><button onclick="addResultPlayerRow()" class="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-bold"><i class="fa-solid fa-plus mr-1"></i>Add Player Result</button><button onclick="saveTournamentResults()" class="w-full mt-2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl font-black"><i class="fa-solid fa-trophy mr-1"></i>Save / Publish Result</button>`;
-            } catch(e) { body.innerHTML = `<p class="text-rose-400 text-sm">${e.message || 'Result load failed'}</p>`; }
-        };
-
-        window.addResultPlayerRow = function() {
-            const box=document.getElementById('result-rows'); if(!box)return;
-            const wrap=document.createElement('div'); wrap.className='bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2 result-row'; wrap.setAttribute('data-user-id',''); wrap.setAttribute('data-slot-count','1');
-            wrap.innerHTML=`<div class="flex justify-between gap-2 mb-2"><input class="result-user-name flex-1 bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Player name / username"><input class="result-user-id w-32 bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="User ID"></div><div class="flex items-center gap-2 text-xs text-amber-300 mb-2"><input type="checkbox" class="result-winner"> Winner / Prize পাবে <span class="text-slate-500">(manual player = 1 slot)</span></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><input type="number" min="1" class="result-position w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Position"><input type="number" min="0" class="result-kills w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Kills"><input type="number" min="0" class="result-points w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Points"><input type="number" min="0" class="result-prize w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Prize / Slot ৳"></div>`; box.appendChild(wrap);
-        };
-
-        window.saveTournamentResults = async function() {
-            const tournamentId=document.getElementById('result-tour-id')?.value; if(!tournamentId)return;
-            const published=!!document.getElementById('result-published')?.checked;
-            try {
-                const tourRef=doc(db,'tournaments',tournamentId);
-                const tourSnap=await getDoc(tourRef); if(!tourSnap.exists()) throw new Error('Tournament পাওয়া যায়নি।');
-                const tournament=tourSnap.data()||{};
-                const defaultPrize=Number(tournament.prize||0);
-                const perKill=Number(tournament.perKill||0);
-                const results=[...document.querySelectorAll('#result-rows .result-row')].map(row=>{
-                    const nameEl=row.querySelector('.result-user-name'), idEl=row.querySelector('.result-user-id');
-                    const userId=row.getAttribute('data-user-id')||idEl?.value?.trim()||'', userName=nameEl?.value?.trim()||'';
-                    const slotCount=Math.max(1,Number(row.getAttribute('data-slot-count')||1));
-                    const winner=!!row.querySelector('.result-winner')?.checked;
-                    const kills=Math.max(0,Number(row.querySelector('.result-kills')?.value||0));
-                    const prize=Number(row.querySelector('.result-prize')?.value||defaultPrize||0);
-                    const position=Math.max(0,Number(row.querySelector('.result-position')?.value||0));
-                    const points=Math.max(0,Number(row.querySelector('.result-points')?.value||0));
-                    return {userId,uid:userId,userName,username:userName,slotCount,winner,position,kills,points,prize};
-                }).filter(r=>r.userName||r.userId||r.position||r.kills||r.points||r.prize||r.winner);
-
-                if(published) {
-                    const winners=results.filter(r=>r.winner && r.userId && r.prize>0);
-                    for(const r of winners) {
-                        const payoutAmount=(Number(r.prize)||0)*Math.max(1,Number(r.slotCount)||1) + (perKill>0 ? (Number(r.kills)||0)*perKill : 0);
-                        if(payoutAmount<=0) continue;
-                        const safeUser=encodeURIComponent(String(r.userId)).replace(/%/g,'_');
-                        const payoutRef=doc(db,'tournamentPayouts',`${tournamentId}_${safeUser}_${Number(r.position)||0}`);
-                        const userRef=doc(db,'users',String(r.userId));
-                        await runTransaction(db,async(transaction)=>{
-                            const payoutSnap=await transaction.get(payoutRef);
-                            if(payoutSnap.exists()) return;
-                            const userSnap=await transaction.get(userRef);
-                            if(!userSnap.exists()) throw new Error(`Winner user পাওয়া যায়নি: ${r.userName || r.userId}`);
-                            const currentBalance=Number(userSnap.data().balance||0);
-                            transaction.update(userRef,{balance:currentBalance+payoutAmount});
-                            transaction.set(payoutRef,{tournamentId,userId:r.userId,userName:r.userName,position:r.position||0,kills:r.kills||0,slotCount:r.slotCount||1,prizePerSlot:r.prize||0,killPrice:perKill,killBonus:(r.kills||0)*perKill,amount:payoutAmount,createdAt:Date.now(),type:'tournament_prize'});
-                        });
-                    }
-                }
-
-                await updateDoc(tourRef,{results,resultPublished:published,resultUpdatedAt:Date.now(),...(published?{status:'completed',completedAt:Date.now(),payoutProcessedAt:Date.now()}: {})});
-                showToast(published?'Result publish + winner payout complete!':'Result save হয়েছে!'); closeGenericModal(); await loadAllAdminData();
-            } catch(e) { showToast(e.message||'Result save/payout failed','error'); console.error(e); }
-        };
+        }
 
         window.saveTournament = async function() {
             const id = document.getElementById('tour-id').value;
@@ -850,67 +748,224 @@
             } catch(e) { showToast('সমস্যা হয়েছে', 'error'); }
         }
 
-        // ROOM DETAILS ONLY UPDATE
-        // This intentionally updates ONLY room fields on the existing tournament document.
-        // It never creates, replaces, or deletes the tournament, participants, registrations, slots, etc.
+
+        // ---------- ROOM DETAILS: isolated update ----------
         window.openRoomDetailsModal = async function(tournamentId) {
             try {
                 const snap = await getDoc(doc(db, "tournaments", tournamentId));
-                if(!snap.exists()) { showToast('ম্যাচ পাওয়া যায়নি', 'error'); return; }
-                const t = { id: tournamentId, ...snap.data() };
-
+                if(!snap.exists()) throw new Error("Tournament পাওয়া যায়নি।");
+                const t = snap.data() || {};
                 document.getElementById('modal-title').innerText = "Update Room Details";
                 document.getElementById('generic-modal').style.display = 'flex';
                 document.getElementById('modal-body').innerHTML = `
-                    <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 mb-2">
-                        <p class="text-emerald-400 font-bold text-xs">${t.name || 'Tournament'}</p>
-                        <p class="text-[10px] text-slate-500 mt-1">শুধু Room ID/Password আপডেট হবে। Registration/Players/Match data অপরিবর্তিত থাকবে।</p>
-                    </div>
                     <input type="hidden" id="room-tour-id" value="${tournamentId}">
                     <div>
-                        <label class="text-blue-400 font-bold block mb-1">Room ID</label>
-                        <input type="text" id="room-details-id" value="${t.roomId || ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white" autocomplete="off">
+                        <label class="text-slate-400 block mb-1">Room ID</label>
+                        <input id="room-update-id" value="${String(t.roomId || '').replace(/"/g,'&quot;')}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
                     </div>
                     <div>
-                        <label class="text-blue-400 font-bold block mb-1">Room Password</label>
-                        <input type="text" id="room-details-pass" value="${t.roomPass || ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white" autocomplete="off">
+                        <label class="text-slate-400 block mb-1">Room Password</label>
+                        <input id="room-update-pass" value="${String(t.roomPass || '').replace(/"/g,'&quot;')}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
                     </div>
-                    <button onclick="updateRoomDetails()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl mt-2">
-                        <i class="fa-solid fa-floppy-disk mr-1"></i> Update Room Details
-                    </button>
+                    <p class="text-[11px] text-slate-500">শুধু Room ID/Password update হবে। Registration, players, slots, result বা tournament data মুছবে না।</p>
+                    <button onclick="updateRoomDetails()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl mt-2">Update Room Details</button>
                 `;
             } catch(e) {
-                console.error('Room details load failed:', e);
-                showToast('Room details লোড করতে সমস্যা হয়েছে', 'error');
+                showToast(e.message || "Room details load failed", "error");
             }
         };
 
         window.updateRoomDetails = async function() {
             const id = document.getElementById('room-tour-id')?.value;
-            const roomId = document.getElementById('room-details-id')?.value.trim() || '';
-            const roomPass = document.getElementById('room-details-pass')?.value.trim() || '';
-
-            if(!id) { showToast('Match ID পাওয়া যায়নি', 'error'); return; }
-
+            if(!id) return;
             try {
-                // IMPORTANT: updateDoc changes only these two fields.
-                // Existing tournament document and all registrations/participants remain intact.
-                const tournamentRef = doc(db, "tournaments", id);
-                const snap = await getDoc(tournamentRef);
-                if(!snap.exists()) { showToast('ম্যাচ পাওয়া যায়নি', 'error'); return; }
-
-                await updateDoc(tournamentRef, {
+                const roomId = document.getElementById('room-update-id')?.value.trim() || '';
+                const roomPass = document.getElementById('room-update-pass')?.value.trim() || '';
+                await updateDoc(doc(db, "tournaments", id), {
                     roomId,
                     roomPass,
                     roomDetailsUpdatedAt: Date.now()
                 });
-
+                showToast("Room Details update হয়েছে!");
                 closeGenericModal();
-                showToast('Room Details সফলভাবে আপডেট হয়েছে!');
                 await loadAllAdminData();
             } catch(e) {
-                console.error('Room details update failed:', e);
-                showToast('Room Details আপডেট করতে সমস্যা হয়েছে: ' + (e?.message || e), 'error');
+                showToast(e.message || "Room update failed", "error");
+            }
+        };
+
+        // ---------- TOURNAMENT RESULT + ONE-TIME PAYOUT ----------
+        const resultEscape = (v) => String(v ?? '')
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+
+        window.openTournamentResult = async function(tournamentId) {
+            const body = document.getElementById('modal-body');
+            try {
+                const snap = await getDoc(doc(db, 'tournaments', tournamentId));
+                if(!snap.exists()) throw new Error('Tournament পাওয়া যায়নি।');
+                const t = snap.data() || {};
+                const participants = Array.isArray(t.participants) ? t.participants : [];
+                const saved = Array.isArray(t.results) ? t.results : [];
+                const prizePerSlot = Number(t.prize || 0);
+                const killPrice = Number(t.perKill || 0);
+
+                document.getElementById('modal-title').innerText = 'Tournament Result';
+                window.__activeResultTournamentId = tournamentId;
+                document.getElementById('generic-modal').setAttribute('data-result-tour-id', tournamentId);
+                document.getElementById('generic-modal').style.display = 'flex';
+                body.innerHTML = '<p class="text-center text-slate-400 py-6">Result লোড হচ্ছে...</p>';
+
+                let rows = '';
+                if(participants.length) {
+                    rows = participants.map((p, i) => {
+                        const uid = String(p.userId || p.uid || p.firebaseId || p.userID || '');
+                        const name = String(p.userName || p.username || p.ign || (Array.isArray(p.players) ? p.players[0] : '') || 'User');
+                        const count = Math.max(1, Number(p.count || p.slotCount || (Array.isArray(p.players) ? p.players.length : 1)));
+                        const old = saved.find(r => String(r.userId || r.uid || '') === uid) || saved[i] || {};
+                        const checked = old.winner ? 'checked' : '';
+                        const oldKills = old.kills ?? '';
+                        const oldPos = old.position ?? '';
+                        const oldPoints = old.points ?? '';
+                        rows += `
+                          <div class="result-row bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2"
+                               data-user-id="${resultEscape(uid)}" data-slot-count="${count}">
+                            <div class="flex justify-between gap-2 items-start mb-2">
+                              <div class="min-w-0">
+                                <div class="font-bold text-white text-sm">${resultEscape(name)}</div>
+                                <div class="text-[10px] text-emerald-400">${count} Slot${uid ? ' • UID: '+resultEscape(uid) : ' • UID missing'}</div>
+                              </div>
+                              <label class="flex items-center gap-1 text-[11px] text-amber-300 whitespace-nowrap">
+                                <input type="checkbox" class="result-winner" ${checked}> Winner
+                              </label>
+                            </div>
+                            <input type="hidden" class="result-user-name" value="${resultEscape(name)}">
+                            ${uid ? '' : '<input class="result-user-id w-full mb-2 bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Winner হলে User ID দিন">'}
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              <input type="number" min="1" class="result-position bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Position" value="${oldPos}">
+                              <input type="number" min="0" class="result-kills bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Kills" value="${oldKills}">
+                              <input type="number" min="0" class="result-points bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Points" value="${oldPoints}">
+                              <input type="number" min="0" class="result-prize bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Prize / Slot" value="${old.prize ?? prizePerSlot}">
+                            </div>
+                          </div>`;
+                    }).join('');
+                } else if(saved.length) {
+                    rows = saved.map(r => {
+                        const uid = String(r.userId || r.uid || '');
+                        const name = String(r.userName || r.username || 'User');
+                        const count = Math.max(1, Number(r.slotCount || 1));
+                        return `<div class="result-row bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2" data-user-id="${resultEscape(uid)}" data-slot-count="${count}">
+                          <div class="font-bold text-white text-sm mb-2">${resultEscape(name)}</div>
+                          <label class="flex items-center gap-1 text-xs text-amber-300 mb-2"><input type="checkbox" class="result-winner" ${r.winner?'checked':''}> Winner</label>
+                          <input type="hidden" class="result-user-name" value="${resultEscape(name)}">
+                          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <input type="number" min="1" class="result-position bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Position" value="${r.position ?? ''}">
+                            <input type="number" min="0" class="result-kills bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Kills" value="${r.kills ?? ''}">
+                            <input type="number" min="0" class="result-points bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Points" value="${r.points ?? ''}">
+                            <input type="number" min="0" class="result-prize bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Prize / Slot" value="${r.prize ?? prizePerSlot}">
+                          </div>
+                        </div>`;
+                    }).join('');
+                } else {
+                    rows = '<p class="text-center text-slate-500 py-6">কোনো registration পাওয়া যায়নি।</p>';
+                }
+
+                body.innerHTML = `
+                  <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-200 mb-3">
+                    Tournament Prize / Slot: <b>৳${prizePerSlot}</b> • Kill Price: <b>৳${killPrice}</b>
+                    <div class="text-slate-300 mt-1">Winner-এর payout = Prize × registered slots + (Kills × Kill Price)। Kill Price 0 হলে kill bonus যাবে না।</div>
+                  </div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs text-slate-400">Registered: <b class="text-white">${participants.length}</b></span>
+                    <label class="text-xs text-slate-300 flex items-center gap-2">
+                      <input id="result-publish" type="checkbox" ${t.resultPublished ? 'checked' : ''}> Publish & Pay
+                    </label>
+                  </div>
+                  <div id="result-rows" class="max-h-[55vh] overflow-y-auto">${rows}</div>
+                  <button onclick="addManualResultRow()" class="w-full mt-2 bg-slate-800 text-white py-2 rounded-xl text-xs font-bold">+ Add Player</button>
+                  <button onclick="saveTournamentResult()" class="w-full mt-2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl font-black">Save / Publish Result</button>`;
+            } catch(e) {
+                body.innerHTML = `<p class="text-center text-rose-400 py-6">${resultEscape(e.message || 'Result load failed')}</p>`;
+            }
+        };
+
+        window.addManualResultRow = function() {
+            const box = document.getElementById('result-rows');
+            if(!box) return;
+            const row = document.createElement('div');
+            row.className = 'result-row bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2';
+            row.setAttribute('data-user-id','');
+            row.setAttribute('data-slot-count','1');
+            row.innerHTML = `
+              <div class="flex gap-2 mb-2">
+                <input class="result-user-name flex-1 bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Username">
+                <input class="result-user-id w-32 bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="User ID">
+              </div>
+              <label class="text-xs text-amber-300 flex items-center gap-2 mb-2"><input type="checkbox" class="result-winner"> Winner</label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <input type="number" min="1" class="result-position bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Position">
+                <input type="number" min="0" class="result-kills bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Kills">
+                <input type="number" min="0" class="result-points bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Points">
+                <input type="number" min="0" class="result-prize bg-black border border-slate-800 rounded-lg p-2 text-white text-xs" placeholder="Prize / Slot">
+              </div>`;
+            box.appendChild(row);
+        };
+
+        window.saveTournamentResult = async function() {
+            const modal = document.getElementById('generic-modal');
+            const resultBox = document.getElementById('result-rows');
+            const id = modal?.getAttribute('data-result-tour-id') || window.__activeResultTournamentId;
+            if(!id || !resultBox) { showToast('Result tournament ID পাওয়া যায়নি।', 'error'); return; }
+
+            const published = !!document.getElementById('result-publish')?.checked;
+            try {
+                const tourRef = doc(db,'tournaments',id);
+                const tourSnap = await getDoc(tourRef);
+                if(!tourSnap.exists()) throw new Error('Tournament পাওয়া যায়নি।');
+                const t = tourSnap.data() || {};
+                const perKill = Number(t.perKill || 0);
+                const resultRows = [...resultBox.querySelectorAll('.result-row')];
+                const results = resultRows.map(row => {
+                    const userId = row.getAttribute('data-user-id') || row.querySelector('.result-user-id')?.value.trim() || '';
+                    const userName = row.querySelector('.result-user-name')?.value || row.querySelector('.result-user-name')?.textContent || row.querySelector('.result-user-name')?.value || '';
+                    const count = Math.max(1, Number(row.getAttribute('data-slot-count') || 1));
+                    const winner = !!row.querySelector('.result-winner')?.checked;
+                    const kills = Math.max(0, Number(row.querySelector('.result-kills')?.value || 0));
+                    const position = Math.max(0, Number(row.querySelector('.result-position')?.value || 0));
+                    const points = Math.max(0, Number(row.querySelector('.result-points')?.value || 0));
+                    const prize = Math.max(0, Number(row.querySelector('.result-prize')?.value || t.prize || 0));
+                    return {userId, uid:userId, userName, username:userName, slotCount:count, winner, kills, position, points, prize};
+                }).filter(r => r.userId || r.userName || r.winner || r.kills || r.position || r.points);
+
+                if(published) {
+                    const winners = results.filter(r => r.winner);
+                    for(const w of winners) {
+                        if(!w.userId) throw new Error(`${w.userName || 'Winner'}-এর User ID নেই।`);
+                        const payout = (w.prize * w.slotCount) + (w.kills * perKill);
+                        if(payout <= 0) continue;
+
+                        const payoutId = `${id}_${encodeURIComponent(w.userId).replace(/%/g,'_')}`;
+                        const payoutRef = doc(db,'tournamentPayouts',payoutId);
+                        const userRef = doc(db,'users',w.userId);
+
+                        await runTransaction(db, async(tx) => {
+                            const payoutSnap = await tx.get(payoutRef);
+                            if(payoutSnap.exists()) return;
+                            const userSnap = await tx.get(userRef);
+                            if(!userSnap.exists()) throw new Error(`User পাওয়া যায়নি: ${w.userName || w.userId}`);
+                            const bal = Number(userSnap.data().balance || 0);
+                            tx.update(userRef,{balance:bal+payout});
+                            tx.set(payoutRef,{tournamentId:id,userId:w.userId,userName:w.userName,slotCount:w.slotCount,prizePerSlot:w.prize,kills:w.kills,killPrice:perKill,amount:payout,createdAt:Date.now(),type:'tournament_prize'});
+                        });
+                    }
+                }
+
+                await updateDoc(tourRef, {results, resultPublished:published, resultUpdatedAt:Date.now(), ...(published ? {status:'completed',completedAt:Date.now()} : {})});
+                showToast(published ? 'Result publish হয়েছে এবং winner payout হয়েছে!' : 'Result save হয়েছে!');
+                closeGenericModal();
+                await loadAllAdminData();
+            } catch(e) {
+                showToast(e.message || 'Result save failed','error');
             }
         };
 
@@ -1567,7 +1622,10 @@
         window.auraClearStorageFolder = async function(folder){if(!confirm(`${folder} storage folder clear করবেন?`))return;const walk=async p=>{const l=await listAll(storageRef(auraStorage,p));for(const f of l.items)await deleteObject(f);for(const d of l.prefixes)await walk(d.fullPath)};await walk(folder);alert(`${folder} cleared`);};
 
         window.closeGenericModal = function() {
-            document.getElementById('generic-modal').style.display = 'none';
+            const modal = document.getElementById('generic-modal');
+            modal.style.display = 'none';
+            modal.removeAttribute('data-result-tour-id');
+            window.__activeResultTournamentId = '';
         }
     </script>
 
