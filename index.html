@@ -585,8 +585,10 @@
                 const wonAmount = result.winner
                     ? (Number(result.prize || t.prize || 0) * slotCount) + (Number(result.kills || 0) * Number(t.perKill || 0))
                     : (result.killOnly ? Number(result.kills || 0) * Number(t.perKill || 0) : 0);
-                const hasResult = Object.keys(result).length > 0;
-                const outcome = result.winner === true ? 'WIN' : (hasResult ? 'LOSS' : 'Result Pending');
+                const hasResult = results.some(r => String(r?.userId || r?.uid || '') === uid);
+                const outcome = (result.winner === true || wonAmount > 0)
+                    ? 'WIN'
+                    : (hasResult ? 'LOSS' : 'RESULT PENDING');
 
                 await setDoc(doc(db, 'matchHistory', `${tournamentId}_${uid}`), {
                     tournamentId,
