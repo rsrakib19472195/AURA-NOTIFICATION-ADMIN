@@ -1,69 +1,104 @@
-AURA ARMAN TOUR — FULL ADMIN / DEPOSIT / WITHDRAW SETUP
+# AURA ARMAN TOUR — Median.co + Render + OneSignal
 
-FILES
-- index.html = Admin Panel
-- login.html = Admin Login
-- notification.html = Push Notification page
-- firebase.js = Firebase + OneSignal client setup
-- server.js = Render server + Firebase Admin watcher + OneSignal push
-- site-control.js = maintenance/app-update control
-- package.json = Render dependencies
+## IMPORTANT SECURITY
+- OneSignal App ID may be public and is kept in `firebase.js`.
+- NEVER put the OneSignal REST API Key in `firebase.js`, `admin.html`, or the APK.
+- Keep `ONESIGNAL_REST_API_KEY` only in Render Environment Variables.
 
-RENDER ENVIRONMENT VARIABLES (server-side)
-1. ONESIGNAL_REST_API_KEY = your OneSignal REST API key
-2. ADMIN_EMAIL = teamgamechangerofficial@gmail.com
-3. ADMIN_ONESIGNAL_EXTERNAL_ID = optional. If omitted, server resolves the admin Firebase UID from ADMIN_EMAIL.
-4. FIREBASE_SERVICE_ACCOUNT_JSON = recommended: complete Firebase Admin service-account JSON
-   OR set:
-   FIREBASE_PROJECT_ID
-   FIREBASE_CLIENT_EMAIL
-   FIREBASE_PRIVATE_KEY
+## Render environment variables
 
-IMPORTANT:
-- Never put the OneSignal REST API key inside firebase.js or frontend HTML.
-- The Firebase Admin service-account private key is also server-only.
-- OneSignal App ID may remain in frontend.
+Required:
+- `ONESIGNAL_REST_API_KEY`
 
-RENDER
-Build Command:
-npm install
+Required for automatic Deposit/Withdraw background push:
+- `FIREBASE_SERVICE_ACCOUNT_JSON`
 
-Start Command:
-npm start
+Optional alternative to FIREBASE_SERVICE_ACCOUNT_JSON:
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY`
 
-The server starts the Firebase Admin Firestore listeners automatically.
-It watches:
-- deposits
-- transactions (legacy deposit compatibility)
-- withdraws
+Recommended:
+- `ONESIGNAL_APP_ID`
+- `ADMIN_EMAIL`
 
-For every NEW pending request it sends a push notification to the Admin's OneSignal external_id.
-It also writes an adminNotifications document and prevents duplicate pushes with adminPushSent.
+Optional:
+- `ADMIN_ONESIGNAL_EXTERNAL_ID`
 
-ADMIN LOGIN
-Main URL opens index.html. If no Firebase session exists, it opens login.html.
-The login is allowed only for ADMIN_EMAIL.
-After login the Admin UID is linked to OneSignal.
+`ADMIN_ONESIGNAL_EXTERNAL_ID` can be the Firebase UID of the admin. If omitted, the server looks up `ADMIN_EMAIL` in Firebase Authentication.
 
-FIRESTORE DATA EXPECTED
-Deposit requests:
-deposits/{requestId} with status: "pending", amount and user information.
-Legacy deposits in transactions are also detected.
+## Firebase service account
+Firebase Console → Project Settings → Service accounts → Generate new private key.
 
-Withdraw requests:
-withdraws/{requestId} with status: "pending", amount and user information.
+For Render, the easiest safe setup is to store the entire downloaded JSON as:
+`FIREBASE_SERVICE_ACCOUNT_JSON`
 
-If a request was created before the Render server started, the server performs a short catch-up scan for recent pending requests.
+Do not commit that JSON to GitHub.
 
-DEPLOY
-1. Upload all files to GitHub.
-2. Make sure admin.html is named index.html.
-3. Deploy the latest commit on Render.
-4. Check:
-   /health
-The response should show firebaseAdmin:true and onesignalConfigured:true.
-5. Log into Admin using the configured ADMIN_EMAIL.
-6. Keep OneSignal notification permission enabled on the Admin device.
+## Median.co
+1. Enable JavaScript Bridge.
+2. Native Plugins → OneSignal.
+3. Enter the OneSignal App ID.
+4. Save and rebuild.
+5. Test on a real Android/iOS device.
 
-If /health says firebaseAdmin:false, Firebase Admin credentials are missing/invalid on Render.
-If onesignalConfigured:false, ONESIGNAL_REST_API_KEY is missing.
+The site code uses `median.onesignal.login(uid)` when the Median native bridge exists. Browser fallback uses the OneSignal web SDK.
+
+## Automatic admin push
+The Render server watches:
+- `transactions` for Deposit requests
+- `withdraws` for Withdraw requests
+
+Only new pending requests are sent.
+Duplicate sending is prevented with:
+`adminPushSent/{deposit|withdraw_request_id}`
+
+The server also catches recent pending requests after a restart.
+
+## Maintenance / App Update
+Admin writes to Realtime Database:
+`siteControl`
+
+Fields:
+- `maintenance`
+- `maintenanceMessage`
+- `appUpdate`
+- `updateMessage`
+- `updateLink`
+
+The supplied `site-control.js` must be loaded on the user-facing pages:
+
+<script type="module" src="./site-control.js"></script>
+
+When maintenance/appUpdate is ON, users are blocked immediately by the full-screen lock.
+OFF is intentionally controlled from Firebase Realtime Database.
+
+## Firebase Realtime Database rules
+Your signed-in admin must have write access to `siteControl`, while normal users should only have read access to that path.
+
+Example concept (adapt to your existing auth rules):
+{
+  "rules": {
+    "siteControl": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email == 'teamgamechangerofficial@gmail.com'"
+    }
+  }
+}
+
+Do not replace your entire existing database rules blindly; merge this path into your current rules.
+
+## Health check
+Open:
+`/health`
+
+It should return:
+- success: true
+- firebaseAdmin: true
+- onesignalConfigured: true
+
+## OneSignal notification click
+For Median.co, the server puts:
+`data.targetUrl`
+
+This is preferred for opening an internal page in the app.
