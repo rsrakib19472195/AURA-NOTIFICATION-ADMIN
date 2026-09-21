@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AURA ARMAN — Admin Login</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#050811;color:#fff;font-family:Arial,sans-serif;padding:20px}
+.card{width:100%;max-width:420px;background:#0d1322;border:1px solid #1e293b;border-radius:22px;padding:26px;box-shadow:0 20px 60px #0008}
+h1{margin:0 0 8px;font-size:22px}p{color:#94a3b8;font-size:13px;margin:0 0 22px}
+label{display:block;color:#cbd5e1;font-size:12px;font-weight:700;margin:14px 0 7px}
+input{width:100%;padding:13px 14px;border-radius:12px;border:1px solid #334155;background:#050811;color:#fff;outline:none}
+input:focus{border-color:#3b82f6}
+button{width:100%;margin-top:18px;padding:13px;border:0;border-radius:12px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}
+button:disabled{opacity:.6}
+#msg{display:none;margin-top:14px;padding:11px;border-radius:10px;background:#3f1720;color:#fda4af;font-size:12px}
+.small{margin-top:14px;text-align:center;font-size:11px;color:#64748b}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>AURA ARMAN ADMIN</h1>
+  <p>Admin account দিয়ে Sign In করুন।</p>
+  <form id="loginForm">
+    <label>Admin Gmail</label>
+    <input id="email" type="email" autocomplete="username" placeholder="Admin Gmail" required>
+    <label>Password</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Password" required>
+    <button id="loginBtn" type="submit">SIGN IN</button>
+    <div id="msg"></div>
+  </form>
+  <div class="small">শুধু অনুমোদিত Admin account ব্যবহার করুন।</div>
+</div>
+
+<script type="module">
+import { auth, ADMIN_EMAIL, linkOneSignalUser } from "./firebase.js";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+const form=document.getElementById("loginForm");
+const emailEl=document.getElementById("email");
+const passEl=document.getElementById("password");
+const btn=document.getElementById("loginBtn");
+const msg=document.getElementById("msg");
+
+const params=new URLSearchParams(location.search);
+const next=params.get("next") || "index.html";
+
+function show(text){
+  msg.textContent=text;
+  msg.style.display="block";
+}
+
+onAuthStateChanged(auth,(user)=>{
+  if(!user) return;
+  const email=String(user.email||"").trim().toLowerCase();
+  const admin=String(ADMIN_EMAIL||"").trim().toLowerCase();
+  if(email===admin){
+    location.replace(next==="index.html" ? "./index.html" : "./index.html");
+  }else{
+    show("এই account Admin Panel-এর জন্য অনুমোদিত নয়।");
+  }
+});
+
+form.addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  const email=emailEl.value.trim().toLowerCase();
+  const password=passEl.value;
+  const admin=String(ADMIN_EMAIL||"").trim().toLowerCase();
+
+  if(email!==admin){
+    show("শুধু Admin Gmail দিয়ে Sign In করুন।");
+    return;
+  }
+
+  btn.disabled=true;
+  btn.textContent="SIGNING IN...";
+  msg.style.display="none";
+
+  try{
+    const cred=await signInWithEmailAndPassword(auth,email,password);
+    try{ await linkOneSignalUser(cred.user); }catch(_){}
+    location.replace("./index.html");
+  }catch(err){
+    let text="Sign In failed.";
+    if(err?.code==="auth/invalid-credential" || err?.code==="auth/wrong-password" || err?.code==="auth/user-not-found"){
+      text="Gmail অথবা Password সঠিক নয়।";
+    }else if(err?.code==="auth/too-many-requests"){
+      text="অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।";
+    }else if(err?.message){
+      text=err.message;
+    }
+    show(text);
+  }finally{
+    btn.disabled=false;
+    btn.textContent="SIGN IN";
+  }
+});
+</script>
+</body>
+</html>

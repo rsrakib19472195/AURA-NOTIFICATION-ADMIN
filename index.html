@@ -247,7 +247,7 @@
         onAuthStateChanged(auth, (user) => {
             __adminAuthReady = true;
             if (!user) {
-                window.location.replace('./login.html?next=admin.html');
+                window.location.replace('./login.html?next=index.html');
                 return;
             }
 
@@ -256,7 +256,7 @@
             if (!adminEmail || signedEmail !== adminEmail) {
                 console.warn('Admin access denied for:', signedEmail);
                 alert('Admin access denied. এই account দিয়ে Admin Panel ব্যবহার করা যাবে না।');
-                window.location.replace('./index.html');
+                window.location.replace('./login.html?next=index.html');
                 return;
             }
 
