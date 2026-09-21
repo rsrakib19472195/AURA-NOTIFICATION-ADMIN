@@ -2,431 +2,155 @@ const express = require("express");
 
 const app = express();
 
-app.use(
-    express.json({
-        limit: "1mb"
-    })
-);
+app.use(express.json({ limit: "1mb" }));
+app.use(express.static(__dirname));
 
-app.use(
-    express.static(__dirname)
-);
-
-
-const PORT =
-    process.env.PORT || 3000;
-
+const PORT = process.env.PORT || 3000;
 
 const ONESIGNAL_APP_ID =
     process.env.ONESIGNAL_APP_ID ||
     "b4420740-b9f6-4de7-8792-f6302ad38e4d";
 
-
 const ONESIGNAL_REST_API_KEY =
     process.env.ONESIGNAL_REST_API_KEY;
 
+const ONE_SIGNAL_API =
+    "https://api.onesignal.com";
 
-/* ============================================================
-   ONESIGNAL REQUEST HELPER
-============================================================ */
 
-async function oneSignalRequest(
-    path,
-    options = {}
-) {
+// ============================================================
+// HOME
+// ============================================================
 
-    const response =
-        await fetch(
-            `https://api.onesignal.com${path}`,
-            {
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/notification.html");
+});
 
-                ...options,
 
-                headers: {
+// ============================================================
+// ONESIGNAL REQUEST HELPER
+// ============================================================
 
-                    "Content-Type":
-                        "application/json",
+async function oneSignalRequest(path, options = {}) {
 
-                    "Authorization":
-                        `Key ${ONESIGNAL_REST_API_KEY}`,
-
-                    ...(options.headers || {})
-
-                }
-
-            }
+    if (!ONESIGNAL_REST_API_KEY) {
+        throw new Error(
+            "OneSignal REST API Key পাওয়া যায়নি। Render Environment Variables check করুন।"
         );
+    }
 
+    const response = await fetch(
+        ONE_SIGNAL_API + path,
+        {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization":
+                    `Key ${ONESIGNAL_REST_API_KEY}`,
+                ...(options.headers || {})
+            }
+        }
+    );
 
-    const rawText =
-        await response.text();
-
+    const text = await response.text();
 
     let data;
 
-
     try {
-
-        data =
-            rawText
-                ? JSON.parse(rawText)
-                : {};
-
+        data = JSON.parse(text);
     } catch {
-
         data = {
-            raw: rawText
+            raw: text
         };
-
     }
-
 
     return {
         response,
         data
     };
-
 }
 
 
-/* ============================================================
-   FIND ONESIGNAL USER
-   BY FIREBASE UID / EXTERNAL ID
-============================================================ */
-
-async function findOneSignalUser(
-    externalId
-) {
-
-    const encodedId =
-        encodeURIComponent(
-            String(externalId)
-        );
-
-
-    const result =
-        await oneSignalRequest(
-
-            `/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${encodedId}`,
-
-            {
-                method: "GET"
-            }
-
-        );
-
-
-    return result;
-
-}
-
-
-/* ============================================================
-   GET SUBSCRIPTION IDS FROM USER RESPONSE
-============================================================ */
-
-function extractSubscriptionIds(
-    userData
-) {
-
-    const ids = [];
-
-
-    /*
-     * Current OneSignal user response
-     */
-
-    if (
-        Array.isArray(
-            userData?.subscriptions
-        )
-    ) {
-
-        for (
-            const subscription
-            of userData.subscriptions
-        ) {
-
-            if (
-                subscription &&
-                subscription.id
-            ) {
-
-                /*
-                 * Push subscription only.
-                 */
-
-                const type =
-                    String(
-                        subscription.type ||
-                        subscription.channel ||
-                        ""
-                    ).toLowerCase();
-
-
-                const optedIn =
-                    subscription.opted_in;
-
-
-                /*
-                 * Include when it is a push
-                 * subscription and active.
-                 */
-
-                const isPush =
-                    !type ||
-                    type === "push";
-
-
-                const isActive =
-                    optedIn !== false &&
-                    subscription.enabled !== false &&
-                    subscription.invalid_identifier !== true;
-
-
-                if (
-                    isPush &&
-                    isActive
-                ) {
-
-                    ids.push(
-                        String(
-                            subscription.id
-                        )
-                    );
-
-                }
-
-            }
-
-        }
-
-    }
-
-
-    /*
-     * Some API versions may expose
-     * subscription directly.
-     */
-
-    if (
-        userData?.subscription &&
-        userData.subscription.id
-    ) {
-
-        ids.push(
-            String(
-                userData.subscription.id
-            )
-        );
-
-    }
-
-
-    /*
-     * Remove duplicates
-     */
-
-    return [
-        ...new Set(ids)
-    ];
-
-}
-
-
-/* ============================================================
-   HOME
-============================================================ */
+// ============================================================
+// CHECK SPECIFIC USER
+// ============================================================
 
 app.get(
-    "/",
-    (req, res) => {
-
-        res.sendFile(
-            __dirname +
-            "/notification.html"
-        );
-
-    }
-);
-
-
-/* ============================================================
-   HEALTH CHECK
-============================================================ */
-
-app.get(
-    "/api/health",
-    (req, res) => {
-
-        res.json({
-
-            success: true,
-
-            service:
-                "AURA ARMAN TOUR Notification Admin",
-
-            onesignal:
-                Boolean(
-                    ONESIGNAL_REST_API_KEY
-                )
-
-        });
-
-    }
-);
-
-
-/* ============================================================
-   CHECK SPECIFIC USER
-============================================================ */
-
-app.post(
     "/api/notifications/check-user",
     async (req, res) => {
 
         try {
 
-            if (
-                !ONESIGNAL_REST_API_KEY
-            ) {
-
-                return res.status(500).json({
-
-                    success: false,
-
-                    error:
-                        "OneSignal REST API Key পাওয়া যায়নি।"
-
-                });
-
-            }
-
-
             const externalId =
                 String(
-                    req.body?.externalId ||
-                    ""
+                    req.query.externalId || ""
                 ).trim();
-
 
             if (!externalId) {
 
                 return res.status(400).json({
-
                     success: false,
-
                     error:
-                        "Firebase UID দিন।"
-
+                        "externalId দিন।"
                 });
-
             }
 
 
-            const {
-                response,
-                data
-            } =
-                await findOneSignalUser(
-                    externalId
+            const result =
+                await oneSignalRequest(
+                    `/apps/${encodeURIComponent(
+                        ONESIGNAL_APP_ID
+                    )}/users/by/external_id/${encodeURIComponent(
+                        externalId
+                    )}`
                 );
 
 
-            console.log(
-                "🔎 OneSignal user lookup:",
-                externalId
-            );
-
-
-            console.log(
-                JSON.stringify(
-                    data,
-                    null,
-                    2
-                )
-            );
-
-
-            if (
-                response.status === 404
-            ) {
-
-                return res.status(404).json({
-
-                    success: false,
-
-                    subscribed: false,
-
-                    error:
-                        "এই Firebase UID-এর সাথে কোনো OneSignal user পাওয়া যায়নি। User-কে app-এ login করে OneSignal subscription তৈরি করতে হবে।"
-
-                });
-
-            }
-
-
-            if (!response.ok) {
+            if (!result.response.ok) {
 
                 return res.status(
-                    response.status
+                    result.response.status
                 ).json({
-
                     success: false,
-
+                    found: false,
                     error:
-                        data?.message ||
-                        data?.errors?.join?.(", ") ||
-                        "OneSignal user lookup failed.",
-
+                        Array.isArray(
+                            result.data?.errors
+                        )
+                            ? result.data.errors.join(", ")
+                            : (
+                                result.data?.message ||
+                                "OneSignal user পাওয়া যায়নি।"
+                            ),
                     onesignal:
-                        data
-
+                        result.data
                 });
-
             }
-
-
-            const subscriptionIds =
-                extractSubscriptionIds(
-                    data
-                );
 
 
             return res.json({
 
                 success: true,
 
-                subscribed:
-                    subscriptionIds.length > 0,
+                found: true,
 
                 externalId,
 
-                subscriptionCount:
-                    subscriptionIds.length,
-
-                subscriptionIds,
-
-                onesignal:
-                    data
+                user:
+                    result.data
 
             });
 
-
         } catch (error) {
-
-            console.error(
-                "❌ Check user error:",
-                error
-            );
-
 
             return res.status(500).json({
 
                 success: false,
 
+                found: false,
+
                 error:
-                    error.message ||
+                    error?.message ||
                     "User check failed."
 
             });
@@ -437,9 +161,9 @@ app.post(
 );
 
 
-/* ============================================================
-   SEND NOTIFICATION
-============================================================ */
+// ============================================================
+// SEND NOTIFICATION
+// ============================================================
 
 app.post(
     "/api/notifications/send",
@@ -448,50 +172,34 @@ app.post(
         try {
 
             const {
-
                 target,
-
                 externalId,
-
                 subscriptionId,
-
                 title,
-
                 message,
-
                 icon,
-
                 image,
-
                 url
-
-            } =
-                req.body;
+            } = req.body;
 
 
-            /* =================================================
-               API KEY
-            ================================================= */
+            // --------------------------------------------------
+            // BASIC VALIDATION
+            // --------------------------------------------------
 
-            if (
-                !ONESIGNAL_REST_API_KEY
-            ) {
+            if (!ONESIGNAL_REST_API_KEY) {
 
                 return res.status(500).json({
 
                     success: false,
 
                     error:
-                        "OneSignal REST API Key পাওয়া যায়নি।"
+                        "OneSignal REST API Key পাওয়া যায়নি। Render Environment Variables check করুন।"
 
                 });
 
             }
 
-
-            /* =================================================
-               VALIDATION
-            ================================================= */
 
             if (
                 !title ||
@@ -527,9 +235,9 @@ app.post(
             }
 
 
-            /* =================================================
-               BASE NOTIFICATION
-            ================================================= */
+            // --------------------------------------------------
+            // BASE NOTIFICATION
+            // --------------------------------------------------
 
             const notification = {
 
@@ -542,27 +250,23 @@ app.post(
                 headings: {
 
                     en:
-                        String(
-                            title
-                        ).trim()
+                        String(title).trim()
 
                 },
 
                 contents: {
 
                     en:
-                        String(
-                            message
-                        ).trim()
+                        String(message).trim()
 
                 }
 
             };
 
 
-            /* =================================================
-               ICON
-            ================================================= */
+            // --------------------------------------------------
+            // ICON
+            // --------------------------------------------------
 
             if (
                 icon &&
@@ -570,22 +274,17 @@ app.post(
             ) {
 
                 notification.chrome_web_icon =
-                    String(
-                        icon
-                    ).trim();
-
+                    String(icon).trim();
 
                 notification.chrome_web_badge =
-                    String(
-                        icon
-                    ).trim();
+                    String(icon).trim();
 
             }
 
 
-            /* =================================================
-               IMAGE
-            ================================================= */
+            // --------------------------------------------------
+            // IMAGE
+            // --------------------------------------------------
 
             if (
                 image &&
@@ -593,24 +292,17 @@ app.post(
             ) {
 
                 notification.chrome_web_image =
-                    String(
-                        image
-                    ).trim();
-
+                    String(image).trim();
 
                 notification.big_picture =
-                    String(
-                        image
-                    ).trim();
+                    String(image).trim();
 
             }
 
 
-            /* =================================================
-               URL
-               ONLY url
-               NEVER web_url
-            ================================================= */
+            // --------------------------------------------------
+            // CLICK URL
+            // --------------------------------------------------
 
             if (
                 url &&
@@ -618,270 +310,221 @@ app.post(
             ) {
 
                 notification.url =
-                    String(
-                        url
-                    ).trim();
+                    String(url).trim();
 
             }
 
 
-            /* =================================================
-               TARGET
-            ================================================= */
-
-
-            /*
-             * =================================================
-             * SPECIFIC SUBSCRIPTION
-             * =================================================
-             */
+            // ==================================================
+            // ALL USERS
+            // ==================================================
 
             if (
-                target === "subscription" &&
-                subscriptionId &&
-                String(
-                    subscriptionId
-                ).trim()
+                target === "all"
             ) {
 
-                notification
-                    .include_subscription_ids = [
+                notification.included_segments = [
 
-                        String(
-                            subscriptionId
-                        ).trim()
+                    "Total Subscriptions"
 
-                    ];
+                ];
 
             }
 
 
-            /*
-             * =================================================
-             * SPECIFIC USER
-             *
-             * Firebase UID → OneSignal External ID
-             * → active subscription ID
-             * → notification
-             * =================================================
-             */
+            // ==================================================
+            // SUBSCRIPTION
+            // ==================================================
 
             else if (
-                target === "specific"
+                target === "subscription" &&
+                subscriptionId &&
+                String(subscriptionId).trim()
             ) {
 
-                const cleanExternalId =
-                    String(
-                        externalId ||
-                        ""
-                    ).trim();
+                notification.include_subscription_ids = [
+
+                    String(subscriptionId).trim()
+
+                ];
+
+            }
 
 
-                if (!cleanExternalId) {
+            // ==================================================
+            // SPECIFIC USER
+            // ==================================================
 
-                    return res.status(400).json({
+            else if (
+                target === "specific" &&
+                externalId &&
+                String(externalId).trim()
+            ) {
 
-                        success: false,
-
-                        error:
-                            "Firebase UID দিন।"
-
-                    });
-
-                }
-
-
-                console.log(
-                    "🔎 Finding OneSignal user:",
-                    cleanExternalId
-                );
+                const uid =
+                    String(externalId).trim();
 
 
-                const lookup =
-                    await findOneSignalUser(
-                        cleanExternalId
+                // ----------------------------------------------
+                // First check whether OneSignal knows this user
+                // ----------------------------------------------
+
+                const userResult =
+                    await oneSignalRequest(
+                        `/apps/${encodeURIComponent(
+                            ONESIGNAL_APP_ID
+                        )}/users/by/external_id/${encodeURIComponent(
+                            uid
+                        )}`
                     );
 
 
-                console.log(
-                    "Lookup status:",
-                    lookup.response.status
-                );
-
-
-                if (
-                    lookup.response.status ===
-                    404
-                ) {
+                if (!userResult.response.ok) {
 
                     return res.status(404).json({
 
                         success: false,
 
                         error:
-                            "এই Firebase UID-এর সাথে OneSignal user পাওয়া যায়নি। প্রথমে ওই user-কে app-এ login করে notification subscription তৈরি করতে হবে।",
+                            "এই Firebase UID-এর সাথে কোনো OneSignal user পাওয়া যায়নি।",
 
-                        code:
-                            "USER_NOT_FOUND"
+                        details:
+                            "User-এর APK-তে OneSignal subscription থাকতে হবে এবং native OneSignal user-এর External ID হিসেবে Firebase UID link থাকতে হবে।",
+
+                        externalId:
+                            uid,
+
+                        onesignal:
+                            userResult.data
 
                     });
 
                 }
 
 
-                if (
-                    !lookup.response.ok
-                ) {
+                const oneSignalUser =
+                    userResult.data;
+
+
+                // ----------------------------------------------
+                // Target by External ID
+                // ----------------------------------------------
+
+                notification.include_aliases = {
+
+                    external_id: [
+
+                        uid
+
+                    ]
+
+                };
+
+
+                // ----------------------------------------------
+                // Send
+                // ----------------------------------------------
+
+                const sendResult =
+                    await oneSignalRequest(
+                        "/notifications",
+                        {
+                            method: "POST",
+
+                            body:
+                                JSON.stringify(
+                                    notification
+                                )
+                        }
+                    );
+
+
+                if (!sendResult.response.ok) {
 
                     return res.status(
-                        lookup.response.status
+                        sendResult.response.status
                     ).json({
 
                         success: false,
 
                         error:
-                            lookup.data?.message ||
-                            lookup.data?.errors?.join?.(", ") ||
-                            "OneSignal user lookup failed.",
-
-                        onesignal:
-                            lookup.data
-
-                    });
-
-                }
-
-
-                const subscriptionIds =
-                    extractSubscriptionIds(
-                        lookup.data
-                    );
-
-
-                console.log(
-                    "Active subscriptions:",
-                    subscriptionIds
-                );
-
-
-                if (
-                    subscriptionIds.length === 0
-                ) {
-
-                    return res.status(400).json({
-
-                        success: false,
-
-                        error:
-                            "এই Firebase UID-এর OneSignal user আছে, কিন্তু কোনো active push subscription নেই। User-কে app-এ notification permission/subscription চালু করতে হবে।",
-
-                        code:
-                            "NO_ACTIVE_SUBSCRIPTION",
+                            Array.isArray(
+                                sendResult.data?.errors
+                            )
+                                ? sendResult.data.errors.join(", ")
+                                : (
+                                    sendResult.data?.message ||
+                                    "Specific notification failed."
+                                ),
 
                         externalId:
-                            cleanExternalId,
+                            uid,
+
+                        user:
+                            oneSignalUser,
 
                         onesignal:
-                            lookup.data
+                            sendResult.data
 
                     });
 
                 }
 
 
-                /*
-                 * OneSignal supports up to 2,000
-                 * subscription IDs per request.
-                 */
+                return res.status(200).json({
 
-                notification
-                    .include_subscription_ids =
-                    subscriptionIds.slice(
+                    success: true,
+
+                    message:
+                        "Specific user notification sent successfully!",
+
+                    externalId:
+                        uid,
+
+                    notificationId:
+                        sendResult.data?.id ||
+                        null,
+
+                    recipients:
+                        sendResult.data?.recipients ||
                         0,
-                        2000
-                    );
+
+                    onesignal:
+                        sendResult.data
+
+                });
 
             }
 
 
-            /*
-             * =================================================
-             * ALL USERS
-             *
-             * ORIGINAL WORKING METHOD
-             * DO NOT CHANGE
-             * =================================================
-             */
+            // ==================================================
+            // INVALID TARGET
+            // ==================================================
 
             else {
 
-                notification
-                    .included_segments = [
+                return res.status(400).json({
 
-                        "Total Subscriptions"
+                    success: false,
 
-                    ];
+                    error:
+                        "Invalid notification target."
+
+                });
 
             }
 
 
-            /* =================================================
-               LOG
-            ================================================= */
+            // ==================================================
+            // ALL / SUBSCRIPTION SEND
+            // ==================================================
 
-            console.log(
-                "===================================="
-            );
-
-
-            console.log(
-                "📢 AURA NOTIFICATION"
-            );
-
-
-            console.log(
-                "Target:",
-                target || "all"
-            );
-
-
-            console.log(
-                JSON.stringify(
-                    notification,
-                    null,
-                    2
-                )
-            );
-
-
-            console.log(
-                "===================================="
-            );
-
-
-            /* =================================================
-               SEND TO ONESIGNAL
-            ================================================= */
-
-            const response =
-                await fetch(
-
-                    "https://api.onesignal.com/notifications",
-
+            const sendResult =
+                await oneSignalRequest(
+                    "/notifications",
                     {
 
-                        method:
-                            "POST",
-
-                        headers: {
-
-                            "Content-Type":
-                                "application/json",
-
-                            "Authorization":
-                                `Key ${ONESIGNAL_REST_API_KEY}`
-
-                        },
+                        method: "POST",
 
                         body:
                             JSON.stringify(
@@ -889,111 +532,34 @@ app.post(
                             )
 
                     }
-
                 );
 
 
-            const rawText =
-                await response.text();
-
-
-            let data;
-
-
-            try {
-
-                data =
-                    rawText
-                        ? JSON.parse(
-                            rawText
-                        )
-                        : {};
-
-            } catch {
-
-                data = {
-                    raw:
-                        rawText
-                };
-
-            }
-
-
-            console.log(
-                "HTTP Status:",
-                response.status
-            );
-
-
-            console.log(
-                "Response:",
-                JSON.stringify(
-                    data,
-                    null,
-                    2
-                )
-            );
-
-
-            /* =================================================
-               ERROR
-            ================================================= */
-
-            if (!response.ok) {
+            if (!sendResult.response.ok) {
 
                 return res.status(
-                    response.status
+                    sendResult.response.status
                 ).json({
 
                     success: false,
 
                     error:
                         Array.isArray(
-                            data?.errors
+                            sendResult.data?.errors
                         )
-                            ? data.errors.join(
-                                ", "
-                            )
+                            ? sendResult.data.errors.join(", ")
                             : (
-                                data?.message ||
-                                "OneSignal notification failed."
+                                sendResult.data?.message ||
+                                "Notification sending failed."
                             ),
 
                     onesignal:
-                        data
+                        sendResult.data
 
                 });
 
             }
 
-
-            if (
-                Array.isArray(
-                    data?.errors
-                ) &&
-                data.errors.length > 0
-            ) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    error:
-                        data.errors.join(
-                            ", "
-                        ),
-
-                    onesignal:
-                        data
-
-                });
-
-            }
-
-
-            /* =================================================
-               SUCCESS
-            ================================================= */
 
             return res.status(200).json({
 
@@ -1003,19 +569,15 @@ app.post(
                     "Notification sent successfully!",
 
                 notificationId:
-                    data?.id ||
+                    sendResult.data?.id ||
                     null,
 
                 recipients:
-                    data?.recipients ||
+                    sendResult.data?.recipients ||
                     0,
 
-                target:
-                    target ||
-                    "all",
-
                 onesignal:
-                    data
+                    sendResult.data
 
             });
 
@@ -1023,10 +585,9 @@ app.post(
         } catch (error) {
 
             console.error(
-                "❌ Server Error:",
+                "Notification server error:",
                 error
             );
-
 
             return res.status(500).json({
 
@@ -1044,9 +605,9 @@ app.post(
 );
 
 
-/* ============================================================
-   SERVER START
-============================================================ */
+// ============================================================
+// SERVER
+// ============================================================
 
 app.listen(
     PORT,
@@ -1056,16 +617,624 @@ app.listen(
             `🚀 AURA Notification Admin running on port ${PORT}`
         );
 
-        console.log(
-            "OneSignal App ID:",
-            ONESIGNAL_APP_ID
+    }
+);const express = require("express");
+
+const app = express();
+
+app.use(express.json({ limit: "1mb" }));
+app.use(express.static(__dirname));
+
+const PORT = process.env.PORT || 3000;
+
+const ONESIGNAL_APP_ID =
+    process.env.ONESIGNAL_APP_ID ||
+    "b4420740-b9f6-4de7-8792-f6302ad38e4d";
+
+const ONESIGNAL_REST_API_KEY =
+    process.env.ONESIGNAL_REST_API_KEY;
+
+const ONE_SIGNAL_API =
+    "https://api.onesignal.com";
+
+
+// ============================================================
+// HOME
+// ============================================================
+
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/notification.html");
+});
+
+
+// ============================================================
+// ONESIGNAL REQUEST HELPER
+// ============================================================
+
+async function oneSignalRequest(path, options = {}) {
+
+    if (!ONESIGNAL_REST_API_KEY) {
+        throw new Error(
+            "OneSignal REST API Key পাওয়া যায়নি। Render Environment Variables check করুন।"
         );
+    }
+
+    const response = await fetch(
+        ONE_SIGNAL_API + path,
+        {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization":
+                    `Key ${ONESIGNAL_REST_API_KEY}`,
+                ...(options.headers || {})
+            }
+        }
+    );
+
+    const text = await response.text();
+
+    let data;
+
+    try {
+        data = JSON.parse(text);
+    } catch {
+        data = {
+            raw: text
+        };
+    }
+
+    return {
+        response,
+        data
+    };
+}
+
+
+// ============================================================
+// CHECK SPECIFIC USER
+// ============================================================
+
+app.get(
+    "/api/notifications/check-user",
+    async (req, res) => {
+
+        try {
+
+            const externalId =
+                String(
+                    req.query.externalId || ""
+                ).trim();
+
+            if (!externalId) {
+
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "externalId দিন।"
+                });
+            }
+
+
+            const result =
+                await oneSignalRequest(
+                    `/apps/${encodeURIComponent(
+                        ONESIGNAL_APP_ID
+                    )}/users/by/external_id/${encodeURIComponent(
+                        externalId
+                    )}`
+                );
+
+
+            if (!result.response.ok) {
+
+                return res.status(
+                    result.response.status
+                ).json({
+                    success: false,
+                    found: false,
+                    error:
+                        Array.isArray(
+                            result.data?.errors
+                        )
+                            ? result.data.errors.join(", ")
+                            : (
+                                result.data?.message ||
+                                "OneSignal user পাওয়া যায়নি।"
+                            ),
+                    onesignal:
+                        result.data
+                });
+            }
+
+
+            return res.json({
+
+                success: true,
+
+                found: true,
+
+                externalId,
+
+                user:
+                    result.data
+
+            });
+
+        } catch (error) {
+
+            return res.status(500).json({
+
+                success: false,
+
+                found: false,
+
+                error:
+                    error?.message ||
+                    "User check failed."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// SEND NOTIFICATION
+// ============================================================
+
+app.post(
+    "/api/notifications/send",
+    async (req, res) => {
+
+        try {
+
+            const {
+                target,
+                externalId,
+                subscriptionId,
+                title,
+                message,
+                icon,
+                image,
+                url
+            } = req.body;
+
+
+            // --------------------------------------------------
+            // BASIC VALIDATION
+            // --------------------------------------------------
+
+            if (!ONESIGNAL_REST_API_KEY) {
+
+                return res.status(500).json({
+
+                    success: false,
+
+                    error:
+                        "OneSignal REST API Key পাওয়া যায়নি। Render Environment Variables check করুন।"
+
+                });
+
+            }
+
+
+            if (
+                !title ||
+                !String(title).trim()
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        "Notification title দিন।"
+
+                });
+
+            }
+
+
+            if (
+                !message ||
+                !String(message).trim()
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        "Notification message দিন।"
+
+                });
+
+            }
+
+
+            // --------------------------------------------------
+            // BASE NOTIFICATION
+            // --------------------------------------------------
+
+            const notification = {
+
+                app_id:
+                    ONESIGNAL_APP_ID,
+
+                target_channel:
+                    "push",
+
+                headings: {
+
+                    en:
+                        String(title).trim()
+
+                },
+
+                contents: {
+
+                    en:
+                        String(message).trim()
+
+                }
+
+            };
+
+
+            // --------------------------------------------------
+            // ICON
+            // --------------------------------------------------
+
+            if (
+                icon &&
+                String(icon).trim()
+            ) {
+
+                notification.chrome_web_icon =
+                    String(icon).trim();
+
+                notification.chrome_web_badge =
+                    String(icon).trim();
+
+            }
+
+
+            // --------------------------------------------------
+            // IMAGE
+            // --------------------------------------------------
+
+            if (
+                image &&
+                String(image).trim()
+            ) {
+
+                notification.chrome_web_image =
+                    String(image).trim();
+
+                notification.big_picture =
+                    String(image).trim();
+
+            }
+
+
+            // --------------------------------------------------
+            // CLICK URL
+            // --------------------------------------------------
+
+            if (
+                url &&
+                String(url).trim()
+            ) {
+
+                notification.url =
+                    String(url).trim();
+
+            }
+
+
+            // ==================================================
+            // ALL USERS
+            // ==================================================
+
+            if (
+                target === "all"
+            ) {
+
+                notification.included_segments = [
+
+                    "Total Subscriptions"
+
+                ];
+
+            }
+
+
+            // ==================================================
+            // SUBSCRIPTION
+            // ==================================================
+
+            else if (
+                target === "subscription" &&
+                subscriptionId &&
+                String(subscriptionId).trim()
+            ) {
+
+                notification.include_subscription_ids = [
+
+                    String(subscriptionId).trim()
+
+                ];
+
+            }
+
+
+            // ==================================================
+            // SPECIFIC USER
+            // ==================================================
+
+            else if (
+                target === "specific" &&
+                externalId &&
+                String(externalId).trim()
+            ) {
+
+                const uid =
+                    String(externalId).trim();
+
+
+                // ----------------------------------------------
+                // First check whether OneSignal knows this user
+                // ----------------------------------------------
+
+                const userResult =
+                    await oneSignalRequest(
+                        `/apps/${encodeURIComponent(
+                            ONESIGNAL_APP_ID
+                        )}/users/by/external_id/${encodeURIComponent(
+                            uid
+                        )}`
+                    );
+
+
+                if (!userResult.response.ok) {
+
+                    return res.status(404).json({
+
+                        success: false,
+
+                        error:
+                            "এই Firebase UID-এর সাথে কোনো OneSignal user পাওয়া যায়নি।",
+
+                        details:
+                            "User-এর APK-তে OneSignal subscription থাকতে হবে এবং native OneSignal user-এর External ID হিসেবে Firebase UID link থাকতে হবে।",
+
+                        externalId:
+                            uid,
+
+                        onesignal:
+                            userResult.data
+
+                    });
+
+                }
+
+
+                const oneSignalUser =
+                    userResult.data;
+
+
+                // ----------------------------------------------
+                // Target by External ID
+                // ----------------------------------------------
+
+                notification.include_aliases = {
+
+                    external_id: [
+
+                        uid
+
+                    ]
+
+                };
+
+
+                // ----------------------------------------------
+                // Send
+                // ----------------------------------------------
+
+                const sendResult =
+                    await oneSignalRequest(
+                        "/notifications",
+                        {
+                            method: "POST",
+
+                            body:
+                                JSON.stringify(
+                                    notification
+                                )
+                        }
+                    );
+
+
+                if (!sendResult.response.ok) {
+
+                    return res.status(
+                        sendResult.response.status
+                    ).json({
+
+                        success: false,
+
+                        error:
+                            Array.isArray(
+                                sendResult.data?.errors
+                            )
+                                ? sendResult.data.errors.join(", ")
+                                : (
+                                    sendResult.data?.message ||
+                                    "Specific notification failed."
+                                ),
+
+                        externalId:
+                            uid,
+
+                        user:
+                            oneSignalUser,
+
+                        onesignal:
+                            sendResult.data
+
+                    });
+
+                }
+
+
+                return res.status(200).json({
+
+                    success: true,
+
+                    message:
+                        "Specific user notification sent successfully!",
+
+                    externalId:
+                        uid,
+
+                    notificationId:
+                        sendResult.data?.id ||
+                        null,
+
+                    recipients:
+                        sendResult.data?.recipients ||
+                        0,
+
+                    onesignal:
+                        sendResult.data
+
+                });
+
+            }
+
+
+            // ==================================================
+            // INVALID TARGET
+            // ==================================================
+
+            else {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        "Invalid notification target."
+
+                });
+
+            }
+
+
+            // ==================================================
+            // ALL / SUBSCRIPTION SEND
+            // ==================================================
+
+            const sendResult =
+                await oneSignalRequest(
+                    "/notifications",
+                    {
+
+                        method: "POST",
+
+                        body:
+                            JSON.stringify(
+                                notification
+                            )
+
+                    }
+                );
+
+
+            if (!sendResult.response.ok) {
+
+                return res.status(
+                    sendResult.response.status
+                ).json({
+
+                    success: false,
+
+                    error:
+                        Array.isArray(
+                            sendResult.data?.errors
+                        )
+                            ? sendResult.data.errors.join(", ")
+                            : (
+                                sendResult.data?.message ||
+                                "Notification sending failed."
+                            ),
+
+                    onesignal:
+                        sendResult.data
+
+                });
+
+            }
+
+
+            return res.status(200).json({
+
+                success: true,
+
+                message:
+                    "Notification sent successfully!",
+
+                notificationId:
+                    sendResult.data?.id ||
+                    null,
+
+                recipients:
+                    sendResult.data?.recipients ||
+                    0,
+
+                onesignal:
+                    sendResult.data
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Notification server error:",
+                error
+            );
+
+            return res.status(500).json({
+
+                success: false,
+
+                error:
+                    error?.message ||
+                    "Internal server error."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// SERVER
+// ============================================================
+
+app.listen(
+    PORT,
+    () => {
 
         console.log(
-            "OneSignal REST API configured:",
-            Boolean(
-                ONESIGNAL_REST_API_KEY
-            )
+            `🚀 AURA Notification Admin running on port ${PORT}`
         );
 
     }
