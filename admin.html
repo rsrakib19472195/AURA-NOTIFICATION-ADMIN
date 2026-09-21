@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Changer - Admin Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #050811; color: #f8fafc; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(30, 41, 59, 0.9); }
+        
+        #toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-left: 4px solid #3b82f6;
+            color: #fff; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+        .toast.success { border-left-color: #10b981; }
+        .toast.error { border-left-color: #ef4444; }
+        .toast.warning { border-left-color: #f59e0b; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
+    </style>
+
+<style id="maintenance-ui-css">
+#maintenanceModal{
+  position:fixed; inset:0; z-index:999999;
+  display:none; align-items:center; justify-content:center;
+  padding:18px; background:rgba(0,0,0,.72); backdrop-filter:blur(8px);
+}
+#maintenanceModal.show{display:flex}
+.maintenance-modal-card{
+  width:min(440px,100%); background:#0b1220; color:#fff;
+  border:1px solid rgba(0,229,255,.25); border-radius:22px;
+  padding:20px; box-shadow:0 25px 80px rgba(0,0,0,.55);
+}
+.maintenance-modal-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px
+}
+.maintenance-close{
+  width:38px;height:38px;border:0;border-radius:12px;
+  background:#172033;color:#fff;font-size:20px;cursor:pointer
+}
+.maintenance-open-btn{
+  display:flex;align-items:center;gap:10px;width:100%;cursor:pointer;
+  border:1px solid rgba(0,229,255,.28);border-radius:16px;
+  padding:14px 16px;background:linear-gradient(135deg,#101b2e,#0a1220);
+  color:#fff;font-weight:800;text-align:left
+}
+.maintenance-open-btn small{display:block;color:#94a3b8;font-weight:500;margin-top:3px}
+.maintenance-field{
+  width:100%; box-sizing:border-box; min-height:100px; resize:vertical;
+  border:1px solid #263449; border-radius:14px; padding:12px;
+  background:#070d18;color:#fff;outline:none
+}
+.maintenance-actions{display:flex;gap:10px;margin-top:12px}
+.maintenance-actions button{
+  flex:1;border:0;border-radius:13px;padding:12px;font-weight:800;cursor:pointer
+}
+#maintenanceOnBtn{background:#f59e0b;color:#111827}
+#maintenanceOffBtn{background:#ef4444;color:#fff}
+#maintenanceStatus{
+  margin-top:12px;padding:10px 12px;border-radius:12px;
+  background:#101827;color:#94a3b8;font-size:13px
+}
+</style>
+
+<style id="app-update-ui-css">
+#appUpdateModal{
+  position:fixed; inset:0; z-index:999999;
+  display:none; align-items:center; justify-content:center;
+  padding:18px; background:rgba(0,0,0,.72); backdrop-filter:blur(8px);
+}
+#appUpdateModal.show{display:flex}
+.app-update-modal-card{
+  width:min(440px,100%); background:#0b1220; color:#fff;
+  border:1px solid rgba(59,130,246,.35); border-radius:22px;
+  padding:20px; box-shadow:0 25px 80px rgba(0,0,0,.55);
+}
+.app-update-field{
+  width:100%; box-sizing:border-box; min-height:80px; resize:vertical;
+  border:1px solid #263449; border-radius:14px; padding:12px;
+  background:#070d18;color:#fff;outline:none;font-size:12px;
+}
+.app-update-input{
+  width:100%; box-sizing:border-box;
+  border:1px solid #263449; border-radius:14px; padding:12px;
+  background:#070d18;color:#fff;outline:none;font-size:12px;
+}
+#appUpdateStatus{
+  margin-top:12px;padding:10px 12px;border-radius:12px;
+  background:#101827;color:#94a3b8;font-size:13px
+}
+</style>
+</head>
+<body class="min-h-screen flex flex-col pb-20">
+
+    <div id="toast-container"></div>
+
+    <header class="bg-[#0b0f1a] px-6 py-4 border-b border-slate-900 flex justify-between items-center sticky top-0 z-30 shadow-md">
+        <div class="flex items-center space-x-3">
+            <div class="bg-blue-600/30 border border-blue-500/40 text-blue-400 px-3 py-1.5 rounded-xl text-xs font-black tracking-wider">
+                <i class="fa-solid fa-shield-halved mr-1"></i> ADMIN DASHBOARD
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="openAppUpdateBtn" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-mobile-screen-button"></i> App Update
+            </button>
+            <button id="openMaintenanceBtn" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-screwdriver-wrench"></i> Maintenance
+            </button>
+            <a href="index.html" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                <i class="fa-solid fa-house mr-1"></i> Home View
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 w-full space-y-6">
+
+        <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+            <div class="glass-card p-4 rounded-2xl border border-amber-500/30 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase">Pending Deposits</p>
+                    <h3 id="live-pending-deposits" class="text-2xl font-black text-amber-400 mt-1">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+            </div>
+            <div class="glass-card p-4 rounded-2xl border border-rose-500/30 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase">Pending Withdraws</p>
+                    <h3 id="live-pending-withdraws" class="text-2xl font-black text-rose-400 mt-1">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs (Push Notification Tab replaced to open notification.html directly) -->
+        <div class="grid grid-cols-4 md:grid-cols-8 gap-1.5 bg-[#0d1322] p-1.5 rounded-2xl border border-slate-800">
+            <button onclick="switchTab('sections')" id="tab-btn-sections" class="py-2.5 text-[11px] font-bold rounded-xl bg-blue-600 text-white shadow transition">Categories</button>
+            <button onclick="switchTab('groups')" id="tab-btn-groups" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Groups</button>
+            <button onclick="switchTab('tournaments')" id="tab-btn-tournaments" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Tournaments</button>
+            <button onclick="switchTab('banners')" id="tab-btn-banners" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Banners</button>
+            <button onclick="switchTab('deposits')" id="tab-btn-deposits" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Deposits</button>
+            <button onclick="switchTab('withdraws')" id="tab-btn-withdraws" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Withdraws</button>
+            <button onclick="switchTab('rules')" id="tab-btn-rules" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition">Rules</button>
+            <a href="./notification.html" id="tab-btn-notifications" class="py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition flex items-center justify-center gap-1"><i class="fa-solid fa-bell"></i> Push Notif</a>
+        </div>
+
+        <div id="tab-sections" class="space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Category Management</h3>
+                <button onclick="openSectionModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Category
+                </button>
+            </div>
+            <div id="admin-sections-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <div id="tab-groups" class="space-y-4" style="display: none;">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Group Management</h3>
+                <button onclick="openGroupModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Group
+                </button>
+            </div>
+            <div id="admin-groups-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <div id="tab-tournaments" class="space-y-4" style="display: none;">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Tournament Management</h3>
+                <button onclick="openTournamentModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Tournament
+                </button>
+            </div>
+            <div id="admin-tournaments-list" class="space-y-3"></div>
+        </div>
+
+        <div id="tab-banners" class="space-y-4" style="display: none;">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Home Banner Management</h3>
+                <button onclick="openBannerModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Banner
+                </button>
+            </div>
+            <div id="admin-banners-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <div id="tab-deposits" class="space-y-4" style="display: none;">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-[#0f172a] p-4 rounded-2xl border border-slate-800">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Deposit Management & Gateway Setup</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">bKash ba Nagad select kore request dekhun ebong gateway numbers manage korun.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openGatewayModal()" class="bg-slate-800 hover:bg-slate-700 text-blue-400 text-xs font-bold px-3 py-2 rounded-xl border border-blue-500/30"><i class="fa-solid fa-gear mr-1"></i> Edit Deposit Numbers</button>
+                    <button onclick="openReferralHistory()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-link mr-1"></i> Refer History</button>
+                    <button onclick="openHistoryModal('Deposit')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Deposit & Withdraw History</button>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="filterDepositGateway('bkash')" id="dep-filter-bkash" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition"><i class="fa-solid fa-wallet mr-1"></i> bKash Requests</button>
+                <button onclick="filterDepositGateway('nagad')" id="dep-filter-nagad" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition"><i class="fa-solid fa-wallet mr-1"></i> Nagad Requests</button>
+            </div>
+
+            <div id="admin-deposits-list" class="space-y-3"></div>
+        </div>
+
+        <div id="tab-withdraws" class="space-y-4" style="display: none;">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-[#0f172a] p-4 rounded-2xl border border-slate-800">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Withdraw Requests Management</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">bKash ba Nagad select kore pending request approve/reject korun.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openHistoryModal('Withdraw')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Deposit & Withdraw History</button>
+                    <button onclick="renderWithdrawsList()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="filterWithdrawGateway('bkash')" id="wd-filter-bkash" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition"><i class="fa-solid fa-wallet mr-1"></i> bKash Withdraws</button>
+                <button onclick="filterWithdrawGateway('nagad')" id="wd-filter-nagad" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition"><i class="fa-solid fa-wallet mr-1"></i> Nagad Withdraws</button>
+            </div>
+
+            <div id="admin-withdraws-list" class="space-y-3"></div>
+        </div>
+
+        <div id="tab-rules" class="space-y-4" style="display: none;">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Match Rules Management</h3>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                <button onclick="loadAdminRuleEditor('br_headshot')" id="admin-rule-br_headshot" class="py-2 px-1 rounded-xl text-[11px] font-bold bg-blue-600 text-white truncate">BR HEADSHOT</button>
+                <button onclick="loadAdminRuleEditor('lone_wolf_headshot')" id="admin-rule-lone_wolf_headshot" class="py-2 px-1 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 truncate">LONE WOLF HEADSHOT</button>
+                <button onclick="loadAdminRuleEditor('lone_wolf_bodyshot')" id="admin-rule-lone_wolf_bodyshot" class="py-2 px-1 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 truncate">LONE WOLF BODYSHOT</button>
+                <button onclick="loadAdminRuleEditor('cs_headshot')" id="admin-rule-cs_headshot" class="py-2 px-1 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 truncate">CS HEADSHOT</button>
+            </div>
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <label class="text-xs text-slate-400 block font-bold">Edit Rules Text:</label>
+                <textarea id="admin-rule-textarea" rows="10" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-xs text-white leading-relaxed" placeholder="নিয়মাবলী লিখুন..."></textarea>
+                <button onclick="saveMatchRules()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs">Update Rules</button>
+            </div>
+        </div>
+
+        <div class="mt-3 flex justify-end">
+            <button onclick="openAuraLegacyFeatures()" class="bg-slate-800 hover:bg-slate-700 border border-blue-500/30 text-blue-300 text-[11px] font-bold px-3 py-2 rounded-xl transition">
+                <i class="fa-solid fa-shield-halved mr-1"></i> AURA ARMAN FEATURES
+            </button>
+        </div>
+
+    </main>
+
+    <div id="generic-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4" style="display: none;">
+        <div class="bg-[#0f172a] border border-blue-500/40 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-sm font-bold text-white uppercase tracking-wider">Form</h3>
+                <button onclick="closeGenericModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="modal-body" class="space-y-3 text-xs"></div>
+        </div>
+    </div>
+
+    <div id="maintenanceModal" aria-hidden="true">
+      <div class="maintenance-modal-card">
+        <div class="maintenance-modal-head">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-size:20px">🛠️</div>
+            <h3 style="font-size:15px;font-weight:900;margin:0">Site Maintenance Control</h3>
+          </div>
+          <button id="closeMaintenanceBtn" class="maintenance-close">&times;</button>
+        </div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">
+          Maintenance ON করলে ব্যবহারকারীরা সাইটে প্রবেশ করতে পারবে না এবং মেইনটেন্যান্স মেসেজ দেখতে পাবে।
+        </div>
+        <div id="maintenanceStatus">Checking status...</div>
+        <div style="margin-top:12px">
+          <label style="font-size:11px;font-weight:700;color:#cbd5e1;display:block;margin-bottom:6px">Maintenance Reason</label>
+          <textarea id="maintenanceReasonInput" class="maintenance-field" placeholder="মেইনটেন্যান্সের কারণ লিখুন..."></textarea>
+        </div>
+        <div class="maintenance-actions">
+          <button id="maintenanceOnBtn" type="button">MAINTENANCE ON</button>
+          <button id="maintenanceOffBtn" type="button">MAINTENANCE OFF</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="appUpdateModal" aria-hidden="true">
+      <div class="app-update-modal-card">
+        <div class="maintenance-modal-head">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-size:20px">🚀</div>
+            <h3 style="font-size:15px;font-weight:900;margin:0">App Update Control</h3>
+          </div>
+          <button id="closeAppUpdateBtn" class="maintenance-close">&times;</button>
+        </div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">
+          App Update ON করলে ব্যবহারকারীরা অ্যাপে প্রবেশ করার সময় আপডেট পপআপ দেখতে পাবে।
+        </div>
+        <div id="appUpdateStatus">Checking status...</div>
+        <div style="margin-top:12px; space-y: 10px;">
+          <label style="font-size:11px;font-weight:700;color:#cbd5e1;display:block;margin-bottom:6px">Update Message (আপডেট বার্তা)</label>
+          <textarea id="appUpdateMessageInput" class="app-update-field" placeholder="নতুন আপডেট এসেছে! অ্যাপটি আপডেট করে নিন..."></textarea>
+          
+          <label style="font-size:11px;font-weight:700;color:#cbd5e1;display:block;margin-top:10px;margin-bottom:6px">Update Link</label>
+          <input type="text" id="appUpdateLinkInput" class="app-update-input" placeholder="https://example.com/app.apk">
+        </div>
+        <div class="maintenance-actions">
+          <button id="appUpdateOnBtn" type="button" style="background:#3b82f6;color:#fff;">UPDATE ON</button>
+          <button id="appUpdateOffBtn" type="button" style="background:#ef4444;color:#fff;">UPDATE OFF</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+        // Firebase connection comes ONLY from the separate firebase.js file.
+        import { auth, db } from "./firebase.js";
+        import {
+            collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc,
+            setDoc, query, where, orderBy, limit, onSnapshot, runTransaction
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        let allSections = [];
+        let allGroups = [];
+        let allTournaments = [];
+        let allBanners = [];
+        let allDeposits = [];
+        let allWithdraws = [];
+        let currentDepGateway = 'bkash';
+        let currentWdGateway = 'bkash';
+        let activeRuleCategory = 'br_headshot';
+
+        window.showToast = function(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+            if(type === 'error') icon = '<i class="fa-solid fa-circle-exclamation text-rose-400"></i>';
+            if(type === 'warning') icon = '<i class="fa-solid fa-triangle-exclamation text-amber-400"></i>';
+
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        // ============================================================
+        // REALTIME ADMIN NOTIFICATIONS
+        // ============================================================
+        const notificationSeenKey = "gc_admin_seen_request_ids_v1";
+        let seenRequestIds = new Set();
+        try { seenRequestIds = new Set(JSON.parse(localStorage.getItem(notificationSeenKey) || "[]")); } catch (_) {}
+
+        function rememberSeenRequest(id) {
+            seenRequestIds.add(String(id));
+            if (seenRequestIds.size > 500) seenRequestIds = new Set(Array.from(seenRequestIds).slice(-400));
+            try { localStorage.setItem(notificationSeenKey, JSON.stringify(Array.from(seenRequestIds))); } catch (_) {}
+        }
+
+        async function saveAdminNotification({ type, requestId, data }) {
+            const isDeposit = type === "deposit";
+            const title = isDeposit ? "নতুন Deposit Request" : "নতুন Withdraw Request";
+            const amount = Number(data.amount || 0);
+            const user = data.userName || data.username || data.userEmail || data.email || data.userId || "User";
+            const method = data.gateway || data.method || "";
+            try {
+                await setDoc(doc(db, "adminNotifications", `${type}_${requestId}`), {
+                    type, title,
+                    message: `${user} ${isDeposit ? "ডিপোজিট" : "উইথড্র"} রিকোয়েস্ট করেছে${amount ? ` — ৳${amount}` : ""}${method ? ` (${method})` : ""}`,
+                    requestId: String(requestId), userName: user, amount, method,
+                    status: "unread", createdAt: Date.now()
+                }, { merge: true });
+            } catch (e) { console.error("Admin notification save failed:", e); }
+        }
+
+        function handleNewRequest(type, change) {
+            if (change.type !== "added") return;
+            const data = change.doc.data() || {};
+            if (String(data.status || "pending").toLowerCase() !== "pending") return;
+            const id = change.doc.id;
+            const seenId = `${type}_${id}`;
+            if (seenRequestIds.has(seenId)) return;
+            rememberSeenRequest(seenId);
+            const amount = Number(data.amount || 0);
+            const user = data.userName || data.username || data.userEmail || data.email || data.userId || "User";
+            const method = data.gateway || data.method || "";
+            showToast(`নতুন ${type === "deposit" ? "ডিপোজিট" : "উইথড্র"} রিকোয়েস্ট: ৳${amount}${method ? ` (${method})` : ""} — ${user}`, "warning");
+            saveAdminNotification({ type, requestId: id, data });
+        }
+
+        function initAdminNotifications() {
+            onSnapshot(collection(db, "transactions"), (snapshot) => {
+                snapshot.docChanges().forEach(change => {
+                    const data = change.doc.data() || {};
+                    const looksLikeDeposit = data.type === "Deposit" || !!data.gateway || (data.amount != null && !data.method && !data.withdraw);
+                    if (looksLikeDeposit) handleNewRequest("deposit", change);
+                });
+            }, error => console.error("Deposit notification listener failed:", error));
+
+            onSnapshot(collection(db, "withdraws"), (snapshot) => {
+                snapshot.docChanges().forEach(change => handleNewRequest("withdraw", change));
+            }, error => console.error("Withdraw notification listener failed:", error));
+        }
+
+        window.loadAllAdminData = async function() {
+            try {
+                const [secSnap, groupSnap, tourSnap, bannerSnap, depSnap, wdSnap] = await Promise.all([
+                    getDocs(collection(db, "sections")),
+                    getDocs(collection(db, "groups")),
+                    getDocs(collection(db, "tournaments")),
+                    getDocs(collection(db, "banners")),
+                    getDocs(collection(db, "transactions")),
+                    getDocs(collection(db, "withdraws"))
+                ]);
+
+                allSections = [];
+                secSnap.forEach(d => allSections.push({ id: d.id, ...d.data() }));
+
+                allGroups = [];
+                groupSnap.forEach(d => allGroups.push({ id: d.id, ...d.data() }));
+
+                allTournaments = [];
+                const now = Date.now();
+                tourSnap.forEach(d => {
+                    let tData = { id: d.id, ...d.data() };
+                    allTournaments.push(tData);
+                });
+
+                allBanners = [];
+                bannerSnap.forEach(d => allBanners.push({ id: d.id, ...d.data() }));
+
+                allDeposits = [];
+                let pendingDepCount = 0;
+                depSnap.forEach(d => {
+                    const data = d.data();
+                    if(data.type === "Deposit" || data.gateway || data.amount) {
+                        allDeposits.push({ id: d.id, ...data });
+                        if(String(data.status || 'pending').toLowerCase() === 'pending') {
+                            pendingDepCount++;
+                        }
+                    }
+                });
+
+                allWithdraws = [];
+                let pendingWdCount = 0;
+                wdSnap.forEach(d => {
+                    const data = d.data();
+                    allWithdraws.push({ id: d.id, ...data });
+                    if(String(data.status || 'pending').toLowerCase() === 'pending') {
+                        pendingWdCount++;
+                    }
+                });
+
+                const depCounter = document.getElementById('live-pending-deposits');
+                const wdCounter = document.getElementById('live-pending-withdraws');
+                if(depCounter) depCounter.innerText = pendingDepCount;
+                if(wdCounter) wdCounter.innerText = pendingWdCount;
+
+                renderSectionsList();
+                renderGroupsList();
+                renderTournamentsList();
+                renderBannersList();
+                renderDepositsList();
+                renderWithdrawsList();
+                loadAdminRuleEditor(activeRuleCategory);
+            } catch(e) {
+                console.error("Error loading admin data:", e);
+            }
+        }
+
+        loadAllAdminData();
+        initAdminNotifications(); // Start realtime notification listener
+        setInterval(loadAllAdminData, 15000);
+
+        window.switchTab = function(tabName) {
+            ['sections', 'groups', 'tournaments', 'banners', 'deposits', 'withdraws', 'rules'].forEach(t => {
+                const tabEl = document.getElementById(`tab-${t}`);
+                if(tabEl) tabEl.style.display = (t === tabName) ? 'block' : 'none';
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if(btn) {
+                    btn.className = (t === tabName) ? "py-2.5 text-[11px] font-bold rounded-xl bg-blue-600 text-white shadow transition" : "py-2.5 text-[11px] font-bold rounded-xl text-slate-400 hover:text-white transition";
+                }
+            });
+        }
+
+        // Push Notification Tab Click Handler -> Opens notification.html directly
+        window.openNotificationPage = function() {
+            window.location.assign("./notification.html");
+        };
+
+        window.loadAdminRuleEditor = async function(cat) {
+            activeRuleCategory = cat;
+            ['br_headshot', 'lone_wolf_headshot', 'lone_wolf_bodyshot', 'cs_headshot'].forEach(m => {
+                const btn = document.getElementById(`admin-rule-${m}`);
+                if(btn) btn.className = (m === cat) ? "py-2 px-1 rounded-xl text-[11px] font-bold bg-blue-600 text-white truncate" : "py-2 px-1 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 truncate";
+            });
+            
+            try {
+                const docRef = doc(db, "matchRules", cat);
+                const snap = await getDoc(docRef);
+                const txtArea = document.getElementById('admin-rule-textarea');
+                if(txtArea) txtArea.value = snap.exists() ? (snap.data().text || '') : '';
+            } catch(e) {
+                console.error(e);
+            }
+        };
+
+        window.saveMatchRules = async function() {
+            const text = document.getElementById('admin-rule-textarea').value;
+            try {
+                await setDoc(doc(db, "matchRules", activeRuleCategory), { text, updatedAt: Date.now() }, { merge: true });
+                showToast('রুলস সফলভাবে আপডেট করা হয়েছে!', 'success');
+            } catch(e) {
+                showToast('আপডেট করতে সমস্যা হয়েছে', 'error');
+            }
+        };
+
+        function renderSectionsList() {
+            const list = document.getElementById('admin-sections-list');
+            if(!list) return;
+            list.innerHTML = "";
+            if(allSections.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs">কোনো ক্যাটাগরি নেই।</p>`;
+                return;
+            }
+            allSections.forEach(sec => {
+                list.innerHTML += `
+                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400"><i class="${sec.icon || 'fa-solid fa-gamepad'}"></i></div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">${sec.name}</h4>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editSection('${sec.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteDocItem('sections', '${sec.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.openSectionModal = function(editData = null) {
+            document.getElementById('modal-title').innerText = editData ? "Edit Category" : "Add New Category";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <input type="hidden" id="sec-id" value="${editData ? editData.id : ''}">
+                <div>
+                    <label class="text-slate-400 block mb-1">Category Name</label>
+                    <input type="text" id="sec-name" value="${editData ? editData.name : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-slate-400 block mb-1">FontAwesome Icon Class</label>
+                    <input type="text" id="sec-icon" value="${editData ? (editData.icon || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <button onclick="saveSection()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl mt-2">Save Category</button>
+            `;
+        }
+
+        window.editSection = function(id) {
+            const sec = allSections.find(s => s.id === id);
+            if(sec) openSectionModal(sec);
+        }
+
+        window.saveSection = async function() {
+            const id = document.getElementById('sec-id').value;
+            const name = document.getElementById('sec-name').value;
+            const icon = document.getElementById('sec-icon').value;
+            if(!name) { showToast('ক্যাটাগরির নাম দিন', 'warning'); return; }
+
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "sections", id), { name, icon });
+                    showToast('ক্যাটাগরি আপডেট হয়েছে!', 'success');
+                } else {
+                    await addDoc(collection(db, "sections"), { name, icon, status: true });
+                    showToast('নতুন ক্যাটাগরি তৈরি হয়েছে!', 'success');
+                }
+                closeGenericModal();
+                loadAllAdminData();
+            } catch(e) { showToast('সমস্যা হয়েছে!', 'error'); }
+        }
+
+        function renderGroupsList() {
+            const list = document.getElementById('admin-groups-list');
+            if(!list) return;
+            list.innerHTML = "";
+            if(allGroups.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs">কোনো গ্রুপ নেই।</p>`;
+                return;
+            }
+            allGroups.forEach(g => {
+                const parentSec = allSections.find(s => s.id === g.sectionId);
+                list.innerHTML += `
+                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${g.name}</h4>
+                            <span class="text-[10px] text-blue-400 font-semibold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/25">Category: ${parentSec ? parentSec.name : 'Unknown'}</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editGroup('${g.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteDocItem('groups', '${g.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.openGroupModal = function(editData = null) {
+            let options = allSections.map(s => `<option value="${s.id}" ${editData && editData.sectionId === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+            document.getElementById('modal-title').innerText = editData ? "Edit Group" : "Add New Group";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <input type="hidden" id="group-id" value="${editData ? editData.id : ''}">
+                <div>
+                    <label class="text-slate-400 block mb-1">Select Parent Category</label>
+                    <select id="group-section" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">${options}</select>
+                </div>
+                <div>
+                    <label class="text-slate-400 block mb-1">Group Name</label>
+                    <input type="text" id="group-name" value="${editData ? editData.name : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <button onclick="saveGroup()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl mt-2">Save Group</button>
+            `;
+        }
+
+        window.editGroup = function(id) {
+            const g = allGroups.find(item => item.id === id);
+            if(g) openGroupModal(g);
+        }
+
+        window.saveGroup = async function() {
+            const id = document.getElementById('group-id').value;
+            const sectionId = document.getElementById('group-section').value;
+            const name = document.getElementById('group-name').value;
+            if(!name || !sectionId) { showToast('সব ফিল্ড পূরণ করুন', 'warning'); return; }
+
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "groups", id), { name, sectionId });
+                    showToast('গ্রুপ আপডেট সফল হয়েছে!', 'success');
+                } else {
+                    await addDoc(collection(db, "groups"), { name, sectionId, status: true });
+                    showToast('নতুন গ্রুপ তৈরি সফল হয়েছে!', 'success');
+                }
+                closeGenericModal();
+                loadAllAdminData();
+            } catch(e) { showToast('সমস্যা হয়েছে', 'error'); }
+        }
+
+        function renderTournamentsList() {
+            const list = document.getElementById('admin-tournaments-list');
+            if(!list) return;
+            list.innerHTML = "";
+            if(allTournaments.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো টুর্নামেন্ট নেই।</p>`;
+                return;
+            }
+            allTournaments.forEach(t => {
+                const parentGroup = allGroups.find(g => g.id === t.groupId);
+                list.innerHTML += `
+                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${t.name}</h4>
+                            <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Prize: <b>৳${t.prize || 0}</b> | Per Kill: <b>৳${t.perKill || 0}</b></span>
+                            <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Fee: ৳${t.entryFee || 0}</span>
+                        </div>
+                        <div class="flex space-x-2 items-center flex-wrap gap-1">
+                            <button onclick="editTournament('${t.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteDocItem('tournaments', '${t.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.openTournamentModal = function(editData = null) {
+            let groupOptions = allGroups.map(g => `<option value="${g.id}" ${editData && editData.groupId === g.id ? 'selected' : ''}>${g.name}</option>`).join('');
+            document.getElementById('modal-title').innerText = editData ? "Edit Tournament" : "Add New Tournament";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <input type="hidden" id="tour-id" value="${editData ? editData.id : ''}">
+                <div>
+                    <label class="text-slate-400 block mb-1">Select Group</label>
+                    <select id="tour-group" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">${groupOptions}</select>
+                </div>
+                <div>
+                    <label class="text-slate-400 block mb-1">Tournament Match Name</label>
+                    <input type="text" id="tour-name" value="${editData ? editData.name : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-slate-400 block mb-1">Prize</label>
+                        <input type="number" id="tour-prize" value="${editData ? (editData.prize || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Per Kill</label>
+                        <input type="number" id="tour-perkill" value="${editData ? (editData.perKill || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Entry Fee</label>
+                        <input type="number" id="tour-fee" value="${editData ? (editData.entryFee || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <button onclick="saveTournament()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl mt-2">Save Tournament</button>
+            `;
+        }
+
+        window.editTournament = function(id) {
+            const t = allTournaments.find(item => item.id === id);
+            if(t) openTournamentModal(t);
+        }
+
+        window.saveTournament = async function() {
+            const id = document.getElementById('tour-id').value;
+            const groupId = document.getElementById('tour-group').value;
+            const name = document.getElementById('tour-name').value;
+            const prize = Number(document.getElementById('tour-prize').value || 0);
+            const perKill = Number(document.getElementById('tour-perkill').value || 0);
+            const entryFee = Number(document.getElementById('tour-fee').value || 0);
+
+            if(!name || !groupId) { showToast('নাম ও গ্রুপ সিলেক্ট করুন', 'warning'); return; }
+
+            const payload = { groupId, name, prize, perKill, entryFee, status: 'upcoming' };
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "tournaments", id), payload);
+                    showToast('টুর্নামেন্ট আপডেট হয়েছে!', 'success');
+                } else {
+                    await addDoc(collection(db, "tournaments"), payload);
+                    showToast('নতুন টুর্নামেন্ট তৈরি হয়েছে!', 'success');
+                }
+                closeGenericModal();
+                loadAllAdminData();
+            } catch(e) { showToast('সমস্যা হয়েছে', 'error'); }
+        }
+
+        window.renderBannersList = function() {
+            const list = document.getElementById('admin-banners-list');
+            if(!list) return;
+            list.innerHTML = "";
+            allBanners.forEach(b => {
+                list.innerHTML += `
+                    <div class="glass-card p-3 rounded-xl flex justify-between items-center shadow">
+                        <div class="flex items-center space-x-3">
+                            <img src="${b.imageUrl}" class="w-16 h-10 object-cover rounded-lg" alt="">
+                            <h4 class="font-bold text-white text-xs">${b.title || 'Banner'}</h4>
+                        </div>
+                        <button onclick="deleteDocItem('banners', '${b.id}')" class="bg-red-600/20 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        window.openBannerModal = function() {
+            document.getElementById('modal-title').innerText = "Add Banner";
+            document.getElementById('generic-modal').style.display = 'flex';
+            document.getElementById('modal-body').innerHTML = `
+                <div>
+                    <label class="text-slate-400 block mb-1">Image URL</label>
+                    <input type="text" id="banner-image" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                </div>
+                <button onclick="saveBanner()" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl mt-2">Add</button>
+            `;
+        }
+
+        window.saveBanner = async function() {
+            const imageUrl = document.getElementById('banner-image').value.trim();
+            if(!imageUrl) { showToast('লিংক দিন', 'warning'); return; }
+
+            try {
+                await addDoc(collection(db, "banners"), { imageUrl, status: true, createdAt: Date.now() });
+                closeGenericModal();
+                showToast('Banner সফলভাবে যোগ হয়েছে!', 'success');
+                await loadAllAdminData();
+            } catch(e) {
+                showToast('Banner update করতে সমস্যা হয়েছে', 'error');
+            }
+        }
+
+        window.filterDepositGateway = function(gw) {
+            currentDepGateway = gw;
+            document.getElementById('dep-filter-bkash').className = gw === 'bkash' ? 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition' : 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition';
+            document.getElementById('dep-filter-nagad').className = gw === 'nagad' ? 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition' : 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition';
+            renderDepositsList();
+        }
+
+        window.filterWithdrawGateway = function(gw) {
+            currentWdGateway = gw;
+            document.getElementById('wd-filter-bkash').className = gw === 'bkash' ? 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition' : 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition';
+            document.getElementById('wd-filter-nagad').className = gw === 'nagad' ? 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition' : 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition';
+            renderWithdrawsList();
+        }
+
+        function renderDepositsList() {
+            const list = document.getElementById('admin-deposits-list');
+            if(!list) return;
+            list.innerHTML = "";
+            
+            const filtered = allDeposits.filter(dep => {
+                const gw = String(dep.gateway || dep.method || 'bkash').toLowerCase();
+                const status = String(dep.status || 'pending').toLowerCase();
+                return gw.includes(currentDepGateway) && status === 'pending';
+            });
+
+            if(filtered.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো ${currentDepGateway.toUpperCase()} ডিপোজিট রিকোয়েস্ট নেই।</p>`;
+                return;
+            }
+
+            filtered.forEach(dep => {
+                let action = `<div class="flex gap-2">
+                    <button onclick="approveDeposit('${dep.id}', '${dep.userId}', ${dep.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs">Approve</button>
+                    <button onclick="rejectDeposit('${dep.id}')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs">Reject</button>
+                </div>`;
+                list.innerHTML += `
+                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${dep.userName || 'User'} (${dep.gateway || dep.method || currentDepGateway})</h4>
+                            <p class="text-[11px] text-slate-300">Amount: <b>৳${dep.amount}</b> | TrxID: <b>${dep.trxId || dep.transactionId || 'N/A'}</b></p>
+                        </div>
+                        <div>${action}</div>
+                    </div>
+                `;
+            });
+        }
+
+        window.approveDeposit = async function(txId, userId, amount) {
+            try {
+                const txRef = doc(db, "transactions", txId);
+                await runTransaction(db, async (transaction) => {
+                    const txSnap = await transaction.get(txRef);
+                    if(!txSnap.exists()) throw new Error("Deposit request পাওয়া যায়নি।");
+
+                    const deposit = txSnap.data() || {};
+                    const finalUserId = deposit.userId || userId;
+                    const finalAmount = Number(deposit.amount ?? amount ?? 0);
+
+                    const userRef = doc(db, "users", finalUserId);
+                    const userSnap = await transaction.get(userRef);
+                    if(userSnap.exists()) {
+                        const currentBal = Number(userSnap.data().balance || 0);
+                        transaction.update(userRef, { balance: currentBal + finalAmount });
+                    }
+                    transaction.update(txRef, { status: "Success", approvedAt: Date.now() });
+                });
+
+                showToast("ডিপোজিট সফলভাবে অ্যাপ্রুভ হয়েছে।", "success");
+                await loadAllAdminData();
+            } catch(e) {
+                showToast("ত্রুটি: " + e.message, "error");
+            }
+        }
+
+        window.rejectDeposit = async function(id){
+            const reason=(prompt('Reject করার কারণ লিখুন:','Deposit verification failed')||'').trim();
+            if(!reason) return;
+            try{
+                await updateDoc(doc(db, 'transactions', id), { status: 'Rejected', reason });
+                showToast('Deposit reject হয়েছে।', "success");
+                await loadAllAdminData();
+            }catch(e){showToast('Reject failed','error');}
+        };
+
+        window.renderWithdrawsList = async function() {
+            const list = document.getElementById('admin-withdraws-list');
+            if(!list) return;
+            try {
+                const rows = allWithdraws.filter(r => {
+                    const method = String(r.method || 'bkash').toLowerCase();
+                    const status = String(r.status || 'pending').toLowerCase();
+                    return method.includes(currentWdGateway) && status === 'pending';
+                });
+
+                if(!rows.length){ list.innerHTML=`<p class="text-slate-500 text-xs text-center py-8">কোনো ${currentWdGateway.toUpperCase()} withdraw request নেই।</p>`; return; }
+                list.innerHTML = rows.map(r => {
+                    return `<div class="glass-card rounded-2xl p-4 border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-white text-sm">${r.userEmail || r.userId || 'User'}</div>
+                            <div class="text-xs text-slate-300 mt-1">${r.method || currentWdGateway} • ${r.number || ''}</div>
+                            <div class="text-lg font-black text-amber-400 mt-1">৳${r.amount || 0}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="adminApproveWithdraw('${r.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Approve</button>
+                            <button onclick="adminRejectWithdraw('${r.id}')" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Reject</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e){ 
+                showToast('Withdraw load failed', 'error');
+            }
+        };
+
+        window.adminApproveWithdraw = async function(id){
+            try{
+                await updateDoc(doc(db, 'withdraws', id), { status: 'approved', approvedAt: Date.now() });
+                showToast('Withdraw approved হয়েছে।', 'success');
+                await loadAllAdminData();
+                renderWithdrawsList();
+            }catch(e){showToast('Approve failed','error');}
+        };
+
+        window.adminRejectWithdraw = async function(id){
+            const reason=(prompt('Reject কারণ:')||'').trim();
+            if(!reason) return;
+            try{
+                const ref = doc(db, 'withdraws', id);
+                await runTransaction(db, async (transaction) => {
+                    const snap = await transaction.get(ref);
+                    if(!snap.exists()) return;
+                    const r = snap.data();
+                    const userRef = doc(db, 'users', r.uid || r.userId);
+                    const userSnap = await transaction.get(userRef);
+                    if(userSnap.exists()) {
+                        const bal = Number(userSnap.data().balance || 0);
+                        transaction.update(userRef, { balance: bal + Number(r.amount || 0) });
+                    }
+                    transaction.update(ref, { status: 'rejected', reason });
+                });
+                showToast('Withdraw reject ও রিফান্ড করা হয়েছে।', 'success');
+                await loadAllAdminData();
+                renderWithdrawsList();
+            }catch(e){showToast('Reject failed','error');}
+        };
+
+        window.deleteDocItem = async function(colName, docId) {
+            if(!confirm('কনফার্ম ডিলিট?')) return;
+            try {
+                await deleteDoc(doc(db, colName, docId));
+                showToast('ডিলিট সফল হয়েছে!', 'success');
+                await loadAllAdminData();
+            } catch(e) {
+                showToast('ডিলিট করতে সমস্যা হয়েছে', 'error');
+            }
+        };
+
+        window.closeGenericModal = function() {
+            document.getElementById('generic-modal').style.display = 'none';
+        }
+    </script>
+
+<script>
+(function(){
+  // Navigation fallback: these work even if Firebase/module code is temporarily unavailable.
+  window.openNotificationPage=function(){ window.location.assign('./notification.html'); };
+  window.switchTab=window.switchTab||function(tabName){
+    ['sections','groups','tournaments','banners','deposits','withdraws','rules'].forEach(function(t){
+      var el=document.getElementById('tab-'+t); if(el) el.style.display=(t===tabName)?'block':'none';
+      var btn=document.getElementById('tab-btn-'+t);
+      if(btn) btn.classList.toggle('bg-blue-600',t===tabName);
+    });
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    var n=document.getElementById('tab-btn-notifications');
+    if(n){ n.addEventListener('click',function(e){ e.preventDefault(); window.location.assign('./notification.html'); }); }
+  });
+})();
+</script>
+</body>
+</html>
