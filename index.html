@@ -230,11 +230,43 @@
     </div>
 
     <script type="module">
-        import { db } from "./firebase.js";
+        import { auth, db, ADMIN_EMAIL, linkOneSignalUser } from "./firebase.js";
         import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, orderBy, limit, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const auraStorage = getStorage();
+        // Link the logged-in admin Firebase UID to the native Median/OneSignal user.
+        // This is required so the Render server can target the admin device by external_id.
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // ADMIN AUTH GUARD
+        // Admin page must never load Firestore controls before Firebase Auth is ready.
+        // If there is no session, send the user to the existing login page.
+        // Only the configured ADMIN_EMAIL can enter this panel.
+        let __adminAuthReady = false;
+        onAuthStateChanged(auth, (user) => {
+            __adminAuthReady = true;
+            if (!user) {
+                window.location.replace('./login.html?next=admin.html');
+                return;
+            }
+
+            const signedEmail = String(user.email || '').trim().toLowerCase();
+            const adminEmail = String(ADMIN_EMAIL || '').trim().toLowerCase();
+            if (!adminEmail || signedEmail !== adminEmail) {
+                console.warn('Admin access denied for:', signedEmail);
+                alert('Admin access denied. এই account দিয়ে Admin Panel ব্যবহার করা যাবে না।');
+                window.location.replace('./index.html');
+                return;
+            }
+
+            const link = () => linkOneSignalUser(user).catch(err => console.warn('OneSignal admin link failed:', err));
+            link();
+            // Median native bridge may become ready shortly after the page loads.
+            setTimeout(link, 1500);
+            setTimeout(link, 4000);
+        });
+
 
         let allSections = [];
         let allGroups = [];
@@ -261,12 +293,13 @@
 
         window.loadAllAdminData = async function() {
             try {
-                const [secSnap, groupSnap, tourSnap, bannerSnap, depSnap, wdSnap] = await Promise.all([
+                const [secSnap, groupSnap, tourSnap, bannerSnap, depSnap, depositRequestSnap, wdSnap] = await Promise.all([
                     getDocs(collection(db, "sections")),
                     getDocs(collection(db, "groups")),
                     getDocs(collection(db, "tournaments")),
                     getDocs(collection(db, "banners")),
                     getDocs(collection(db, "transactions")),
+                    getDocs(collection(db, "deposits")),
                     getDocs(collection(db, "withdraws"))
                 ]);
 
@@ -311,13 +344,20 @@
 
                 allDeposits = [];
                 let pendingDepCount = 0;
+                const depositIds = new Set();
+                // Current app creates pending deposit requests in `deposits`.
+                depositRequestSnap.forEach(d => {
+                    const data = d.data() || {};
+                    allDeposits.push({ id: d.id, ...data, __source: 'deposits' });
+                    depositIds.add(d.id);
+                    if(String(data.status || 'pending').toLowerCase() === 'pending') pendingDepCount++;
+                });
+                // Keep compatibility with the older `transactions` deposit schema.
                 depSnap.forEach(d => {
-                    const data = d.data();
-                    if(data.type === "Deposit" || data.gateway || data.amount) {
-                        allDeposits.push({ id: d.id, ...data });
-                        if(String(data.status || 'pending').toLowerCase() === 'pending') {
-                            pendingDepCount++;
-                        }
+                    const data = d.data() || {};
+                    if((data.type === "Deposit" || data.gateway || data.amount) && !depositIds.has(d.id)) {
+                        allDeposits.push({ id: d.id, ...data, __source: 'transactions' });
+                        if(String(data.status || 'pending').toLowerCase() === 'pending') pendingDepCount++;
                     }
                 });
 
@@ -345,6 +385,24 @@
                 console.error("Error loading admin data:", e);
             }
         }
+
+        // Realtime request listeners: support both current `deposits` and legacy `transactions`.
+        let __adminRealtimeSeen = new Set();
+        function __handleNewAdminRequest(type, change){
+            if(change.type !== 'added') return;
+            const d=change.doc.data()||{};
+            if(String(d.status||'pending').toLowerCase()!=='pending') return;
+            const key=type+'_'+change.doc.id;
+            if(__adminRealtimeSeen.has(key)) return;
+            __adminRealtimeSeen.add(key);
+            const amount=Number(d.amount||0);
+            const user=d.userName||d.username||d.userEmail||d.email||d.userId||d.uid||'User';
+            const method=d.gateway||d.method||'';
+            showToast(`নতুন ${type==='deposit'?'ডিপোজিট':'উইথড্র'} রিকোয়েস্ট: ৳${amount}${method?' ('+method+')':''} — ${user}`,'warning');
+        }
+        onSnapshot(collection(db,'deposits'),snap=>snap.docChanges().forEach(c=>__handleNewAdminRequest('deposit',c)),e=>console.error('Deposits realtime listener failed:',e));
+        onSnapshot(collection(db,'transactions'),snap=>snap.docChanges().forEach(c=>{const d=c.doc.data()||{}; if(d.type==='Deposit'||d.gateway||(d.amount!=null&&!d.method&&!d.withdraw)) __handleNewAdminRequest('deposit',c)}),e=>console.error('Transactions realtime listener failed:',e));
+        onSnapshot(collection(db,'withdraws'),snap=>snap.docChanges().forEach(c=>__handleNewAdminRequest('withdraw',c)),e=>console.error('Withdraw realtime listener failed:',e));
 
         loadAllAdminData();
         setInterval(loadAllAdminData, 15000);
@@ -850,60 +908,78 @@
             });
         }
 
-        window.approveDeposit = async function(txId, userId, amount) {
+        window.approveDeposit = async function(id, userId, amount) {
             try {
-                const txRef = doc(db, "transactions", txId);
+                // New/current schema: deposits/{id}. Older schema: transactions/{id}.
+                const depRef = doc(db, 'deposits', id);
+                const txRef = doc(db, 'transactions', id);
+                const [depSnapNow, txSnapNow] = await Promise.all([getDoc(depRef), getDoc(txRef)]);
+                const ref = depSnapNow.exists() ? depRef : txRef;
+                const sourceSnap = depSnapNow.exists() ? depSnapNow : txSnapNow;
+                if(!sourceSnap.exists()) throw new Error('Deposit request পাওয়া যায়নি।');
 
                 await runTransaction(db, async (transaction) => {
-                    const txSnap = await transaction.get(txRef);
-                    if(!txSnap.exists()) throw new Error("Deposit request পাওয়া যায়নি।");
+                    const snap = await transaction.get(ref);
+                    if(!snap.exists()) throw new Error('Deposit request পাওয়া যায়নি।');
+                    const deposit = snap.data() || {};
+                    const status = String(deposit.status || 'pending').toLowerCase();
+                    if(status !== 'pending') throw new Error(`এই deposit request ইতিমধ্যে ${deposit.status || 'processed'} হয়েছে।`);
 
-                    const deposit = txSnap.data() || {};
-                    const status = String(deposit.status || "pending").toLowerCase();
-                    if(status !== "pending") {
-                        throw new Error(`এই deposit request ইতিমধ্যে ${deposit.status || "processed"} হয়েছে।`);
-                    }
-
-                    const finalUserId = deposit.userId || userId;
+                    const finalUserId = deposit.userId || deposit.uid || userId || '';
+                    const finalEmail = deposit.userEmail || deposit.email || '';
                     const finalAmount = Number(deposit.amount ?? amount ?? 0);
-                    if(!finalUserId) throw new Error("User ID পাওয়া যায়নি।");
-                    if(!finalAmount || finalAmount <= 0) throw new Error("Invalid deposit amount.");
+                    if(!finalAmount || finalAmount <= 0) throw new Error('Invalid deposit amount.');
 
-                    const userRef = doc(db, "users", finalUserId);
-                    const userSnap = await transaction.get(userRef);
-                    if(!userSnap.exists()) throw new Error("User পাওয়া যায়নি।");
+                    const now = Date.now();
+                    // Prefer users/{uid}; fallback to wallets/{email} used by the older app.
+                    let credited = false;
+                    if(finalUserId){
+                        const userRef = doc(db,'users',finalUserId);
+                        const userSnap = await transaction.get(userRef);
+                        if(userSnap.exists()){
+                            const currentBal = Number(userSnap.data().balance || 0);
+                            transaction.update(userRef,{balance:currentBal+finalAmount});
+                            credited = true;
+                        }
+                    }
+                    if(!credited && finalEmail){
+                        const walletRef = doc(db,'wallets',finalEmail);
+                        const walletSnap = await transaction.get(walletRef);
+                        const currentBal = Number(walletSnap.exists() ? walletSnap.data().balance || 0 : 0);
+                        transaction.set(walletRef,{balance:currentBal+finalAmount,userEmail:finalEmail,updatedAt:now},{merge:true});
+                        credited = true;
+                    }
+                    if(!credited) throw new Error('User/Wallet পাওয়া যায়নি।');
 
-                    const currentBal = Number(userSnap.data().balance || 0);
-                    transaction.update(userRef, { balance: currentBal + finalAmount });
-                    transaction.update(txRef, {
-                        status: "Success",
-                        approvedAt: Date.now(),
-                        reviewedAt: Date.now()
-                    });
+                    transaction.update(ref,{status:'approved',approvedAt:now,reviewedAt:now});
                 });
 
-                showToast("ডিপোজিট অ্যাপ্রুভ হয়েছে এবং টাকা একবারই যোগ হয়েছে!");
+                showToast('ডিপোজিট অ্যাপ্রুভ হয়েছে এবং টাকা একবারই যোগ হয়েছে!');
                 await loadAllAdminData();
             } catch(e) {
-                showToast("ত্রুটি: " + (e.message || e), "error");
+                showToast('ত্রুটি: ' + (e.message || e), 'error');
             }
-        }
+        };
 
         window.rejectDeposit = async function(id){
             const reason=(prompt('Reject করার কারণ লিখুন:','Deposit verification failed')||'').trim();
             if(!reason) return;
             try{
-                const ref=doc(db,'transactions',id);
-                await runTransaction(db, async(transaction)=>{
+                const depRef=doc(db,'deposits',id);
+                const txRef=doc(db,'transactions',id);
+                const [depSnapNow,txSnapNow]=await Promise.all([getDoc(depRef),getDoc(txRef)]);
+                const ref=depSnapNow.exists()?depRef:txRef;
+                if(!(depSnapNow.exists()||txSnapNow.exists())) throw new Error('Deposit request পাওয়া যায়নি।');
+                await runTransaction(db,async(transaction)=>{
                     const snap=await transaction.get(ref);
                     if(!snap.exists()) throw new Error('Deposit request পাওয়া যায়নি।');
                     const d=snap.data()||{};
                     const status=String(d.status||'pending').toLowerCase();
                     if(status!=='pending') throw new Error(`এই request ইতিমধ্যে ${d.status||'processed'} হয়েছে।`);
                     const now=Date.now();
-                    transaction.update(ref,{status:'Rejected',reviewedAt:now,rejectedAt:now,reason,reviewReason:reason});
+                    transaction.update(ref,{status:'rejected',reviewedAt:now,rejectedAt:now,reason,reviewReason:reason});
                 });
-                showToast('Deposit reject হয়েছে। History-তে চলে গেছে।');
+                showToast('Deposit reject হয়েছে।');
                 await loadAllAdminData();
             }catch(e){showToast(e.message||'Reject failed','error');}
         };
