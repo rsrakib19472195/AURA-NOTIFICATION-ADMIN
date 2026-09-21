@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -8,9 +9,12 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>AURA ARMAN TOUR - Notification Admin</title>
+    <title>
+        AURA ARMAN TOUR - Notification Admin
+    </title>
 
     <style>
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -19,14 +23,18 @@
 
         body {
             font-family: Arial, sans-serif;
+
             background:
                 radial-gradient(
                     circle at top,
                     #172554,
                     #020617 55%
                 );
+
             color: white;
+
             min-height: 100vh;
+
             padding: 20px;
         }
 
@@ -46,7 +54,11 @@
             height: 80px;
             border-radius: 22px;
             object-fit: cover;
-            border: 2px solid rgba(255,255,255,.15);
+
+            border:
+                2px solid
+                rgba(255,255,255,.15);
+
             margin-bottom: 12px;
         }
 
@@ -61,12 +73,20 @@
         }
 
         .card {
-            background: rgba(15,23,42,.88);
-            border: 1px solid rgba(255,255,255,.08);
+            background:
+                rgba(15,23,42,.88);
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
             border-radius: 24px;
+
             padding: 20px;
+
             box-shadow:
-                0 20px 60px rgba(0,0,0,.35);
+                0 20px 60px
+                rgba(0,0,0,.35);
         }
 
         .group {
@@ -75,26 +95,40 @@
 
         label {
             display: block;
+
             font-size: 13px;
+
             font-weight: bold;
+
             color: #cbd5e1;
+
             margin-bottom: 8px;
         }
 
         input,
         textarea {
             width: 100%;
-            border: 1px solid #334155;
-            background: #020617;
+
+            border:
+                1px solid
+                #334155;
+
+            background:
+                #020617;
+
             color: white;
+
             border-radius: 14px;
+
             padding: 13px;
+
             outline: none;
         }
 
         input:focus,
         textarea:focus {
-            border-color: #3b82f6;
+            border-color:
+                #3b82f6;
         }
 
         textarea {
@@ -104,15 +138,25 @@
 
         .targets {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+
+            grid-template-columns:
+                1fr 1fr;
+
             gap: 10px;
         }
 
         .target {
-            border: 1px solid #334155;
-            background: #020617;
+            border:
+                1px solid
+                #334155;
+
+            background:
+                #020617;
+
             border-radius: 15px;
+
             padding: 14px;
+
             cursor: pointer;
         }
 
@@ -130,15 +174,104 @@
             margin-top: 12px;
         }
 
+        .specific-actions {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 8px;
+
+            margin-top: 10px;
+        }
+
+        .check-btn {
+            width: 100%;
+
+            border: none;
+
+            border-radius: 13px;
+
+            padding: 11px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            color: white;
+
+            cursor: pointer;
+
+            background:
+                #334155;
+        }
+
+        .check-btn:hover {
+            background:
+                #475569;
+        }
+
+        .user-status {
+            display: none;
+
+            margin-top: 9px;
+
+            padding: 10px 12px;
+
+            border-radius: 12px;
+
+            font-size: 12px;
+
+            white-space: pre-wrap;
+
+            word-break: break-word;
+        }
+
+        .user-status.success {
+            display: block;
+
+            background:
+                rgba(34,197,94,.12);
+
+            border:
+                1px solid
+                rgba(34,197,94,.3);
+
+            color:
+                #86efac;
+        }
+
+        .user-status.error {
+            display: block;
+
+            background:
+                rgba(239,68,68,.12);
+
+            border:
+                1px solid
+                rgba(239,68,68,.3);
+
+            color:
+                #fca5a5;
+        }
+
         button {
             width: 100%;
+
             border: none;
+
             border-radius: 15px;
+
             padding: 15px;
+
             font-size: 15px;
+
             font-weight: bold;
+
             color: white;
+
             cursor: pointer;
+
             background:
                 linear-gradient(
                     135deg,
@@ -154,45 +287,73 @@
 
         .result {
             display: none;
+
             margin-top: 18px;
+
             padding: 14px;
+
             border-radius: 14px;
+
             white-space: pre-wrap;
+
             word-break: break-word;
+
             font-size: 13px;
         }
 
         .success {
             display: block;
+
             background:
                 rgba(34,197,94,.12);
+
             border:
-                1px solid rgba(34,197,94,.3);
-            color: #86efac;
+                1px solid
+                rgba(34,197,94,.3);
+
+            color:
+                #86efac;
         }
 
         .error {
             display: block;
+
             background:
                 rgba(239,68,68,.12);
+
             border:
-                1px solid rgba(239,68,68,.3);
-            color: #fca5a5;
+                1px solid
+                rgba(239,68,68,.3);
+
+            color:
+                #fca5a5;
         }
 
         .footer {
             text-align: center;
+
             color: #64748b;
+
             font-size: 11px;
+
             margin-top: 15px;
         }
 
         @media (max-width: 500px) {
+
             .targets {
                 grid-template-columns: 1fr;
             }
+
+            .specific-actions {
+                grid-template-columns:
+                    1fr;
+            }
+
         }
+
     </style>
+
 </head>
 
 <body>
@@ -207,7 +368,9 @@
             alt="AURA"
         >
 
-        <h1>AURA ARMAN TOUR</h1>
+        <h1>
+            AURA ARMAN TOUR
+        </h1>
 
         <p>
             Notification Control Panel
@@ -223,6 +386,7 @@
             <label>
                 Notification Target
             </label>
+
 
             <div class="targets">
 
@@ -265,12 +429,40 @@
                     Firebase UID / External ID
                 </label>
 
+
                 <input
                     id="externalId"
                     type="text"
                     placeholder="Enter Firebase UID"
                     autocomplete="off"
                 >
+
+
+                <div class="specific-actions">
+
+                    <button
+                        type="button"
+                        id="checkUserBtn"
+                        class="check-btn"
+                    >
+                        CHECK USER
+                    </button>
+
+                    <button
+                        type="button"
+                        id="clearUserBtn"
+                        class="check-btn"
+                    >
+                        CLEAR
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="userStatus"
+                    class="user-status"
+                ></div>
 
             </div>
 
@@ -380,15 +572,18 @@ const targetInputs =
         'input[name="target"]'
     );
 
+
 const specificBox =
     document.getElementById(
         "specificBox"
     );
 
+
 const sendBtn =
     document.getElementById(
         "sendBtn"
     );
+
 
 const result =
     document.getElementById(
@@ -396,50 +591,295 @@ const result =
     );
 
 
-/*
- * TARGET SWITCH
- */
+const externalIdInput =
+    document.getElementById(
+        "externalId"
+    );
 
-targetInputs.forEach(input => {
 
-    input.addEventListener(
-        "change",
-        () => {
+const checkUserBtn =
+    document.getElementById(
+        "checkUserBtn"
+    );
 
-            if (
-                input.checked &&
-                input.value === "specific"
-            ) {
 
-                specificBox.style.display =
-                    "block";
+const clearUserBtn =
+    document.getElementById(
+        "clearUserBtn"
+    );
 
-            } else if (
-                input.checked &&
-                input.value === "all"
-            ) {
 
-                specificBox.style.display =
-                    "none";
+const userStatus =
+    document.getElementById(
+        "userStatus"
+    );
+
+
+/* ============================================================
+   TARGET SWITCH
+============================================================ */
+
+targetInputs.forEach(
+    input => {
+
+        input.addEventListener(
+            "change",
+            () => {
+
+                if (
+                    input.checked &&
+                    input.value ===
+                        "specific"
+                ) {
+
+                    specificBox.style.display =
+                        "block";
+
+                } else {
+
+                    specificBox.style.display =
+                        "none";
+
+                    clearUserStatus();
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+/* ============================================================
+   USER STATUS
+============================================================ */
+
+function clearUserStatus() {
+
+    userStatus.textContent =
+        "";
+
+    userStatus.className =
+        "user-status";
+
+}
+
+
+function showUserStatus(
+    text,
+    success
+) {
+
+    userStatus.textContent =
+        text;
+
+    userStatus.className =
+        "user-status " +
+        (
+            success
+                ? "success"
+                : "error"
+        );
+
+}
+
+
+/* ============================================================
+   CHECK USER
+============================================================ */
+
+checkUserBtn.addEventListener(
+    "click",
+    async () => {
+
+        const externalId =
+            externalIdInput
+                .value
+                .trim();
+
+
+        if (!externalId) {
+
+            showUserStatus(
+                "Please enter Firebase UID.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        checkUserBtn.disabled =
+            true;
+
+        checkUserBtn.textContent =
+            "CHECKING...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/notifications/check-user",
+                    {
+
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                externalId
+
+                            })
+
+                    }
+                );
+
+
+            const rawText =
+                await response.text();
+
+
+            let data;
+
+
+            try {
+
+                data =
+                    JSON.parse(
+                        rawText
+                    );
+
+            } catch {
+
+                data = {
+
+                    success: false,
+
+                    error:
+                        rawText ||
+                        "Invalid server response."
+
+                };
 
             }
 
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.error ||
+                    "User not found."
+                );
+
+            }
+
+
+            if (
+                data.subscribed
+            ) {
+
+                showUserStatus(
+
+                    "✅ User is subscribed.\n" +
+                    "Active subscriptions: " +
+                    data.subscriptionCount,
+
+                    true
+
+                );
+
+            } else {
+
+                showUserStatus(
+
+                    "⚠️ User exists in OneSignal, but no active push subscription was found.",
+
+                    false
+
+                );
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "Check user error:",
+                error
+            );
+
+
+            showUserStatus(
+
+                "❌ " +
+                (
+                    error.message ||
+                    "User check failed."
+                ),
+
+                false
+
+            );
+
+        } finally {
+
+            checkUserBtn.disabled =
+                false;
+
+            checkUserBtn.textContent =
+                "CHECK USER";
+
         }
-    );
 
-});
+    }
+);
 
 
-/*
- * SEND NOTIFICATION
- */
+/* ============================================================
+   CLEAR USER
+============================================================ */
+
+clearUserBtn.addEventListener(
+    "click",
+    () => {
+
+        externalIdInput.value =
+            "";
+
+        clearUserStatus();
+
+        externalIdInput.focus();
+
+    }
+);
+
+
+/* ============================================================
+   SEND NOTIFICATION
+============================================================ */
 
 sendBtn.addEventListener(
     "click",
     async () => {
 
         if (sendBtn.disabled) {
+
             return;
+
         }
 
 
@@ -456,8 +896,7 @@ sendBtn.addEventListener(
 
 
         const externalId =
-            document
-                .getElementById("externalId")
+            externalIdInput
                 .value
                 .trim();
 
@@ -497,9 +936,9 @@ sendBtn.addEventListener(
                 .trim();
 
 
-        /*
-         * VALIDATION
-         */
+        /* =====================================================
+           VALIDATION
+        ===================================================== */
 
         if (!title) {
 
@@ -509,6 +948,7 @@ sendBtn.addEventListener(
             );
 
             return;
+
         }
 
 
@@ -520,6 +960,7 @@ sendBtn.addEventListener(
             );
 
             return;
+
         }
 
 
@@ -534,16 +975,17 @@ sendBtn.addEventListener(
             );
 
             return;
+
         }
 
 
-        /*
-         * LOADING
-         */
+        sendBtn.disabled =
+            true;
 
-        sendBtn.disabled = true;
+
         sendBtn.textContent =
             "SENDING...";
+
 
         result.style.display =
             "none";
@@ -555,30 +997,36 @@ sendBtn.addEventListener(
                 await fetch(
                     "/api/notifications/send",
                     {
-                        method: "POST",
+
+                        method:
+                            "POST",
 
                         headers: {
+
                             "Content-Type":
                                 "application/json"
+
                         },
 
-                        body: JSON.stringify({
+                        body:
+                            JSON.stringify({
 
-                            target,
+                                target,
 
-                            externalId,
+                                externalId,
 
-                            title,
+                                title,
 
-                            message,
+                                message,
 
-                            icon,
+                                icon,
 
-                            image,
+                                image,
 
-                            url
+                                url
 
-                        })
+                            })
+
                     }
                 );
 
@@ -589,26 +1037,28 @@ sendBtn.addEventListener(
 
             let data;
 
+
             try {
 
                 data =
-                    JSON.parse(rawText);
+                    JSON.parse(
+                        rawText
+                    );
 
             } catch {
 
                 data = {
+
                     success: false,
+
                     error:
                         rawText ||
                         "Invalid server response."
+
                 };
 
             }
 
-
-            /*
-             * ERROR
-             */
 
             if (
                 !response.ok ||
@@ -632,28 +1082,28 @@ sendBtn.addEventListener(
                             ", "
                         );
 
+
                     errorMessage +=
                         "\n\nOneSignal: " +
                         oneSignalErrors;
+
                 }
 
 
                 throw new Error(
                     errorMessage
                 );
+
             }
 
-
-            /*
-             * SUCCESS
-             */
 
             showResult(
 
                 "✅ Notification sent successfully!\n\n" +
 
                 JSON.stringify(
-                    data.onesignal || data,
+                    data.onesignal ||
+                    data,
                     null,
                     2
                 ),
@@ -674,6 +1124,7 @@ sendBtn.addEventListener(
             showResult(
 
                 "❌ Notification failed\n\n" +
+
                 (
                     error.message ||
                     "Something went wrong."
@@ -697,9 +1148,9 @@ sendBtn.addEventListener(
 );
 
 
-/*
- * RESULT
- */
+/* ============================================================
+   RESULT
+============================================================ */
 
 function showResult(
     text,
@@ -709,6 +1160,7 @@ function showResult(
     result.textContent =
         text;
 
+
     result.className =
         "result " +
         (
@@ -717,34 +1169,34 @@ function showResult(
                 : "error"
         );
 
+
     result.style.display =
         "block";
 
 }
 
 
-/*
- * ENTER KEY
- */
+/* ============================================================
+   ENTER KEY
+============================================================ */
 
-document
-    .getElementById("externalId")
-    .addEventListener(
-        "keydown",
-        event => {
+externalIdInput.addEventListener(
+    "keydown",
+    event => {
 
-            if (
-                event.key === "Enter"
-            ) {
+        if (
+            event.key ===
+            "Enter"
+        ) {
 
-                event.preventDefault();
+            event.preventDefault();
 
-                sendBtn.click();
-
-            }
+            checkUserBtn.click();
 
         }
-    );
+
+    }
+);
 
 </script>
 
