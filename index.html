@@ -587,11 +587,12 @@
                     <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
                         <div>
                             <h4 class="font-bold text-white text-sm">${t.name}</h4>
-                            <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Status: <b>${t.status || 'upcoming'}</b></span>
+                            <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Status: <b>${t.status || 'upcoming'}</b>${t.resultPublished ? ' | <b class="text-emerald-400">RESULT PUBLISHED</b>' : ''}</span>
                             <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Players/Slot Size: <b>${t.slotSize || 1}</b> | Map: ${t.map || 'Bermuda'} | Fee: ৳${t.entryFee || 0}</span>
                         </div>
                         <div class="flex space-x-2 items-center">
                             <button onclick="openRegistrationsModal('${t.id}', '${t.name}')" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="View Registrations"><i class="fa-solid fa-users mr-1"></i> Regs</button>
+                            <button onclick="openResultModal('${t.id}', '${t.name}')" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="Tournament Result"><i class="fa-solid fa-trophy mr-1"></i> Result</button>
                             <button onclick="openRoomDetailsModal('${t.id}')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="Update Room Details"><i class="fa-solid fa-key mr-1"></i> Room</button>
                             <button onclick="editTournament('${t.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg" title="Edit"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteDocItem('tournaments', '${t.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg" title="Delete"><i class="fa-solid fa-trash"></i></button>
@@ -702,7 +703,107 @@
         window.editTournament = function(id) {
             const t = allTournaments.find(item => item.id === id);
             if(t) openTournamentModal(t);
-        }
+        }\n\n        // Tournament Result + Auto Prize Payout System
+        // Publish করলে selected winner-এর wallet-এ একবারই payout যাবে।
+        // Team/Duo/Squad-এর registered slot count অনুযায়ী base prize multiplier হবে।
+        window.openResultModal = async function(tournamentId, matchName) {
+            const modal = document.getElementById('generic-modal');
+            const body = document.getElementById('modal-body');
+            document.getElementById('modal-title').innerText = 'Result: ' + matchName;
+            modal.style.display = 'flex';
+            body.innerHTML = '<p class="text-center text-slate-400 py-6">Result লোড হচ্ছে...</p>';
+            try {
+                const snap = await getDoc(doc(db, 'tournaments', tournamentId));
+                if(!snap.exists()) throw new Error('Tournament পাওয়া যায়নি।');
+                const data = snap.data() || {};
+                const participants = Array.isArray(data.participants) ? data.participants : [];
+                const results = Array.isArray(data.results) ? data.results : [];
+                const defaultPrize = Number(data.prize || 0);
+                const perKill = Number(data.perKill || 0);
+                const byUser = new Map(results.map(r => [String(r.userId || r.uid || r.email || r.username || r.userName || r.name || ''), r]));
+
+                let rows = '';
+                if(participants.length) {
+                    rows = participants.map((p,i) => {
+                        const userId = String(p.userId || p.uid || p.id || p.email || p.username || p.userName || '');
+                        const display = p.userName || p.username || p.name || p.email || p.uid || p.userId || ('Player ' + (i+1));
+                        const slotCount = Math.max(1, Number(p.count || p.slotCount || p.slots || 1));
+                        const r = byUser.get(userId) || results[i] || {};
+                        const prize = r.prize ?? defaultPrize;
+                        const winner = r.winner === true || Number(r.position || 0) > 0;
+                        const safe = v => String(v ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                        return `<div class="bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2 result-row" data-user-id="${safe(userId)}" data-slot-count="${slotCount}">
+                            <div class="flex items-center justify-between gap-2 mb-2"><div class="min-w-0"><div class="font-bold text-white text-sm truncate">${safe(display)}</div><div class="text-[10px] text-slate-500 break-all">UID: ${safe(userId || 'No user ID')}</div></div><span class="text-[10px] text-emerald-400 font-bold">${slotCount} Slot</span></div>
+                            <label class="flex items-center gap-2 text-xs text-amber-300 mb-2"><input type="checkbox" class="result-winner" ${winner ? 'checked' : ''}> Winner / Prize পাবে</label>
+                            <input type="hidden" class="result-user-name" value="${safe(display)}">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><input type="number" min="1" class="result-position w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Position" value="${r.position ?? ''}"><input type="number" min="0" class="result-kills w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Kills" value="${r.kills ?? ''}"><input type="number" min="0" class="result-points w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Points" value="${r.points ?? ''}"><input type="number" min="0" class="result-prize w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Prize / Slot ৳" value="${prize || ''}"></div>
+                            <div class="text-[10px] text-slate-500 mt-2">Payout = Prize × ${slotCount} slot + Kill Bonus (${perKill || 0} × kills)</div>
+                        </div>`;
+                    }).join('');
+                } else if(results.length) {
+                    rows = results.map((r,i)=>{
+                        const userId=String(r.userId||r.uid||''); const name=r.userName||r.username||r.name||r.email||('Player '+(i+1)); const slotCount=Math.max(1,Number(r.slotCount||r.count||1)); const prize=r.prize??defaultPrize; const winner=r.winner===true||Number(r.position||0)>0;
+                        return `<div class="bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2 result-row" data-user-id="${String(userId).replace(/"/g,'&quot;')}" data-slot-count="${slotCount}"><div class="font-bold text-white text-sm mb-2">${name} <span class="text-[10px] text-emerald-400">${slotCount} Slot</span></div><label class="flex items-center gap-2 text-xs text-amber-300 mb-2"><input type="checkbox" class="result-winner" ${winner?'checked':''}> Winner / Prize পাবে</label><input type="hidden" class="result-user-name" value="${String(name).replace(/"/g,'&quot;')}"><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><input type="number" min="1" class="result-position w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Position" value="${r.position??''}"><input type="number" min="0" class="result-kills w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Kills" value="${r.kills??''}"><input type="number" min="0" class="result-points w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Points" value="${r.points??''}"><input type="number" min="0" class="result-prize w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Prize / Slot ৳" value="${prize||''}"></div></div>`;
+                    }).join('');
+                } else {
+                    rows='<div class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 text-sm text-slate-400">কোনো registered player পাওয়া যায়নি। নিচের Add Player দিয়ে result যোগ করতে পারবেন।</div>';
+                }
+
+                body.innerHTML = `<input type="hidden" id="result-tour-id" value="${tournamentId}"><div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-3 text-xs text-amber-200">Tournament Prize: <b>৳${defaultPrize}</b> | Kill Price: <b>৳${perKill}</b><br><span class="text-slate-300">Winner select করলে Publish-এর সময় Prize × registered slot এবং থাকলে Kill Price × kills wallet-এ যাবে।</span></div><div class="flex items-center justify-between gap-2 mb-3"><div class="text-xs text-slate-400">Registered players: <b class="text-white">${participants.length}</b></div><label class="flex items-center gap-2 text-xs text-slate-300"><input id="result-published" type="checkbox" ${data.resultPublished ? 'checked' : ''}> Publish Result & Pay</label></div><div id="result-rows" class="max-h-[55vh] overflow-y-auto pr-1">${rows}</div><button onclick="addResultPlayerRow()" class="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-bold"><i class="fa-solid fa-plus mr-1"></i>Add Player Result</button><button onclick="saveTournamentResults()" class="w-full mt-2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl font-black"><i class="fa-solid fa-trophy mr-1"></i>Save / Publish Result</button>`;
+            } catch(e) { body.innerHTML = `<p class="text-rose-400 text-sm">${e.message || 'Result load failed'}</p>`; }
+        };
+
+        window.addResultPlayerRow = function() {
+            const box=document.getElementById('result-rows'); if(!box)return;
+            const wrap=document.createElement('div'); wrap.className='bg-[#050811] border border-slate-800 rounded-xl p-3 mb-2 result-row'; wrap.setAttribute('data-user-id',''); wrap.setAttribute('data-slot-count','1');
+            wrap.innerHTML=`<div class="flex justify-between gap-2 mb-2"><input class="result-user-name flex-1 bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Player name / username"><input class="result-user-id w-32 bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="User ID"></div><div class="flex items-center gap-2 text-xs text-amber-300 mb-2"><input type="checkbox" class="result-winner"> Winner / Prize পাবে <span class="text-slate-500">(manual player = 1 slot)</span></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><input type="number" min="1" class="result-position w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Position"><input type="number" min="0" class="result-kills w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Kills"><input type="number" min="0" class="result-points w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Points"><input type="number" min="0" class="result-prize w-full bg-black border border-slate-800 rounded-lg p-2 text-white text-sm" placeholder="Prize / Slot ৳"></div>`; box.appendChild(wrap);
+        };
+
+        window.saveTournamentResults = async function() {
+            const tournamentId=document.getElementById('result-tour-id')?.value; if(!tournamentId)return;
+            const published=!!document.getElementById('result-published')?.checked;
+            try {
+                const tourRef=doc(db,'tournaments',tournamentId);
+                const tourSnap=await getDoc(tourRef); if(!tourSnap.exists()) throw new Error('Tournament পাওয়া যায়নি।');
+                const tournament=tourSnap.data()||{};
+                const defaultPrize=Number(tournament.prize||0);
+                const perKill=Number(tournament.perKill||0);
+                const results=[...document.querySelectorAll('#result-rows .result-row')].map(row=>{
+                    const nameEl=row.querySelector('.result-user-name'), idEl=row.querySelector('.result-user-id');
+                    const userId=row.getAttribute('data-user-id')||idEl?.value?.trim()||'', userName=nameEl?.value?.trim()||'';
+                    const slotCount=Math.max(1,Number(row.getAttribute('data-slot-count')||1));
+                    const winner=!!row.querySelector('.result-winner')?.checked;
+                    const kills=Math.max(0,Number(row.querySelector('.result-kills')?.value||0));
+                    const prize=Number(row.querySelector('.result-prize')?.value||defaultPrize||0);
+                    const position=Math.max(0,Number(row.querySelector('.result-position')?.value||0));
+                    const points=Math.max(0,Number(row.querySelector('.result-points')?.value||0));
+                    return {userId,uid:userId,userName,username:userName,slotCount,winner,position,kills,points,prize};
+                }).filter(r=>r.userName||r.userId||r.position||r.kills||r.points||r.prize||r.winner);
+
+                if(published) {
+                    const winners=results.filter(r=>r.winner && r.userId && r.prize>0);
+                    for(const r of winners) {
+                        const payoutAmount=(Number(r.prize)||0)*Math.max(1,Number(r.slotCount)||1) + (perKill>0 ? (Number(r.kills)||0)*perKill : 0);
+                        if(payoutAmount<=0) continue;
+                        const safeUser=encodeURIComponent(String(r.userId)).replace(/%/g,'_');
+                        const payoutRef=doc(db,'tournamentPayouts',`${tournamentId}_${safeUser}_${Number(r.position)||0}`);
+                        const userRef=doc(db,'users',String(r.userId));
+                        await runTransaction(db,async(transaction)=>{
+                            const payoutSnap=await transaction.get(payoutRef);
+                            if(payoutSnap.exists()) return;
+                            const userSnap=await transaction.get(userRef);
+                            if(!userSnap.exists()) throw new Error(`Winner user পাওয়া যায়নি: ${r.userName || r.userId}`);
+                            const currentBalance=Number(userSnap.data().balance||0);
+                            transaction.update(userRef,{balance:currentBalance+payoutAmount});
+                            transaction.set(payoutRef,{tournamentId,userId:r.userId,userName:r.userName,position:r.position||0,kills:r.kills||0,slotCount:r.slotCount||1,prizePerSlot:r.prize||0,killPrice:perKill,killBonus:(r.kills||0)*perKill,amount:payoutAmount,createdAt:Date.now(),type:'tournament_prize'});
+                        });
+                    }
+                }
+
+                await updateDoc(tourRef,{results,resultPublished:published,resultUpdatedAt:Date.now(),...(published?{status:'completed',completedAt:Date.now(),payoutProcessedAt:Date.now()}: {})});
+                showToast(published?'Result publish + winner payout complete!':'Result save হয়েছে!'); closeGenericModal(); await loadAllAdminData();
+            } catch(e) { showToast(e.message||'Result save/payout failed','error'); console.error(e); }
+        };
 
         window.saveTournament = async function() {
             const id = document.getElementById('tour-id').value;
