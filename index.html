@@ -1480,71 +1480,74 @@
         };
 
         window.openGatewayModal = async function() {
-            document.getElementById('modal-title').innerText = "Deposit Numbers Setup";
+            document.getElementById('modal-title').innerText = "Edit Deposit Numbers";
             document.getElementById('generic-modal').style.display = 'flex';
             document.getElementById('modal-body').innerHTML = `
                 <div class="space-y-3">
-                    <p class="text-[11px] text-slate-400">এখানে শুধু existing deposit method-এর number edit করা যাবে।</p>
-                    <div id="gateway-list-container" class="space-y-2">লোড হচ্ছে...</div>
-                </div>
-            `;
-            loadGatewaySettings();
+                    <p class="text-[11px] text-slate-400">এখান থেকে bKash ও Nagad—দুইটি deposit number-ই edit করতে পারবেন।</p>
+                    <div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 space-y-2">
+                        <label class="block text-xs font-bold text-pink-400">bKash Number</label>
+                        <input id="edit-bkash-number" type="text" inputmode="numeric" autocomplete="off"
+                            class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-white text-sm"
+                            placeholder="01XXXXXXXXX">
+                        <label class="block text-xs font-bold text-orange-400 pt-2">Nagad Number</label>
+                        <input id="edit-nagad-number" type="text" inputmode="numeric" autocomplete="off"
+                            class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-white text-sm"
+                            placeholder="01XXXXXXXXX">
+                        <button type="button" onclick="saveDepositNumbers()"
+                            class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-3 rounded-xl text-sm">Save Deposit Numbers</button>
+                    </div>
+                    <p id="deposit-number-status" class="text-[11px] text-slate-400">Firebase থেকে বর্তমান number লোড হচ্ছে...</p>
+                </div>`;
+            await loadDepositNumbers();
         };
 
-        const rsAdminEsc = (v) => String(v ?? '').replace(/[&<>"']/g, m => ({
-            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-        }[m]));
-
-        window.loadGatewaySettings = async function() {
+        window.loadDepositNumbers = async function() {
+            const status = document.getElementById('deposit-number-status');
             try {
-                const snap = await getDocs(collection(db, "paymentMethods"));
-                const container = document.getElementById('gateway-list-container');
-                if(!container) return;
-                if(snap.empty) {
-                    container.innerHTML = `<p class="text-slate-500 text-xs">কোনো payment method পাওয়া যায়নি।</p>`;
-                    return;
-                }
-
-                let html = '';
-                snap.forEach(d => {
-                    const item = d.data() || {};
-                    const name = rsAdminEsc(item.name || d.id);
-                    const number = rsAdminEsc(item.number || '');
-                    html += `
-                        <div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
-                            <div class="flex items-center justify-between gap-2 mb-2">
-                                <b class="text-white">${name}</b>
-                            </div>
-                            <div class="flex gap-2">
-                                <input id="gateway-number-${rsAdminEsc(d.id)}"
-                                    type="text"
-                                    value="${number}"
-                                    class="flex-1 bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white text-xs"
-                                    placeholder="Account Number">
-                                <button onclick="saveGatewayNumber('${rsAdminEsc(d.id)}')"
-                                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 rounded-xl text-xs">
-                                    Save
-                                </button>
-                            </div>
-                        </div>`;
-                });
-                container.innerHTML = html;
-            } catch(e) {
-                const c = document.getElementById('gateway-list-container');
-                if(c) c.innerHTML = `<p class="text-rose-400 text-xs">লোড করতে সমস্যা হয়েছে</p>`;
+                const snap = await getDoc(doc(db, 'settings', 'payment'));
+                const data = snap.exists() ? (snap.data() || {}) : {};
+                const bkash = data.bkashNumber || data.bkash || '';
+                const nagad = data.nagadNumber || data.nagad || '';
+                const b = document.getElementById('edit-bkash-number');
+                const n = document.getElementById('edit-nagad-number');
+                if (b) b.value = typeof data.bkash === 'object' ? (data.bkash.number || bkash) : bkash;
+                if (n) n.value = typeof data.nagad === 'object' ? (data.nagad.number || nagad) : nagad;
+                if (status) status.textContent = 'বর্তমান payment number লোড হয়েছে।';
+            } catch (e) {
+                console.error('Deposit numbers load failed:', e);
+                if (status) status.textContent = 'Number লোড হয়নি: ' + (e.message || e);
+                showToast('Deposit number load করতে সমস্যা হয়েছে', 'error');
             }
         };
 
-        window.saveGatewayNumber = async function(id) {
-            const input = document.getElementById(`gateway-number-${id}`);
-            const number = input ? input.value.trim() : '';
-            if(!number) { showToast('Deposit number দিন', 'error'); return; }
+        window.saveDepositNumbers = async function() {
+            const b = document.getElementById('edit-bkash-number');
+            const n = document.getElementById('edit-nagad-number');
+            const bkashNumber = b ? b.value.trim() : '';
+            const nagadNumber = n ? n.value.trim() : '';
+            if (!bkashNumber && !nagadNumber) {
+                showToast('কমপক্ষে একটি payment number দিন', 'error');
+                return;
+            }
+            const button = document.querySelector('#modal-body button[onclick="saveDepositNumbers()"]');
+            if (button) { button.disabled = true; button.textContent = 'Saving...'; }
             try {
-                await updateDoc(doc(db, "paymentMethods", id), { number, updatedAt: Date.now() });
-                showToast('Deposit number update হয়েছে!');
-                loadGatewaySettings();
-            } catch(e) {
-                showToast('Number update করতে সমস্যা হয়েছে', 'error');
+                await setDoc(doc(db, 'settings', 'payment'), {
+                    bkashNumber,
+                    nagadNumber,
+                    bkash: bkashNumber,
+                    nagad: nagadNumber,
+                    updatedAt: Date.now()
+                }, { merge: true });
+                showToast('bKash ও Nagad number update হয়েছে!');
+                const status = document.getElementById('deposit-number-status');
+                if (status) status.textContent = 'Saved successfully.';
+            } catch (e) {
+                console.error('Deposit numbers save failed:', e);
+                showToast('Number save করতে সমস্যা হয়েছে: ' + (e.message || e), 'error');
+            } finally {
+                if (button) { button.disabled = false; button.textContent = 'Save Deposit Numbers'; }
             }
         };
 
