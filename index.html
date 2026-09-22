@@ -228,7 +228,6 @@
 
     <script type="module">
         import { auth, db, ADMIN_EMAIL, linkOneSignalUser } from "./firebase.js";
-        import { processReferralReward } from "./referral.js";
         import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, orderBy, limit, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         const auraStorage = getStorage();
@@ -1271,7 +1270,6 @@
 
         window.approveDeposit = async function(id, userId, amount) {
             try {
-                let approvedUid = userId || '';
                 const depRef = doc(db, 'deposits', id);
                 const txRef = doc(db, 'transactions', id);
                 const [depSnapNow, txSnapNow] = await Promise.all([getDoc(depRef), getDoc(txRef)]);
@@ -1287,7 +1285,6 @@
                     if(status !== 'pending') throw new Error(`এই deposit request ইতিমধ্যে ${deposit.status || 'processed'} হয়েছে।`);
 
                     const finalUserId = deposit.userId || deposit.uid || userId || '';
-                    approvedUid = finalUserId;
                     const finalEmail = deposit.userEmail || deposit.email || '';
                     const finalAmount = Number(deposit.amount ?? amount ?? 0);
                     if(!finalAmount || finalAmount <= 0) throw new Error('Invalid deposit amount.');
@@ -1315,13 +1312,17 @@
                     transaction.update(ref,{status:'approved',approvedAt:now,reviewedAt:now});
                 });
 
-                // Issue referral bonus only after the deposit has been successfully approved.
-                if (approvedUid) {
-                    const rewardResult = await processReferralReward(approvedUid);
-                    if (rewardResult.rewarded) showToast('ডিপোজিট অ্যাপ্রুভ হয়েছে। রেফারকারীকে ৳১০ বোনাস দেওয়া হয়েছে!');
-                    else showToast('ডিপোজিট অ্যাপ্রুভ হয়েছে এবং টাকা যোগ হয়েছে!');
-                } else {
-                    showToast('ডিপোজিট অ্যাপ্রুভ হয়েছে এবং টাকা যোগ হয়েছে!');
+                showToast('ডিপোজিট অ্যাপ্রুভ হয়েছে এবং টাকা যোগ হয়েছে!');
+                // Load referral rewards only after the admin panel itself has initialized.
+                // This prevents a missing referral.js file from breaking every admin button.
+                try {
+                    const approvedUid = userId || (sourceSnap.data() || {}).userId || (sourceSnap.data() || {}).uid || '';
+                    if (approvedUid) {
+                        const { processReferralReward } = await import('./referral.js');
+                        await processReferralReward(approvedUid);
+                    }
+                } catch (referralError) {
+                    console.warn('Referral reward processing failed:', referralError);
                 }
                 await loadAllAdminData();
             } catch(e) {
