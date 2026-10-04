@@ -1,1284 +1,1649 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        AURA ARMAN TOUR - Notification Admin
-    </title>
-
-    <style>
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-
-            background:
-                radial-gradient(
-                    circle at top,
-                    #172554,
-                    #020617 55%
-                );
-
-            color: white;
-
-            min-height: 100vh;
-
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 650px;
-            margin: auto;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 22px;
-            object-fit: cover;
-
-            border:
-                2px solid
-                rgba(255,255,255,.15);
-
-            margin-bottom: 12px;
-        }
-
-        .header h1 {
-            font-size: 24px;
-        }
-
-        .header p {
-            color: #94a3b8;
-            margin-top: 6px;
-            font-size: 13px;
-        }
-
-        .card {
-            background:
-                rgba(15,23,42,.88);
-
-            border:
-                1px solid
-                rgba(255,255,255,.08);
-
-            border-radius: 24px;
-
-            padding: 20px;
-
-            box-shadow:
-                0 20px 60px
-                rgba(0,0,0,.35);
-        }
-
-        .group {
-            margin-bottom: 18px;
-        }
-
-        label {
-            display: block;
-
-            font-size: 13px;
-
-            font-weight: bold;
-
-            color: #cbd5e1;
-
-            margin-bottom: 8px;
-        }
-
-        input,
-        textarea {
-            width: 100%;
-
-            border:
-                1px solid
-                #334155;
-
-            background:
-                #020617;
-
-            color: white;
-
-            border-radius: 14px;
-
-            padding: 13px;
-
-            outline: none;
-        }
-
-        input:focus,
-        textarea:focus {
-            border-color:
-                #3b82f6;
-        }
-
-        textarea {
-            min-height: 110px;
-            resize: vertical;
-        }
-
-        .template-select { width:100%; border:1px solid #334155; background:#020617; color:white; border-radius:14px; padding:13px; outline:none; }
-        .template-fields { display:none; }
-        .template-fields.show { display:block; }
-        .template-fields .field { margin-bottom:10px; }
-        .template-fields .field:last-child { margin-bottom:0; }
-
-
-        .targets {
-            display: grid;
-
-            grid-template-columns:
-                1fr 1fr;
-
-            gap: 10px;
-        }
-
-        .target {
-            border:
-                1px solid
-                #334155;
-
-            background:
-                #020617;
-
-            border-radius: 15px;
-
-            padding: 14px;
-
-            cursor: pointer;
-        }
-
-        .target input {
-            width: auto;
-            margin-right: 7px;
-        }
-
-        .target span {
-            font-size: 13px;
-        }
-
-        #specificBox {
-            display: none;
-            margin-top: 12px;
-        }
-
-        .specific-actions {
-            display: grid;
-
-            grid-template-columns:
-                1fr 1fr;
-
-            gap: 8px;
-
-            margin-top: 10px;
-        }
-
-        .check-btn {
-            width: 100%;
-
-            border: none;
-
-            border-radius: 13px;
-
-            padding: 11px;
-
-            font-size: 12px;
-
-            font-weight: bold;
-
-            color: white;
-
-            cursor: pointer;
-
-            background:
-                #334155;
-        }
-
-        .check-btn:hover {
-            background:
-                #475569;
-        }
-
-        .user-status {
-            display: none;
-
-            margin-top: 9px;
-
-            padding: 10px 12px;
-
-            border-radius: 12px;
-
-            font-size: 12px;
-
-            white-space: pre-wrap;
-
-            word-break: break-word;
-        }
-
-        .user-status.success {
-            display: block;
-
-            background:
-                rgba(34,197,94,.12);
-
-            border:
-                1px solid
-                rgba(34,197,94,.3);
-
-            color:
-                #86efac;
-        }
-
-        .user-status.error {
-            display: block;
-
-            background:
-                rgba(239,68,68,.12);
-
-            border:
-                1px solid
-                rgba(239,68,68,.3);
-
-            color:
-                #fca5a5;
-        }
-
-        button {
-            width: 100%;
-
-            border: none;
-
-            border-radius: 15px;
-
-            padding: 15px;
-
-            font-size: 15px;
-
-            font-weight: bold;
-
-            color: white;
-
-            cursor: pointer;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #2563eb,
-                    #7c3aed
-                );
-        }
-
-        button:disabled {
-            opacity: .6;
-            cursor: not-allowed;
-        }
-
-        .result {
-            display: none;
-
-            margin-top: 18px;
-
-            padding: 14px;
-
-            border-radius: 14px;
-
-            white-space: pre-wrap;
-
-            word-break: break-word;
-
-            font-size: 13px;
-        }
-
-        .success {
-            display: block;
-
-            background:
-                rgba(34,197,94,.12);
-
-            border:
-                1px solid
-                rgba(34,197,94,.3);
-
-            color:
-                #86efac;
-        }
-
-        .error {
-            display: block;
-
-            background:
-                rgba(239,68,68,.12);
-
-            border:
-                1px solid
-                rgba(239,68,68,.3);
-
-            color:
-                #fca5a5;
-        }
-
-        .footer {
-            text-align: center;
-
-            color: #64748b;
-
-            font-size: 11px;
-
-            margin-top: 15px;
-        }
-
-        @media (max-width: 500px) {
-
-            .targets {
-                grid-template-columns: 1fr;
-            }
-
-            .specific-actions {
-                grid-template-columns:
-                    1fr;
-            }
-
-        }
-
-    </style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AURA ARMAN TOUR - Notification Center</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --bg:#020617;
+ --card:rgba(15,23,42,.9);
+ --card2:#0f172a;
+ --border:rgba(255,255,255,.09);
+ --text:#f8fafc;
+ --muted:#94a3b8;
+ --blue:#2563eb;
+ --purple:#7c3aed;
+ --green:#22c55e;
+ --red:#ef4444;
+ --yellow:#f59e0b;
+}
+body{
+ font-family:Arial,sans-serif;
+ background:radial-gradient(circle at top,#172554,#020617 55%);
+ color:var(--text);
+ min-height:100vh;
+ padding:15px;
+}
+.container{max-width:850px;margin:auto}
+.header{text-align:center;margin:8px 0 18px}
+.logo{
+ width:72px;height:72px;border-radius:20px;object-fit:cover;
+ border:2px solid rgba(255,255,255,.15);margin-bottom:10px
+}
+.header h1{font-size:23px}
+.header p{font-size:12px;color:var(--muted);margin-top:5px}
+
+.stats{
+ display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px
+}
+.stat{
+ background:rgba(15,23,42,.75);border:1px solid var(--border);
+ border-radius:16px;padding:12px;text-align:center
+}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:10px;color:var(--muted)}
+
+.card{
+ background:var(--card);border:1px solid var(--border);border-radius:22px;
+ padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);margin-bottom:13px
+}
+.section-title{
+ font-size:15px;font-weight:bold;margin-bottom:12px;
+ display:flex;align-items:center;justify-content:space-between
+}
+.group{margin-bottom:16px}
+label{
+ display:block;font-size:12px;font-weight:bold;color:#cbd5e1;margin-bottom:7px
+}
+input,textarea,select{
+ width:100%;border:1px solid #334155;background:#020617;color:white;
+ border-radius:13px;padding:12px;outline:none;font-family:inherit
+}
+input:focus,textarea:focus,select:focus{border-color:#3b82f6}
+textarea{min-height:110px;resize:vertical}
+input[readonly]{opacity:.85}
+
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+button{
+ border:0;border-radius:13px;padding:12px;font-weight:bold;
+ color:white;cursor:pointer;background:linear-gradient(135deg,var(--blue),var(--purple))
+}
+button:disabled{opacity:.55;cursor:not-allowed}
+.btn-secondary{background:#334155}
+.btn-green{background:linear-gradient(135deg,#16a34a,#059669)}
+.btn-red{background:linear-gradient(135deg,#dc2626,#991b1b)}
+.btn-yellow{background:linear-gradient(135deg,#d97706,#b45309)}
+.small-btn{padding:9px 10px;font-size:11px}
+
+.targets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.target{
+ border:1px solid #334155;background:#020617;border-radius:14px;
+ padding:12px;cursor:pointer
+}
+.target input{width:auto;margin-right:6px}
+.target span{font-size:12px}
+
+#specificBox{display:none;margin-top:10px}
+.specific-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+
+.template-top{
+ display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px
+}
+.favorite-btn{
+ width:45px;background:#334155;font-size:19px;padding:8px
+}
+.favorite-btn.active{background:#92400e;color:#facc15}
+
+.template-fields{display:none}
+.template-fields.show{display:block}
+.field{margin-bottom:9px}
+
+.message-tools{
+ display:flex;justify-content:space-between;align-items:center;
+ margin-top:6px;font-size:10px;color:var(--muted)
+}
+
+.preview{
+ background:#000;border-radius:20px;padding:14px;max-width:390px;margin:auto;
+ border:1px solid #1e293b
+}
+.phone-head{
+ display:flex;align-items:center;gap:8px;margin-bottom:10px;
+ color:#94a3b8;font-size:10px
+}
+.phone-head img{width:20px;height:20px;border-radius:6px}
+.notification-preview{
+ background:#1e293b;border-radius:14px;padding:12px
+}
+.preview-top{display:flex;gap:9px}
+.preview-icon{
+ width:38px;height:38px;border-radius:10px;object-fit:cover;background:#334155
+}
+.preview-title{font-size:13px;font-weight:bold}
+.preview-time{font-size:9px;color:#94a3b8;margin-left:5px}
+.preview-msg{
+ font-size:12px;line-height:1.45;color:#cbd5e1;margin-top:5px;
+ white-space:pre-wrap;word-break:break-word
+}
+.preview-image{
+ width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-top:9px;display:none
+}
+
+.status{
+ padding:11px;border-radius:12px;font-size:12px;display:none;margin-top:10px;
+ white-space:pre-wrap;word-break:break-word
+}
+.status.show{display:block}
+.status.success{background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.3)}
+.status.error{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+.status.info{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.3)}
+
+.progress{
+ display:none;margin:12px 0
+}
+.progress.show{display:block}
+.progress-track{height:7px;background:#1e293b;border-radius:99px;overflow:hidden}
+.progress-bar{
+ height:100%;width:0%;border-radius:99px;
+ background:linear-gradient(90deg,#2563eb,#7c3aed);transition:.3s
+}
+.progress-text{font-size:11px;color:#94a3b8;margin-top:6px;text-align:center}
+
+.send-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.mode{
+ padding:11px;border:1px solid #334155;background:#020617;border-radius:12px;
+ text-align:center;cursor:pointer;font-size:12px
+}
+.mode.active{border-color:#3b82f6;background:rgba(37,99,235,.12)}
+
+.schedule-box{display:none;margin-top:10px}
+.schedule-box.show{display:block}
+
+.history-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.history{
+ display:flex;flex-direction:column;gap:8px;max-height:500px;overflow:auto
+}
+.history-item{
+ background:#020617;border:1px solid #1e293b;border-radius:14px;padding:11px
+}
+.history-main{display:flex;justify-content:space-between;gap:8px}
+.history-title{font-size:12px;font-weight:bold}
+.history-meta{font-size:10px;color:#94a3b8;margin-top:4px}
+.history-msg{
+ font-size:11px;color:#cbd5e1;margin-top:7px;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.history-actions{display:flex;gap:5px;margin-top:8px}
+.history-actions button{flex:1;padding:8px;font-size:10px}
+.badge{
+ display:inline-block;padding:4px 7px;border-radius:20px;font-size:9px
+}
+.badge.success{background:rgba(34,197,94,.13);color:#86efac}
+.badge.failed{background:rgba(239,68,68,.13);color:#fca5a5}
+.badge.scheduled{background:rgba(245,158,11,.13);color:#fcd34d}
+
+.empty{text-align:center;color:#64748b;font-size:12px;padding:25px}
+
+.popup{
+ position:fixed;left:50%;bottom:20px;transform:translate(-50%,120px);
+ background:#0f172a;border:1px solid rgba(255,255,255,.12);
+ box-shadow:0 15px 40px rgba(0,0,0,.5);border-radius:16px;
+ padding:13px 17px;min-width:260px;max-width:90%;
+ text-align:center;font-size:12px;z-index:9999;opacity:0;
+ transition:.3s
+}
+.popup.show{transform:translate(-50%,0);opacity:1}
+.popup.success{border-color:rgba(34,197,94,.4)}
+.popup.error{border-color:rgba(239,68,68,.4)}
+
+.footer{text-align:center;color:#475569;font-size:10px;margin:12px}
+
+@media(max-width:600px){
+ body{padding:10px}
+ .card{padding:14px;border-radius:18px}
+ .stats{grid-template-columns:repeat(3,1fr)}
+ .row,.row3{grid-template-columns:1fr}
+ .targets{grid-template-columns:1fr}
+ .template-top{grid-template-columns:1fr auto}
+ .specific-actions{grid-template-columns:1fr 1fr}
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-    <div class="header">
-
-        <img
-            class="logo"
-            src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
-            alt="AURA"
-        >
-
-        <h1>
-            AURA ARMAN TOUR
-        </h1>
-
-        <p>
-            Notification Control Panel
-        </p>
-
-    </div>
-
-
-    <div class="card">
-
-        <div class="group">
-
-            <label>
-                Notification Target
-            </label>
-
-
-            <div class="targets">
-
-                <label class="target">
-
-                    <input
-                        type="radio"
-                        name="target"
-                        value="all"
-                        checked
-                    >
-
-                    <span>
-                        All Users
-                    </span>
-
-                </label>
-
-
-                <label class="target">
-
-                    <input
-                        type="radio"
-                        name="target"
-                        value="specific"
-                    >
-
-                    <span>
-                        Specific User
-                    </span>
-
-                </label>
-
-            </div>
-
-
-            <div id="specificBox">
-
-                <label>
-                    Firebase UID / External ID
-                </label>
-
-
-                <input
-                    id="externalId"
-                    type="text"
-                    placeholder="Enter Firebase UID"
-                    autocomplete="off"
-                >
-
-
-                <div class="specific-actions">
-
-                    <button
-                        type="button"
-                        id="checkUserBtn"
-                        class="check-btn"
-                    >
-                        CHECK USER
-                    </button>
-
-                    <button
-                        type="button"
-                        id="clearUserBtn"
-                        class="check-btn"
-                    >
-                        CLEAR
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="userStatus"
-                    class="user-status"
-                ></div>
-
-            </div>
-
-        </div>
-
-
-        <div class="group">
-
-            <label>
-                Notification Title
-            </label>
-
-            <input id="title" type="text" value="AURA ARMAN TOUR" readonly maxlength="150">
-
-        </div>
-
-        <div class="group">
-            <label>Notification Template</label>
-            <select id="template" class="template-select">
-                <option value="">Select a message template</option>
-                <option value="deposit_approve">📥 ডিপোজিট অনুমোদন</option>
-                <option value="deposit_reject">❌ ডিপোজিট বাতিল</option>
-                <option value="withdraw_approve">📤 উইথড্র অনুমোদন</option>
-                <option value="withdraw_reject">❌ উইথড্র বাতিল</option>
-                <option value="bonus">💰 বোনাস যোগ</option>
-                <option value="reward">🎁 রিওয়ার্ড যোগ</option>
-                <option value="tournament_win">🏆 টুর্নামেন্ট জিতেছেন</option>
-                <option value="match_start">🎮 টুর্নামেন্ট শুরু</option>
-                <option value="new_tournament">📢 নতুন টুর্নামেন্ট</option>
-                <option value="tournament_cancel">⚠️ টুর্নামেন্ট বাতিল</option>
-                <option value="account_update">⚠️ অ্যাকাউন্টে গুরুত্বপূর্ণ আপডেট</option>
-                <option value="congratulations">🎉 অভিনন্দন বার্তা</option>
-                <option value="announcement">📢 সবার জন্য ঘোষণা</option>
-                <option value="new_update">🔥 নতুন আপডেট</option>
-                <option value="urgent">🚨 জরুরি ঘোষণা</option>
-                <option value="offer">🎁 বিশেষ অফার</option>
-                <option value="notice">📣 গুরুত্বপূর্ণ নোটিশ</option>
-                <option value="welcome">👋 স্বাগতম বার্তা</option>
-                <option value="password_changed">🔄 পাসওয়ার্ড পরিবর্তন সফল</option>
-                <option value="account_warning">⚠️ অ্যাকাউন্ট সতর্কতা</option>
-                <option value="birthday">🎂 জন্মদিনের শুভেচ্ছা</option>
-                <option value="match_soon">⏰ ম্যাচ শুরু হতে চলেছে</option>
-                <option value="room_info">📋 রুম ID / Password প্রকাশ</option>
-                <option value="match_suspended">🚫 ম্যাচ স্থগিত</option>
-                <option value="results">📊 রেজাল্ট প্রকাশ</option>
-                <option value="prize_distributed">🏅 পুরস্কার বিতরণ সম্পন্ন</option>
-                <option value="team_update">👥 স্কোয়াড/টিম সংক্রান্ত আপডেট</option>
-                <option value="cashback">💎 ক্যাশব্যাক যোগ</option>
-                <option value="promo_reward">🎁 প্রোমো কোড রিওয়ার্ড</option>
-                <option value="balance_adjustment">💸 ব্যালেন্স সমন্বয়</option>
-                <option value="winning_prize">🪙 জয়ী পুরস্কার যোগ</option>
-                <option value="maintenance">🛠️ সিস্টেম মেইনটেন্যান্স</option>
-                <option value="event">📅 নতুন ইভেন্ট ঘোষণা</option>
-                <option value="campaign">🔥 বিশেষ ক্যাম্পেইন</option>
-                <option value="rules_update">📣 নিয়ম/নীতিমালা আপডেট</option>
-                <option value="special_notice">🌟 বিশেষ নোটিশ</option>
-            </select>
-        </div>
-
-        <div id="templateFields" class="group template-fields"></div>
-
-        <div class="group">
-            <label>Message</label>
-            <textarea id="message" placeholder="Template select করলে message তৈরি হবে..." maxlength="1000"></textarea>
-        </div>
-
-
-        <div class="group">
-
-            <label>
-                Icon URL (Optional)
-            </label>
-
-            <input
-                id="icon"
-                type="url"
-                value="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
-            >
-
-        </div>
-
-
-        <div class="group">
-
-            <label>
-                Big Image URL (Optional)
-            </label>
-
-            <input
-                id="image"
-                type="url"
-                placeholder="https://example.com/image.jpg"
-            >
-
-        </div>
-
-
-        <div class="group">
-
-            <label>
-                Click URL (Optional)
-            </label>
-
-            <input
-                id="url"
-                type="url"
-                value="https://aura-skill-com.onrender.com"
-            >
-
-        </div>
-
-
-        <button id="sendBtn">
-            SEND NOTIFICATION
-        </button>
-
-
-        <div
-            id="result"
-            class="result"
-        ></div>
-
-    </div>
-
-
-    <div class="footer">
-        AURA ARMAN TOUR • Secure Notification System
-    </div>
+<div class="header">
+<img class="logo"
+src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
+alt="AURA">
+<h1>AURA ARMAN TOUR</h1>
+<p>Premium Notification Management Center</p>
+</div>
+
+<div class="stats">
+<div class="stat"><b id="todaySent">0</b><span>Today Sent</span></div>
+<div class="stat"><b id="scheduledCount">0</b><span>Scheduled</span></div>
+<div class="stat"><b id="historyCount">0</b><span>History</span></div>
+</div>
+
+<!-- TARGET -->
+<div class="card">
+<div class="section-title">👥 Notification Target</div>
+
+<div class="targets">
+<label class="target">
+<input type="radio" name="target" value="all" checked>
+<span>All Users</span>
+</label>
+
+<label class="target">
+<input type="radio" name="target" value="specific">
+<span>Specific User</span>
+</label>
+</div>
+
+<div id="specificBox">
+<label>Firebase UID / External ID</label>
+<input id="externalId" type="text" placeholder="Enter Firebase UID" autocomplete="off">
+
+<div class="specific-actions">
+<button type="button" id="checkUserBtn" class="btn-secondary">CHECK USER</button>
+<button type="button" id="clearUserBtn" class="btn-secondary">CLEAR</button>
+</div>
+
+<div id="userStatus" class="status"></div>
+</div>
+</div>
+
+<!-- TEMPLATE -->
+<div class="card">
+<div class="section-title">📝 Notification Template</div>
+
+<div class="template-top">
+<input id="templateSearch" type="search" placeholder="🔍 Search templates...">
+<button id="favoriteBtn" class="favorite-btn" title="Favorite">☆</button>
+</div>
+
+<select id="template"></select>
+
+<div id="templateFields" class="template-fields group"></div>
+</div>
+
+<!-- MESSAGE -->
+<div class="card">
+<div class="section-title">
+<span>✏️ Message</span>
+<button id="resetBtn" class="btn-secondary small-btn">RESET</button>
+</div>
+
+<label>Notification Title</label>
+<input id="title" type="text" value="AURA ARMAN TOUR" readonly maxlength="150">
+
+<div style="height:10px"></div>
+
+<textarea id="message"
+placeholder="Template select করলে message তৈরি হবে..."
+maxlength="1000"></textarea>
+
+<div class="message-tools">
+<span>Custom message edit করা যাবে</span>
+<span><b id="charCount">0</b>/1000</span>
+</div>
+</div>
+
+<!-- TOURNAMENT / MEDIA -->
+<div class="card">
+<div class="section-title">🎮 Notification Details</div>
+
+<div class="row">
+<div class="group">
+<label>Icon URL</label>
+<input id="icon" type="url"
+value="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg">
+</div>
+
+<div class="group">
+<label>Big Image URL</label>
+<input id="image" type="url" placeholder="https://example.com/image.jpg">
+</div>
+</div>
+
+<div class="group">
+<label>Click URL</label>
+<input id="url" type="url" value="https://aura-skill-com.onrender.com">
+</div>
+</div>
+
+<!-- SOUND -->
+<div class="card">
+<div class="section-title">🔊 Notification Sound</div>
+
+<label>Custom Sound URL</label>
+<input id="sound" type="url" placeholder="https://example.com/notification.mp3">
+
+<div class="row" style="margin-top:8px">
+<button id="playSoundBtn" class="btn-secondary">▶ PLAY SOUND</button>
+<button id="clearSoundBtn" class="btn-secondary">CLEAR SOUND</button>
+</div>
+
+<div id="soundStatus" class="status"></div>
+<audio id="soundPlayer" preload="none"></audio>
+</div>
+
+<!-- PREVIEW -->
+<div class="card">
+<div class="section-title">
+<span>👀 Live Notification Preview</span>
+<span style="font-size:10px;color:#64748b">LIVE</span>
+</div>
+
+<div class="preview">
+<div class="phone-head">
+<img id="previewSmallIcon"
+src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg">
+<span>Now • AURA ARMAN TOUR</span>
+</div>
+
+<div class="notification-preview">
+<div class="preview-top">
+<img id="previewIcon" class="preview-icon"
+src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg">
+
+<div style="flex:1">
+<div>
+<span id="previewTitle" class="preview-title">AURA ARMAN TOUR</span>
+<span class="preview-time">now</span>
+</div>
+<div id="previewMessage" class="preview-msg">
+আপনার notification message এখানে দেখা যাবে।
+</div>
+</div>
+</div>
+
+<img id="previewImage" class="preview-image">
+</div>
+</div>
+</div>
+
+<!-- SEND -->
+<div class="card">
+<div class="section-title">📤 Send Notification</div>
+
+<div class="send-mode">
+<div class="mode active" data-mode="now">⚡ Send Now</div>
+<div class="mode" data-mode="schedule">⏰ Schedule</div>
+</div>
+
+<div id="scheduleBox" class="schedule-box">
+<div class="row">
+<div>
+<label>Date</label>
+<input id="scheduleDate" type="date">
+</div>
+<div>
+<label>Time</label>
+<input id="scheduleTime" type="time">
+</div>
+</div>
+</div>
+
+<div class="progress" id="progress">
+<div class="progress-track">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+<div class="progress-text" id="progressText">Preparing...</div>
+</div>
+
+<button id="sendBtn">SEND NOTIFICATION</button>
+<div id="result" class="status"></div>
+</div>
+
+<!-- HISTORY -->
+<div class="card">
+<div class="section-title">
+<span>📋 Recent Notifications</span>
+<button id="clearHistoryBtn" class="btn-red small-btn">CLEAR</button>
+</div>
+
+<div class="history-tools">
+<input id="historySearch" type="search" placeholder="🔍 Search history...">
+<select id="historyFilter">
+<option value="all">All Status</option>
+<option value="success">Success</option>
+<option value="failed">Failed</option>
+<option value="scheduled">Scheduled</option>
+</select>
+</div>
+
+<div id="history" class="history"></div>
+</div>
+
+<div class="footer">
+AURA ARMAN TOUR • Notification Management Center
+</div>
 
 </div>
 
+<div id="popup" class="popup"></div>
 
 <script>
+"use strict";
 
-const targetInputs =
-    document.querySelectorAll(
-        'input[name="target"]'
-    );
+/* =========================================================
+   CONFIG
+========================================================= */
 
+const DEFAULT_ICON =
+"https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg";
 
-const specificBox =
-    document.getElementById(
-        "specificBox"
-    );
+const API_SEND = "/api/notifications/send";
+const API_CHECK = "/api/notifications/check-user";
 
+/* =========================================================
+   ELEMENTS
+========================================================= */
 
-const sendBtn =
-    document.getElementById(
-        "sendBtn"
-    );
+const $ = id => document.getElementById(id);
 
+const targetInputs = document.querySelectorAll('input[name="target"]');
+const specificBox = $("specificBox");
+const externalId = $("externalId");
+const checkUserBtn = $("checkUserBtn");
+const clearUserBtn = $("clearUserBtn");
+const userStatus = $("userStatus");
 
-const result =
-    document.getElementById(
-        "result"
-    );
+const template = $("template");
+const templateSearch = $("templateSearch");
+const templateFields = $("templateFields");
+const favoriteBtn = $("favoriteBtn");
 
+const message = $("message");
+const title = $("title");
+const icon = $("icon");
+const image = $("image");
+const url = $("url");
+const sound = $("sound");
 
-const externalIdInput =
-    document.getElementById(
-        "externalId"
-    );
+const sendBtn = $("sendBtn");
+const result = $("result");
+const progress = $("progress");
+const progressBar = $("progressBar");
+const progressText = $("progressText");
 
+const previewIcon = $("previewIcon");
+const previewSmallIcon = $("previewSmallIcon");
+const previewTitle = $("previewTitle");
+const previewMessage = $("previewMessage");
+const previewImage = $("previewImage");
 
-const checkUserBtn =
-    document.getElementById(
-        "checkUserBtn"
-    );
+const historyBox = $("history");
+const historySearch = $("historySearch");
+const historyFilter = $("historyFilter");
 
+let sendMode = "now";
+let currentTemplate = "";
+let historyData = JSON.parse(localStorage.getItem("aura_notification_history") || "[]");
+let favorites = JSON.parse(localStorage.getItem("aura_notification_favorites") || "[]");
 
-const clearUserBtn =
-    document.getElementById(
-        "clearUserBtn"
-    );
+/* =========================================================
+   TEMPLATE DATA
+========================================================= */
 
-
-const userStatus =
-    document.getElementById(
-        "userStatus"
-    );
-
-const templateSelect = document.getElementById("template");
-const templateFields = document.getElementById("templateFields");
-const messageInput = document.getElementById("message");
-
-const templateConfig = {
-    deposit_approve:{fields:["amount"],msg:a=>`✅ আপনার ৳${a.amount||"0"} ডিপোজিট সফলভাবে অনুমোদন করা হয়েছে। আপনার AURA ARMAN TOUR অ্যাকাউন্টে টাকা যোগ হয়েছে।`},
-    deposit_reject:{fields:["amount","reason"],msg:a=>`❌ আপনার ৳${a.amount||"0"} ডিপোজিটটি বাতিল করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
-    withdraw_approve:{fields:["amount"],msg:a=>`✅ আপনার ৳${a.amount||"0"} উইথড্র সফলভাবে অনুমোদন করা হয়েছে।`},
-    withdraw_reject:{fields:["amount","reason"],msg:a=>`❌ আপনার ৳${a.amount||"0"} উইথড্র অনুরোধটি বাতিল করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
-    bonus:{fields:["amount"],msg:a=>`🎁 আপনার অ্যাকাউন্টে ৳${a.amount||"0"} বোনাস যোগ করা হয়েছে।`},
-    reward:{fields:["reward"],msg:a=>`🎁 অভিনন্দন! আপনি ${a.reward||"বিশেষ রিওয়ার্ড"} পেয়েছেন।`},
-    tournament_win:{fields:["amount"],msg:a=>`🏆 অভিনন্দন! আপনি টুর্নামেন্টে জয়ী হয়েছেন এবং ৳${a.amount||"0"} পুরস্কার পেয়েছেন।`},
-    match_start:{fields:["tournament","time"],msg:a=>`🎮 ${a.tournament||"টুর্নামেন্ট"} শুরু হবে ${a.time||"শীঘ্রই"}। প্রস্তুত থাকুন!`},
-    new_tournament:{fields:["tournament","entry"],msg:a=>`📢 নতুন টুর্নামেন্ট: ${a.tournament||"নতুন টুর্নামেন্ট"}${a.entry?` | Entry Fee: ৳${a.entry}`:""}। এখনই রেজিস্ট্রেশন করুন!`},
-    tournament_cancel:{fields:["tournament","reason"],msg:a=>`⚠️ ${a.tournament||"টুর্নামেন্ট"} বাতিল করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
-    account_update:{fields:["text"],msg:a=>`⚠️ আপনার অ্যাকাউন্টে গুরুত্বপূর্ণ আপডেট রয়েছে। ${a.text||"দয়া করে অ্যাকাউন্টটি চেক করুন।"}`},
-    congratulations:{fields:["text"],msg:a=>`🎉 অভিনন্দন! ${a.text||"আপনার জন্য একটি বিশেষ শুভেচ্ছা রইল।"}`},
-    announcement:{fields:["text"],msg:a=>`📢 ঘোষণা: ${a.text||"গুরুত্বপূর্ণ ঘোষণা রয়েছে।"}`},
-    new_update:{fields:["text"],msg:a=>`🔥 নতুন আপডেট: ${a.text||"নতুন কিছু এসেছে! অ্যাপটি চেক করুন।"}`},
-    urgent:{fields:["text"],msg:a=>`🚨 জরুরি ঘোষণা: ${a.text||"দয়া করে সর্বশেষ নির্দেশনা অনুসরণ করুন।"}`},
-    offer:{fields:["text"],msg:a=>`🎁 বিশেষ অফার! ${a.text||"আজকের বিশেষ অফারটি মিস করবেন না।"}`},
-    notice:{fields:["text"],msg:a=>`📣 গুরুত্বপূর্ণ নোটিশ: ${a.text||"দয়া করে নোটিশটি দেখে নিন।"}`},
-    welcome:{fields:["name"],msg:a=>`👋 AURA ARMAN TOUR-এ আপনাকে স্বাগতম${a.name?`, ${a.name}`:""}! আমাদের সাথে থাকুন।`},
-    password_changed:{fields:[],msg:()=>`🔄 আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।`},
-    account_warning:{fields:["reason"],msg:a=>`⚠️ আপনার অ্যাকাউন্ট সম্পর্কে সতর্কতা: ${a.reason||"দয়া করে নিয়ম মেনে চলুন।"}`},
-    birthday:{fields:["name"],msg:a=>`🎂 শুভ জন্মদিন${a.name?`, ${a.name}`:""}! AURA ARMAN TOUR-এর পক্ষ থেকে অনেক শুভেচ্ছা।`},
-    match_soon:{fields:["tournament","time"],msg:a=>`⏰ ${a.tournament||"ম্যাচ"} শুরু হতে চলেছে${a.time?` — ${a.time}`:""}। প্রস্তুত থাকুন!`},
-    room_info:{fields:["room","password"],msg:a=>`📋 রুম তথ্য প্রকাশ করা হয়েছে। Room ID: ${a.room||"—"} | Password: ${a.password||"—"}`},
-    match_suspended:{fields:["tournament","reason"],msg:a=>`🚫 ${a.tournament||"ম্যাচ"} স্থগিত করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
-    results:{fields:["tournament"],msg:a=>`📊 ${a.tournament||"টুর্নামেন্ট"}-এর রেজাল্ট প্রকাশ করা হয়েছে। এখনই দেখে নিন!`},
-    prize_distributed:{fields:["amount"],msg:a=>`🏅 পুরস্কার বিতরণ সম্পন্ন হয়েছে। আপনার পুরস্কারের পরিমাণ: ৳${a.amount||"0"}।`},
-    team_update:{fields:["text"],msg:a=>`👥 স্কোয়াড/টিম আপডেট: ${a.text||"আপনার টিম সংক্রান্ত নতুন তথ্য রয়েছে।"}`},
-    cashback:{fields:["amount"],msg:a=>`💎 আপনার অ্যাকাউন্টে ৳${a.amount||"0"} ক্যাশব্যাক যোগ করা হয়েছে।`},
-    promo_reward:{fields:["amount","code"],msg:a=>`🎁 প্রোমো রিওয়ার্ড!${a.amount?` ৳${a.amount}`:""}${a.code?` | Code: ${a.code}`:""}`},
-    balance_adjustment:{fields:["amount","reason"],msg:a=>`💸 আপনার ব্যালেন্সে ৳${a.amount||"0"} সমন্বয় করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
-    winning_prize:{fields:["amount"],msg:a=>`🪙 অভিনন্দন! আপনার জয়ী পুরস্কার ৳${a.amount||"0"} ব্যালেন্সে যোগ করা হয়েছে।`},
-    maintenance:{fields:["time","text"],msg:a=>`🛠️ সিস্টেম মেইনটেন্যান্স: ${a.time?`সময়: ${a.time}। `:""}${a.text||"সাময়িকভাবে কিছু সেবা বন্ধ থাকতে পারে।"}`},
-    event:{fields:["event","date"],msg:a=>`📅 নতুন ইভেন্ট: ${a.event||"বিশেষ ইভেন্ট"}${a.date?` | তারিখ: ${a.date}`:""}।`},
-    campaign:{fields:["campaign"],msg:a=>`🔥 বিশেষ ক্যাম্পেইন: ${a.campaign||"নতুন ক্যাম্পেইন"}। অংশ নিতে এখনই অ্যাপে আসুন!`},
-    rules_update:{fields:["text"],msg:a=>`📣 নিয়ম/নীতিমালা আপডেট: ${a.text||"নতুন নিয়ম প্রকাশ করা হয়েছে।"}`},
-    special_notice:{fields:["text"],msg:a=>`🌟 বিশেষ নোটিশ: ${a.text||"আপনার জন্য একটি গুরুত্বপূর্ণ বার্তা রয়েছে।"}`}
+const templates = {
+deposit_approve:{
+ name:"📥 ডিপোজিট অনুমোদন", fields:["amount","name"],
+ msg:a=>`✅ প্রিয় ${a.name||"{name}"}, আপনার ${money(a.amount||"0")} ডিপোজিট সফলভাবে অনুমোদন করা হয়েছে। আপনার AURA ARMAN TOUR অ্যাকাউন্টে টাকা যোগ হয়েছে।`
+},
+deposit_reject:{
+ name:"❌ ডিপোজিট বাতিল", fields:["amount","reason","name"],
+ msg:a=>`❌ প্রিয় ${a.name||"{name}"}, আপনার ${money(a.amount||"0")} ডিপোজিটটি বাতিল করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`
+},
+withdraw_approve:{
+ name:"📤 উইথড্র অনুমোদন", fields:["amount","name"],
+ msg:a=>`✅ প্রিয় ${a.name||"{name}"}, আপনার ${money(a.amount||"0")} উইথড্র সফলভাবে অনুমোদন করা হয়েছে।`
+},
+withdraw_reject:{
+ name:"❌ উইথড্র বাতিল", fields:["amount","reason","name"],
+ msg:a=>`❌ প্রিয় ${a.name||"{name}"}, আপনার ${money(a.amount||"0")} উইথড্র অনুরোধটি বাতিল করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`
+},
+bonus:{
+ name:"💰 বোনাস যোগ", fields:["amount","name"],
+ msg:a=>`🎁 প্রিয় ${a.name||"{name}"}, আপনার অ্যাকাউন্টে ${money(a.amount||"0")} বোনাস যোগ করা হয়েছে।`
+},
+reward:{
+ name:"🎁 রিওয়ার্ড যোগ", fields:["reward","name"],
+ msg:a=>`🎁 অভিনন্দন ${a.name||"{name}"}! আপনি ${a.reward||"বিশেষ রিওয়ার্ড"} পেয়েছেন।`
+},
+tournament_win:{
+ name:"🏆 টুর্নামেন্ট জিতেছেন", fields:["amount","tournament","name"],
+ msg:a=>`🏆 অভিনন্দন ${a.name||"{name}"}! আপনি ${a.tournament||"টুর্নামেন্ট"}-এ জয়ী হয়েছেন এবং ${money(a.amount||"0")} পুরস্কার পেয়েছেন।`
+},
+match_start:{
+ name:"🎮 টুর্নামেন্ট শুরু", fields:["tournament","time"],
+ msg:a=>`🎮 ${a.tournament||"টুর্নামেন্ট"} শুরু হবে ${a.time||"শীঘ্রই"}। প্রস্তুত থাকুন!`
+},
+new_tournament:{
+ name:"📢 নতুন টুর্নামেন্ট", fields:["tournament","entry","prize","time"],
+ msg:a=>`📢 নতুন টুর্নামেন্ট: ${a.tournament||"নতুন টুর্নামেন্ট"} | Entry Fee: ${a.entry?money(a.entry):"Free"}${a.prize?` | Prize: ${money(a.prize)}`:""}${a.time?` | Time: ${a.time}`:""}। এখনই রেজিস্ট্রেশন করুন!`
+},
+tournament_cancel:{
+ name:"⚠️ টুর্নামেন্ট বাতিল", fields:["tournament","reason"],
+ msg:a=>`⚠️ ${a.tournament||"টুর্নামেন্ট"} বাতিল করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`
+},
+account_update:{
+ name:"⚠️ অ্যাকাউন্ট আপডেট", fields:["text","name"],
+ msg:a=>`⚠️ প্রিয় ${a.name||"{name}"}, আপনার অ্যাকাউন্টে গুরুত্বপূর্ণ আপডেট রয়েছে। ${a.text||"দয়া করে অ্যাকাউন্টটি চেক করুন।"}`
+},
+congratulations:{
+ name:"🎉 অভিনন্দন", fields:["text","name"],
+ msg:a=>`🎉 অভিনন্দন ${a.name||"{name}"}! ${a.text||"আপনার জন্য একটি বিশেষ শুভেচ্ছা রইল।"}`
+},
+announcement:{
+ name:"📢 সবার জন্য ঘোষণা", fields:["text"],
+ msg:a=>`📢 ঘোষণা: ${a.text||"গুরুত্বপূর্ণ ঘোষণা রয়েছে।"}`
+},
+new_update:{
+ name:"🔥 নতুন আপডেট", fields:["text"],
+ msg:a=>`🔥 নতুন আপডেট: ${a.text||"নতুন কিছু এসেছে! অ্যাপটি চেক করুন।"}`
+},
+urgent:{
+ name:"🚨 জরুরি ঘোষণা", fields:["text"],
+ msg:a=>`🚨 জরুরি ঘোষণা: ${a.text||"দয়া করে সর্বশেষ নির্দেশনা অনুসরণ করুন।"}`
+},
+offer:{
+ name:"🎁 বিশেষ অফার", fields:["text"],
+ msg:a=>`🎁 বিশেষ অফার! ${a.text||"আজকের বিশেষ অফারটি মিস করবেন না।"}`
+},
+notice:{
+ name:"📣 গুরুত্বপূর্ণ নোটিশ", fields:["text"],
+ msg:a=>`📣 গুরুত্বপূর্ণ নোটিশ: ${a.text||"দয়া করে নোটিশটি দেখে নিন।"}`
+},
+welcome:{
+ name:"👋 স্বাগতম বার্তা", fields:["name"],
+ msg:a=>`👋 AURA ARMAN TOUR-এ আপনাকে স্বাগতম${a.name?`, ${a.name}`:""}! আমাদের সাথে থাকুন।`
+},
+password_changed:{
+ name:"🔄 পাসওয়ার্ড পরিবর্তন", fields:[],
+ msg:()=>`🔄 আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।`
+},
+account_warning:{
+ name:"⚠️ অ্যাকাউন্ট সতর্কতা", fields:["reason","name"],
+ msg:a=>`⚠️ ${a.name||"{name}"}, আপনার অ্যাকাউন্ট সম্পর্কে সতর্কতা: ${a.reason||"দয়া করে নিয়ম মেনে চলুন।"}`
+},
+birthday:{
+ name:"🎂 জন্মদিনের শুভেচ্ছা", fields:["name"],
+ msg:a=>`🎂 শুভ জন্মদিন${a.name?`, ${a.name}`:""}! AURA ARMAN TOUR-এর পক্ষ থেকে অনেক শুভেচ্ছা।`
+},
+match_soon:{
+ name:"⏰ ম্যাচ শুরু হতে চলেছে", fields:["tournament","time"],
+ msg:a=>`⏰ ${a.tournament||"ম্যাচ"} শুরু হতে চলেছে${a.time?` — ${a.time}`:""}। প্রস্তুত থাকুন!`
+},
+room_info:{
+ name:"📋 রুম ID / Password", fields:["tournament","room","password"],
+ msg:a=>`📋 ${a.tournament||"ম্যাচ"}-এর রুম তথ্য প্রকাশ করা হয়েছে। Room ID: ${a.room||"—"} | Password: ${a.password||"—"}`
+},
+match_suspended:{
+ name:"🚫 ম্যাচ স্থগিত", fields:["tournament","reason"],
+ msg:a=>`🚫 ${a.tournament||"ম্যাচ"} স্থগিত করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`
+},
+results:{
+ name:"📊 রেজাল্ট প্রকাশ", fields:["tournament"],
+ msg:a=>`📊 ${a.tournament||"টুর্নামেন্ট"}-এর রেজাল্ট প্রকাশ করা হয়েছে। এখনই দেখে নিন!`
+},
+prize_distributed:{
+ name:"🏅 পুরস্কার বিতরণ", fields:["amount","name"],
+ msg:a=>`🏅 পুরস্কার বিতরণ সম্পন্ন হয়েছে। ${a.name||"{name}"}, আপনার পুরস্কারের পরিমাণ: ${money(a.amount||"0")}।`
+},
+team_update:{
+ name:"👥 স্কোয়াড/টিম আপডেট", fields:["text"],
+ msg:a=>`👥 স্কোয়াড/টিম আপডেট: ${a.text||"আপনার টিম সংক্রান্ত নতুন তথ্য রয়েছে।"}`
+},
+cashback:{
+ name:"💎 ক্যাশব্যাক যোগ", fields:["amount","name"],
+ msg:a=>`💎 প্রিয় ${a.name||"{name}"}, আপনার অ্যাকাউন্টে ${money(a.amount||"0")} ক্যাশব্যাক যোগ করা হয়েছে।`
+},
+promo_reward:{
+ name:"🎁 প্রোমো কোড রিওয়ার্ড", fields:["amount","code","name"],
+ msg:a=>`🎁 ${a.name||"{name}"}, প্রোমো রিওয়ার্ড!${a.amount?` ${money(a.amount)}`:""}${a.code?` | Code: ${a.code}`:""}`
+},
+balance_adjustment:{
+ name:"💸 ব্যালেন্স সমন্বয়", fields:["amount","reason","name"],
+ msg:a=>`💸 ${a.name||"{name}"}, আপনার ব্যালেন্সে ${money(a.amount||"0")} সমন্বয় করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`
+},
+winning_prize:{
+ name:"🪙 জয়ী পুরস্কার", fields:["amount","name"],
+ msg:a=>`🪙 অভিনন্দন ${a.name||"{name}"}! আপনার জয়ী পুরস্কার ${money(a.amount||"0")} ব্যালেন্সে যোগ করা হয়েছে।`
+},
+maintenance:{
+ name:"🛠️ সিস্টেম মেইনটেন্যান্স", fields:["time","text"],
+ msg:a=>`🛠️ সিস্টেম মেইনটেন্যান্স: ${a.time?`সময়: ${a.time}। `:""}${a.text||"সাময়িকভাবে কিছু সেবা বন্ধ থাকতে পারে।"}`
+},
+event:{
+ name:"📅 নতুন ইভেন্ট", fields:["event","date"],
+ msg:a=>`📅 নতুন ইভেন্ট: ${a.event||"বিশেষ ইভেন্ট"}${a.date?` | তারিখ: ${a.date}`:""}।`
+},
+campaign:{
+ name:"🔥 বিশেষ ক্যাম্পেইন", fields:["campaign"],
+ msg:a=>`🔥 বিশেষ ক্যাম্পেইন: ${a.campaign||"নতুন ক্যাম্পেইন"}। অংশ নিতে এখনই অ্যাপে আসুন!`
+},
+rules_update:{
+ name:"📣 নিয়ম/নীতিমালা আপডেট", fields:["text"],
+ msg:a=>`📣 নিয়ম/নীতিমালা আপডেট: ${a.text||"নতুন নিয়ম প্রকাশ করা হয়েছে।"}`
+},
+special_notice:{
+ name:"🌟 বিশেষ নোটিশ", fields:["text"],
+ msg:a=>`🌟 বিশেষ নোটিশ: ${a.text||"আপনার জন্য একটি গুরুত্বপূর্ণ বার্তা রয়েছে।"}`
+}
 };
 
-const fieldLabels={amount:"Amount (৳)",reason:"কারণ",reward:"Reward",tournament:"Tournament Name",time:"সময়",entry:"Entry Fee (৳)",text:"বার্তা",name:"User Name",room:"Room ID",password:"Room Password",code:"Promo Code",event:"Event Name",date:"তারিখ",campaign:"Campaign Name"};
-function renderTemplateFields(){const key=templateSelect.value,cfg=templateConfig[key];templateFields.innerHTML="";if(!cfg){templateFields.classList.remove("show");return;}templateFields.classList.add("show");cfg.fields.forEach(f=>{const wrap=document.createElement("div");wrap.className="field";wrap.innerHTML=`<label>${fieldLabels[f]||f}</label><input type="text" data-field="${f}" placeholder="${fieldLabels[f]||f}">`;templateFields.appendChild(wrap);});updateTemplateMessage();}
-function updateTemplateMessage(){const key=templateSelect.value,cfg=templateConfig[key];if(!cfg)return;const a={};templateFields.querySelectorAll("[data-field]").forEach(i=>a[i.dataset.field]=i.value.trim());messageInput.value=cfg.msg(a);}
-templateSelect.addEventListener("change",renderTemplateFields);templateFields.addEventListener("input",updateTemplateMessage);
+const labels={
+amount:"Amount (৳)",reason:"কারণ",reward:"Reward",
+tournament:"Tournament Name",time:"Match Time",
+entry:"Entry Fee (৳)",prize:"Prize (৳)",text:"বার্তা",
+name:"User Name",room:"Room ID",password:"Room Password",
+code:"Promo Code",event:"Event Name",date:"তারিখ",
+campaign:"Campaign Name"
+};
 
+/* =========================================================
+   HELPERS
+========================================================= */
 
-
-/* ============================================================
-   TARGET SWITCH
-============================================================ */
-
-targetInputs.forEach(
-    input => {
-
-        input.addEventListener(
-            "change",
-            () => {
-
-                if (
-                    input.checked &&
-                    input.value ===
-                        "specific"
-                ) {
-
-                    specificBox.style.display =
-                        "block";
-
-                } else {
-
-                    specificBox.style.display =
-                        "none";
-
-                    clearUserStatus();
-
-                }
-
-            }
-        );
-
-    }
-);
-
-
-/* ============================================================
-   USER STATUS
-============================================================ */
-
-function clearUserStatus() {
-
-    userStatus.textContent =
-        "";
-
-    userStatus.className =
-        "user-status";
-
+function money(value){
+ let raw=String(value ?? "").replace(/[^\d.]/g,"");
+ if(!raw)return "৳0";
+ let n=Number(raw);
+ if(!Number.isFinite(n))return "৳0";
+ return "৳"+n.toLocaleString("en-US");
 }
 
-
-function showUserStatus(
-    text,
-    success
-) {
-
-    userStatus.textContent =
-        text;
-
-    userStatus.className =
-        "user-status " +
-        (
-            success
-                ? "success"
-                : "error"
-        );
-
+function escapeHTML(value){
+ return String(value ?? "")
+ .replace(/&/g,"&amp;")
+ .replace(/</g,"&lt;")
+ .replace(/>/g,"&gt;")
+ .replace(/"/g,"&quot;")
+ .replace(/'/g,"&#039;");
 }
 
-
-/* ============================================================
-   CHECK USER
-============================================================ */
-
-checkUserBtn.addEventListener(
-    "click",
-    async () => {
-
-        const externalId =
-            externalIdInput
-                .value
-                .trim();
-
-
-        if (!externalId) {
-
-            showUserStatus(
-                "Please enter Firebase UID.",
-                false
-            );
-
-            return;
-
-        }
-
-
-        checkUserBtn.disabled =
-            true;
-
-        checkUserBtn.textContent =
-            "CHECKING...";
-
-
-        try {
-
-            const response =
-                await fetch(
-                    "/api/notifications/check-user",
-                    {
-
-                        method:
-                            "POST",
-
-                        headers: {
-
-                            "Content-Type":
-                                "application/json"
-
-                        },
-
-                        body:
-                            JSON.stringify({
-
-                                externalId
-
-                            })
-
-                    }
-                );
-
-
-            const rawText =
-                await response.text();
-
-
-            let data;
-
-
-            try {
-
-                data =
-                    JSON.parse(
-                        rawText
-                    );
-
-            } catch {
-
-                data = {
-
-                    success: false,
-
-                    error:
-                        rawText ||
-                        "Invalid server response."
-
-                };
-
-            }
-
-
-            if (
-                !response.ok ||
-                !data.success
-            ) {
-
-                throw new Error(
-                    data.error ||
-                    "User not found."
-                );
-
-            }
-
-
-            if (
-                data.subscribed
-            ) {
-
-                showUserStatus(
-
-                    "✅ User is subscribed.\n" +
-                    "Active subscriptions: " +
-                    data.subscriptionCount,
-
-                    true
-
-                );
-
-            } else {
-
-                showUserStatus(
-
-                    "⚠️ User exists in OneSignal, but no active push subscription was found.",
-
-                    false
-
-                );
-
-            }
-
-
-        } catch (error) {
-
-            console.error(
-                "Check user error:",
-                error
-            );
-
-
-            showUserStatus(
-
-                "❌ " +
-                (
-                    error.message ||
-                    "User check failed."
-                ),
-
-                false
-
-            );
-
-        } finally {
-
-            checkUserBtn.disabled =
-                false;
-
-            checkUserBtn.textContent =
-                "CHECK USER";
-
-        }
-
-    }
-);
-
-
-/* ============================================================
-   CLEAR USER
-============================================================ */
-
-clearUserBtn.addEventListener(
-    "click",
-    () => {
-
-        externalIdInput.value =
-            "";
-
-        clearUserStatus();
-
-        externalIdInput.focus();
-
-    }
-);
-
-
-/* ============================================================
-   SEND NOTIFICATION
-============================================================ */
-
-sendBtn.addEventListener(
-    "click",
-    async () => {
-
-        if (sendBtn.disabled) {
-
-            return;
-
-        }
-
-
-        const selectedTarget =
-            document.querySelector(
-                'input[name="target"]:checked'
-            );
-
-
-        const target =
-            selectedTarget
-                ? selectedTarget.value
-                : "all";
-
-
-        const externalId =
-            externalIdInput
-                .value
-                .trim();
-
-
-        const title = "AURA ARMAN TOUR";
-
-
-        const message =
-            document
-                .getElementById("message")
-                .value
-                .trim();
-
-
-        const icon =
-            document
-                .getElementById("icon")
-                .value
-                .trim();
-
-
-        const image =
-            document
-                .getElementById("image")
-                .value
-                .trim();
-
-
-        const url =
-            document
-                .getElementById("url")
-                .value
-                .trim();
-
-
-        /* =====================================================
-           VALIDATION
-        ===================================================== */
-
-        if (!title) {
-
-            showResult(
-                "Please enter notification title.",
-                false
-            );
-
-            return;
-
-        }
-
-
-        if (!message) {
-
-            showResult(
-                "Please enter notification message.",
-                false
-            );
-
-            return;
-
-        }
-
-
-        if (
-            target === "specific" &&
-            !externalId
-        ) {
-
-            showResult(
-                "Please enter Firebase UID / External ID.",
-                false
-            );
-
-            return;
-
-        }
-
-
-        sendBtn.disabled =
-            true;
-
-
-        sendBtn.textContent =
-            "SENDING...";
-
-
-        result.style.display =
-            "none";
-
-
-        try {
-
-            const response =
-                await fetch(
-                    "/api/notifications/send",
-                    {
-
-                        method:
-                            "POST",
-
-                        headers: {
-
-                            "Content-Type":
-                                "application/json"
-
-                        },
-
-                        body:
-                            JSON.stringify({
-
-                                target,
-
-                                externalId,
-
-                                title,
-
-                                message,
-
-                                icon,
-
-                                image,
-
-                                url
-
-                            })
-
-                    }
-                );
-
-
-            const rawText =
-                await response.text();
-
-
-            let data;
-
-
-            try {
-
-                data =
-                    JSON.parse(
-                        rawText
-                    );
-
-            } catch {
-
-                data = {
-
-                    success: false,
-
-                    error:
-                        rawText ||
-                        "Invalid server response."
-
-                };
-
-            }
-
-
-            if (
-                !response.ok ||
-                !data.success
-            ) {
-
-                let errorMessage =
-                    data.error ||
-                    "Notification sending failed.";
-
-
-                if (
-                    data.onesignal &&
-                    Array.isArray(
-                        data.onesignal.errors
-                    )
-                ) {
-
-                    const oneSignalErrors =
-                        data.onesignal.errors.join(
-                            ", "
-                        );
-
-
-                    errorMessage +=
-                        "\n\nOneSignal: " +
-                        oneSignalErrors;
-
-                }
-
-
-                throw new Error(
-                    errorMessage
-                );
-
-            }
-
-
-            showResult(
-
-                "✅ Notification sent successfully!\n\n" +
-
-                JSON.stringify(
-                    data.onesignal ||
-                    data,
-                    null,
-                    2
-                ),
-
-                true
-
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "Notification error:",
-                error
-            );
-
-
-            showResult(
-
-                "❌ Notification failed\n\n" +
-
-                (
-                    error.message ||
-                    "Something went wrong."
-                ),
-
-                false
-
-            );
-
-        } finally {
-
-            sendBtn.disabled =
-                false;
-
-            sendBtn.textContent =
-                "SEND NOTIFICATION";
-
-        }
-
-    }
-);
-
-
-/* ============================================================
-   RESULT
-============================================================ */
-
-function showResult(
-    text,
-    success
-) {
-
-    result.textContent =
-        text;
-
-
-    result.className =
-        "result " +
-        (
-            success
-                ? "success"
-                : "error"
-        );
-
-
-    result.style.display =
-        "block";
-
+function showStatus(el,text,type="info"){
+ el.textContent=text;
+ el.className="status show "+type;
 }
 
+function clearStatus(el){
+ el.textContent="";
+ el.className="status";
+}
 
-/* ============================================================
+function popup(text,type="success"){
+ const p=$("popup");
+ p.textContent=text;
+ p.className="popup show "+type;
+ clearTimeout(p._timer);
+ p._timer=setTimeout(()=>p.className="popup",3000);
+}
+
+function saveHistory(){
+ localStorage.setItem(
+  "aura_notification_history",
+  JSON.stringify(historyData.slice(0,100))
+ );
+}
+
+function saveFavorites(){
+ localStorage.setItem(
+  "aura_notification_favorites",
+  JSON.stringify(favorites)
+ );
+}
+
+function getFormData(){
+ const fields={};
+ templateFields.querySelectorAll("[data-field]").forEach(input=>{
+  fields[input.dataset.field]=input.value.trim();
+ });
+ return fields;
+}
+
+/* =========================================================
+   TEMPLATE RENDER
+========================================================= */
+
+function renderTemplateList(){
+ const search=templateSearch.value.trim().toLowerCase();
+
+ const entries=Object.entries(templates)
+ .filter(([key,cfg])=>{
+  const fav=favorites.includes(key);
+  return !search ||
+   cfg.name.toLowerCase().includes(search) ||
+   key.toLowerCase().includes(search) ||
+   (fav && search==="favorite");
+ })
+ .sort((a,b)=>{
+  const af=favorites.includes(a[0])?0:1;
+  const bf=favorites.includes(b[0])?0:1;
+  return af-bf;
+ });
+
+ const old=currentTemplate || template.value;
+
+ template.innerHTML=
+ `<option value="">Select a message template</option>`+
+ entries.map(([key,cfg])=>
+  `<option value="${escapeHTML(key)}">${escapeHTML(
+   favorites.includes(key)?"⭐ ":""
+  )}${escapeHTML(cfg.name)}</option>`
+ ).join("");
+
+ if(old && templates[old] && entries.some(x=>x[0]===old)){
+  template.value=old;
+ }
+
+ updateFavoriteButton();
+}
+
+function renderTemplateFields(){
+ const key=template.value;
+ currentTemplate=key;
+
+ const cfg=templates[key];
+ templateFields.innerHTML="";
+
+ if(!cfg){
+  templateFields.classList.remove("show");
+  updatePreview();
+  return;
+ }
+
+ templateFields.classList.add("show");
+
+ cfg.fields.forEach(field=>{
+  const wrap=document.createElement("div");
+  wrap.className="field";
+
+  const label=document.createElement("label");
+  label.textContent=labels[field] || field;
+
+  const input=document.createElement("input");
+  input.type="text";
+  input.dataset.field=field;
+  input.placeholder=labels[field] || field;
+
+  if(field==="amount" || field==="entry" || field==="prize"){
+   input.inputMode="decimal";
+  }
+
+  wrap.append(label,input);
+  templateFields.appendChild(wrap);
+ });
+
+ updateTemplateMessage();
+ updateFavoriteButton();
+}
+
+function updateTemplateMessage(){
+ const cfg=templates[template.value];
+ if(!cfg)return;
+
+ const data=getFormData();
+ message.value=cfg.msg(data);
+ updatePreview();
+}
+
+function updateFavoriteButton(){
+ const key=template.value;
+ favoriteBtn.textContent=
+  key && favorites.includes(key) ? "★" : "☆";
+
+ favoriteBtn.classList.toggle(
+  "active",
+  key && favorites.includes(key)
+ );
+}
+
+template.addEventListener("change",renderTemplateFields);
+
+templateSearch.addEventListener("input",()=>{
+ renderTemplateList();
+});
+
+favoriteBtn.addEventListener("click",()=>{
+ const key=template.value;
+ if(!key)return popup("আগে একটি template select করুন.","error");
+
+ if(favorites.includes(key)){
+  favorites=favorites.filter(x=>x!==key);
+  popup("Favorite থেকে remove হয়েছে.");
+ }else{
+  favorites.unshift(key);
+  popup("⭐ Favorite করা হয়েছে.");
+ }
+
+ saveFavorites();
+ renderTemplateList();
+ template.value=key;
+ updateFavoriteButton();
+});
+
+/* =========================================================
+   TEMPLATE FIELD INPUT
+========================================================= */
+
+templateFields.addEventListener("input",e=>{
+ if(e.target.matches("[data-field]")){
+  const field=e.target.dataset.field;
+
+  if(["amount","entry","prize"].includes(field)){
+   const cursor=e.target.selectionStart;
+   e.target.value=e.target.value.replace(/[^\d.]/g,"");
+   try{e.target.setSelectionRange(cursor,cursor)}catch{}
+  }
+
+  updateTemplateMessage();
+ }
+});
+
+/* =========================================================
+   MESSAGE EDIT + PREVIEW
+========================================================= */
+
+message.addEventListener("input",()=>{
+ $("charCount").textContent=message.value.length;
+ updatePreview();
+ saveDraft();
+});
+
+function updatePreview(){
+ previewTitle.textContent="AURA ARMAN TOUR";
+ previewMessage.textContent=
+  message.value || "আপনার notification message এখানে দেখা যাবে।";
+
+ const iconURL=icon.value.trim() || DEFAULT_ICON;
+
+ previewIcon.src=iconURL;
+ previewSmallIcon.src=iconURL;
+
+ previewIcon.onerror=()=>previewIcon.src=DEFAULT_ICON;
+ previewSmallIcon.onerror=()=>previewSmallIcon.src=DEFAULT_ICON;
+
+ const img=image.value.trim();
+
+ if(img){
+  previewImage.src=img;
+  previewImage.style.display="block";
+  previewImage.onerror=()=>previewImage.style.display="none";
+ }else{
+  previewImage.style.display="none";
+ }
+}
+
+[icon,image].forEach(el=>{
+ el.addEventListener("input",()=>{
+  updatePreview();
+  saveDraft();
+ });
+});
+
+/* =========================================================
+   TARGET
+========================================================= */
+
+targetInputs.forEach(input=>{
+ input.addEventListener("change",()=>{
+  if(input.checked && input.value==="specific"){
+   specificBox.style.display="block";
+  }else{
+   specificBox.style.display="none";
+   clearStatus(userStatus);
+  }
+ });
+});
+
+/* =========================================================
+   USER CHECK
+========================================================= */
+
+checkUserBtn.addEventListener("click",async()=>{
+ const id=externalId.value.trim();
+
+ if(!id){
+  showStatus(userStatus,"❌ Firebase UID দিন.","error");
+  return;
+ }
+
+ checkUserBtn.disabled=true;
+ checkUserBtn.textContent="CHECKING...";
+
+ try{
+  const response=await fetch(API_CHECK,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({externalId:id})
+  });
+
+  const raw=await response.text();
+  let data;
+
+  try{data=JSON.parse(raw)}
+  catch{data={success:false,error:raw || "Invalid server response."}}
+
+  if(!response.ok || !data.success){
+   throw new Error(data.error || "User not found.");
+  }
+
+  if(data.subscribed){
+   showStatus(
+    userStatus,
+    "✅ User is subscribed.\nActive subscriptions: "+
+    (data.subscriptionCount ?? 0),
+    "success"
+   );
+  }else{
+   showStatus(
+    userStatus,
+    "⚠️ User exists, but no active push subscription was found.",
+    "error"
+   );
+  }
+
+ }catch(err){
+  showStatus(userStatus,"❌ "+(err.message||"User check failed."),"error");
+ }finally{
+  checkUserBtn.disabled=false;
+  checkUserBtn.textContent="CHECK USER";
+ }
+});
+
+clearUserBtn.addEventListener("click",()=>{
+ externalId.value="";
+ clearStatus(userStatus);
+ externalId.focus();
+});
+
+/* =========================================================
+   SOUND
+========================================================= */
+
+$("playSoundBtn").addEventListener("click",async()=>{
+ const value=sound.value.trim();
+
+ if(!value){
+  showStatus($("soundStatus"),"আগে একটি MP3/WAV sound URL দিন.","error");
+  return;
+ }
+
+ const player=$("soundPlayer");
+ player.src=value;
+
+ try{
+  await player.play();
+  showStatus($("soundStatus"),"▶ Sound preview চলছে.","success");
+ }catch{
+  showStatus(
+   $("soundStatus"),
+   "❌ Sound play করা যায়নি। URL ও format check করুন.",
+   "error"
+  );
+ }
+});
+
+$("clearSoundBtn").addEventListener("click",()=>{
+ sound.value="";
+ $("soundPlayer").pause();
+ $("soundPlayer").removeAttribute("src");
+ clearStatus($("soundStatus"));
+ saveDraft();
+});
+
+/* =========================================================
+   SEND MODE
+========================================================= */
+
+document.querySelectorAll(".mode").forEach(mode=>{
+ mode.addEventListener("click",()=>{
+  document.querySelectorAll(".mode").forEach(x=>x.classList.remove("active"));
+  mode.classList.add("active");
+
+  sendMode=mode.dataset.mode;
+
+  $("scheduleBox").classList.toggle(
+   "show",
+   sendMode==="schedule"
+  );
+ });
+});
+
+/* =========================================================
+   SCHEDULE
+========================================================= */
+
+function setDefaultSchedule(){
+ const now=new Date();
+ now.setMinutes(now.getMinutes()+10);
+
+ $("scheduleDate").value=
+  now.toISOString().slice(0,10);
+
+ $("scheduleTime").value=
+  now.toTimeString().slice(0,5);
+}
+
+setDefaultSchedule();
+
+/* =========================================================
+   PAYLOAD
+========================================================= */
+
+function buildPayload(){
+ const target=
+  document.querySelector('input[name="target"]:checked')?.value || "all";
+
+ return {
+  target,
+  externalId:externalId.value.trim(),
+  title:"AURA ARMAN TOUR",
+  message:message.value.trim(),
+  icon:icon.value.trim(),
+  image:image.value.trim(),
+  url:url.value.trim(),
+  sound:sound.value.trim(),
+  template:template.value,
+  templateFields:getFormData(),
+  scheduledAt:
+   sendMode==="schedule"
+    ? `${$("scheduleDate").value}T${$("scheduleTime").value}`
+    : null
+ };
+}
+
+/* =========================================================
+   SEND
+========================================================= */
+
+sendBtn.addEventListener("click",async()=>{
+ if(sendBtn.disabled)return;
+
+ const payload=buildPayload();
+
+ if(!payload.message){
+  popup("Notification message লিখুন.","error");
+  message.focus();
+  return;
+ }
+
+ if(
+  payload.target==="specific" &&
+  !payload.externalId
+ ){
+  popup("Specific User-এর জন্য Firebase UID দিন.","error");
+  externalId.focus();
+  return;
+ }
+
+ if(sendMode==="schedule"){
+  if(!$("scheduleDate").value || !$("scheduleTime").value){
+   popup("Schedule date এবং time দিন.","error");
+   return;
+  }
+
+  const scheduledDate=new Date(payload.scheduledAt);
+
+  if(
+   !Number.isFinite(scheduledDate.getTime()) ||
+   scheduledDate <= new Date()
+  ){
+   popup("Future date/time নির্বাচন করুন.","error");
+   return;
+  }
+
+  const item={
+   id:Date.now().toString(),
+   ...payload,
+   status:"scheduled",
+   createdAt:new Date().toISOString()
+  };
+
+  historyData.unshift(item);
+  saveHistory();
+  renderHistory();
+  updateStats();
+
+  popup("⏰ Notification scheduled হয়েছে.","success");
+  return;
+ }
+
+ await sendNotification(payload);
+});
+
+/* =========================================================
+   ACTUAL SEND
+========================================================= */
+
+async function sendNotification(payload,historyId=null){
+ sendBtn.disabled=true;
+ sendBtn.textContent="SENDING...";
+
+ progress.classList.add("show");
+ result.className="status";
+
+ setProgress(20,"Preparing notification...");
+
+ try{
+  await wait(250);
+  setProgress(50,"Sending notification...");
+
+  const response=await fetch(API_SEND,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify(payload)
+  });
+
+  const raw=await response.text();
+  let data;
+
+  try{data=JSON.parse(raw)}
+  catch{
+   data={
+    success:false,
+    error:raw || "Invalid server response."
+   };
+  }
+
+  if(!response.ok || !data.success){
+   let err=data.error || "Notification sending failed.";
+
+   if(data.onesignal && Array.isArray(data.onesignal.errors)){
+    err+="\n\nOneSignal: "+data.onesignal.errors.join(", ");
+   }
+
+   throw new Error(err);
+  }
+
+  setProgress(100,"Completed");
+
+  const record={
+   id:historyId || Date.now().toString(),
+   ...payload,
+   status:"success",
+   createdAt:new Date().toISOString(),
+   response:data.onesignal || data
+  };
+
+  if(historyId){
+   const index=historyData.findIndex(x=>x.id===historyId);
+   if(index>=0)historyData[index]=record;
+   else historyData.unshift(record);
+  }else{
+   historyData.unshift(record);
+  }
+
+  saveHistory();
+  renderHistory();
+  updateStats();
+
+  showStatus(
+   result,
+   "✅ Notification sent successfully!\n\n"+
+   formatSendResult(data),
+   "success"
+  );
+
+  popup("🔔 Notification successfully sent!","success");
+
+ }catch(err){
+
+  setProgress(100,"Failed");
+
+  const record={
+   id:historyId || Date.now().toString(),
+   ...payload,
+   status:"failed",
+   createdAt:new Date().toISOString(),
+   error:err.message || "Something went wrong."
+  };
+
+  if(historyId){
+   const index=historyData.findIndex(x=>x.id===historyId);
+   if(index>=0)historyData[index]=record;
+   else historyData.unshift(record);
+  }else{
+   historyData.unshift(record);
+  }
+
+  saveHistory();
+  renderHistory();
+  updateStats();
+
+  showStatus(
+   result,
+   "❌ Notification failed\n\n"+
+   (err.message || "Something went wrong."),
+   "error"
+  );
+
+  popup("Notification failed.","error");
+
+ }finally{
+  setTimeout(()=>{
+   progress.classList.remove("show");
+  },1000);
+
+  sendBtn.disabled=false;
+  sendBtn.textContent="SEND NOTIFICATION";
+ }
+}
+
+function formatSendResult(data){
+ const o=data.onesignal || data;
+
+ const parts=[];
+
+ if(o.recipients!=null)
+  parts.push("Recipients: "+o.recipients);
+
+ if(o.successful!=null)
+  parts.push("Successful: "+o.successful);
+
+ if(o.failed!=null)
+  parts.push("Failed: "+o.failed);
+
+ if(o.notSubscribed!=null)
+  parts.push("Not subscribed: "+o.notSubscribed);
+
+ if(!parts.length)
+  return JSON.stringify(o,null,2);
+
+ return parts.join("\n");
+}
+
+function setProgress(percent,text){
+ progressBar.style.width=percent+"%";
+ progressText.textContent=text;
+}
+
+function wait(ms){
+ return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+function renderHistory(){
+ const search=historySearch.value.trim().toLowerCase();
+ const filter=historyFilter.value;
+
+ const list=historyData.filter(item=>{
+  const text=JSON.stringify(item).toLowerCase();
+
+  const matchSearch=
+   !search || text.includes(search);
+
+  const matchFilter=
+   filter==="all" || item.status===filter;
+
+  return matchSearch && matchFilter;
+ });
+
+ if(!list.length){
+  historyBox.innerHTML=
+   `<div class="empty">📭 No notification history found.</div>`;
+  return;
+ }
+
+ historyBox.innerHTML=list.map(item=>{
+  const cfg=templates[item.template];
+
+  const statusClass=
+   item.status==="success"
+    ?"success"
+    :item.status==="failed"
+    ?"failed"
+    :"scheduled";
+
+  const statusText=
+   item.status==="success"
+    ?"SUCCESS"
+    :item.status==="failed"
+    ?"FAILED"
+    :"SCHEDULED";
+
+  const targetText=
+   item.target==="specific"
+    ?`Specific: ${escapeHTML(item.externalId || "UID")}`
+    :"All Users";
+
+  const time=item.scheduledAt
+   ?new Date(item.scheduledAt).toLocaleString()
+   :new Date(item.createdAt).toLocaleString();
+
+  return `
+  <div class="history-item">
+   <div class="history-main">
+    <div>
+     <div class="history-title">
+      ${escapeHTML(cfg?.name || "Custom Notification")}
+     </div>
+     <div class="history-meta">
+      ${targetText} • ${escapeHTML(time)}
+     </div>
+    </div>
+    <span class="badge ${statusClass}">${statusText}</span>
+   </div>
+
+   <div class="history-msg">
+    ${escapeHTML(item.message)}
+   </div>
+
+   <div class="history-actions">
+    <button class="btn-secondary" onclick="resendHistory('${item.id}')">
+     🔁 RESEND
+    </button>
+    <button class="btn-secondary" onclick="copyHistory('${item.id}')">
+     📋 COPY
+    </button>
+    <button class="btn-red" onclick="deleteHistory('${item.id}')">
+     🗑️
+    </button>
+   </div>
+  </div>`;
+ }).join("");
+}
+
+function findHistory(id){
+ return historyData.find(x=>String(x.id)===String(id));
+}
+
+window.resendHistory=function(id){
+ const item=findHistory(id);
+ if(!item)return;
+
+ if(item.template && templates[item.template]){
+  template.value=item.template;
+  renderTemplateFields();
+
+  Object.entries(item.templateFields || {}).forEach(([key,value])=>{
+   const field=templateFields.querySelector(`[data-field="${key}"]`);
+   if(field)field.value=value;
+  });
+ }
+
+ externalId.value=item.externalId || "";
+ message.value=item.message || "";
+ icon.value=item.icon || DEFAULT_ICON;
+ image.value=item.image || "";
+ url.value=item.url || "https://aura-skill-com.onrender.com";
+ sound.value=item.sound || "";
+
+ const targetRadio=document.querySelector(
+  `input[name="target"][value="${item.target || "all"}"]`
+ );
+
+ if(targetRadio){
+  targetRadio.checked=true;
+  targetRadio.dispatchEvent(new Event("change"));
+ }
+
+ $("charCount").textContent=message.value.length;
+ updatePreview();
+ saveDraft();
+
+ window.scrollTo({
+  top:0,
+  behavior:"smooth"
+ });
+
+ popup("🔁 Notification form restore হয়েছে.","success");
+};
+
+window.copyHistory=async function(id){
+ const item=findHistory(id);
+ if(!item)return;
+
+ try{
+  await navigator.clipboard.writeText(item.message || "");
+  popup("📋 Message copied.","success");
+ }catch{
+  popup("Copy করা যায়নি.","error");
+ }
+};
+
+window.deleteHistory=function(id){
+ historyData=historyData.filter(x=>String(x.id)!==String(id));
+ saveHistory();
+ renderHistory();
+ updateStats();
+};
+
+/* =========================================================
+   HISTORY CONTROLS
+========================================================= */
+
+historySearch.addEventListener("input",renderHistory);
+historyFilter.addEventListener("change",renderHistory);
+
+$("clearHistoryBtn").addEventListener("click",()=>{
+ if(!historyData.length)return;
+
+ if(confirm("সব notification history clear করবেন?")){
+  historyData=[];
+  saveHistory();
+  renderHistory();
+  updateStats();
+  popup("History cleared.","success");
+ }
+});
+
+/* =========================================================
+   STATS
+========================================================= */
+
+function updateStats(){
+ const today=new Date().toDateString();
+
+ const sentToday=historyData.filter(x=>
+  x.status==="success" &&
+  new Date(x.createdAt).toDateString()===today
+ ).length;
+
+ const scheduled=historyData.filter(x=>
+  x.status==="scheduled"
+ ).length;
+
+ $("todaySent").textContent=sentToday;
+ $("scheduledCount").textContent=scheduled;
+ $("historyCount").textContent=historyData.length;
+}
+
+/* =========================================================
+   SCHEDULED QUEUE
+   NOTE:
+   This works while this page is open.
+   Persistent server scheduling requires backend scheduler.
+========================================================= */
+
+async function processScheduled(){
+ const now=Date.now();
+
+ const due=historyData.filter(x=>
+  x.status==="scheduled" &&
+  x.scheduledAt &&
+  new Date(x.scheduledAt).getTime()<=now
+ );
+
+ for(const item of due){
+  await sendNotification(item,item.id);
+ }
+}
+
+setInterval(processScheduled,15000);
+
+/* =========================================================
+   DRAFT
+========================================================= */
+
+function saveDraft(){
+ const draft={
+  target:
+   document.querySelector('input[name="target"]:checked')?.value || "all",
+  externalId:externalId.value,
+  template:template.value,
+  message:message.value,
+  icon:icon.value,
+  image:image.value,
+  url:url.value,
+  sound:sound.value
+ };
+
+ localStorage.setItem(
+  "aura_notification_draft",
+  JSON.stringify(draft)
+ );
+}
+
+function loadDraft(){
+ try{
+  const draft=JSON.parse(
+   localStorage.getItem("aura_notification_draft") || "null"
+  );
+
+  if(!draft)return;
+
+  if(draft.target){
+   const radio=document.querySelector(
+    `input[name="target"][value="${draft.target}"]`
+   );
+
+   if(radio){
+    radio.checked=true;
+    radio.dispatchEvent(new Event("change"));
+   }
+  }
+
+  externalId.value=draft.externalId || "";
+
+  if(draft.template && templates[draft.template]){
+   template.value=draft.template;
+   renderTemplateFields();
+  }
+
+  message.value=draft.message || "";
+  icon.value=draft.icon || DEFAULT_ICON;
+  image.value=draft.image || "";
+  url.value=draft.url || "https://aura-skill-com.onrender.com";
+  sound.value=draft.sound || "";
+
+  $("charCount").textContent=message.value.length;
+  updatePreview();
+
+ }catch{}
+}
+
+/* =========================================================
+   RESET
+========================================================= */
+
+$("resetBtn").addEventListener("click",()=>{
+ if(!confirm("Form reset করবেন?"))return;
+
+ externalId.value="";
+ template.value="";
+ templateFields.innerHTML="";
+ templateFields.classList.remove("show");
+
+ message.value="";
+ icon.value=DEFAULT_ICON;
+ image.value="";
+ url.value="https://aura-skill-com.onrender.com";
+ sound.value="";
+
+ document.querySelector(
+  'input[name="target"][value="all"]'
+ ).checked=true;
+
+ specificBox.style.display="none";
+
+ sendMode="now";
+
+ document.querySelectorAll(".mode").forEach(x=>{
+  x.classList.toggle("active",x.dataset.mode==="now");
+ });
+
+ $("scheduleBox").classList.remove("show");
+
+ $("charCount").textContent="0";
+
+ clearStatus(userStatus);
+ clearStatus(result);
+ clearStatus($("soundStatus"));
+
+ updatePreview();
+
+ localStorage.removeItem("aura_notification_draft");
+
+ popup("🧹 Form reset হয়েছে.","success");
+});
+
+/* =========================================================
    ENTER KEY
-============================================================ */
+========================================================= */
 
-externalIdInput.addEventListener(
-    "keydown",
-    event => {
+externalId.addEventListener("keydown",e=>{
+ if(e.key==="Enter"){
+  e.preventDefault();
+  checkUserBtn.click();
+ }
+});
 
-        if (
-            event.key ===
-            "Enter"
-        ) {
+/* =========================================================
+   AUTO DRAFT
+========================================================= */
 
-            event.preventDefault();
+[
+ externalId,
+ icon,
+ image,
+ url,
+ sound
+].forEach(el=>{
+ el.addEventListener("input",saveDraft);
+});
 
-            checkUserBtn.click();
+template.addEventListener("change",saveDraft);
 
-        }
+/* =========================================================
+   INITIALIZE
+========================================================= */
 
-    }
-);
+renderTemplateList();
+loadDraft();
+renderHistory();
+updateStats();
+updatePreview();
+
+$("charCount").textContent=message.value.length;
+
+/* Default template example:
+   Uncomment if you want first template selected automatically.
+
+template.value="deposit_approve";
+renderTemplateFields();
+*/
+
+/* =========================================================
+   BEFORE LEAVING
+========================================================= */
+
+window.addEventListener("beforeunload",saveDraft);
 
 </script>
 
