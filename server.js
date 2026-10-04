@@ -47,18 +47,12 @@ function initFirebaseAdmin() {
   try {
     if (!admin.apps.length) {
       if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-
-        const serviceAccount =
-          JSON.parse(
-            process.env.FIREBASE_SERVICE_ACCOUNT_JSON
-          );
+        const serviceAccount = JSON.parse(
+          process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+        );
 
         admin.initializeApp({
-          credential:
-            admin.credential.cert(
-              serviceAccount
-            ),
-
+          credential: admin.credential.cert(serviceAccount),
           projectId:
             process.env.FIREBASE_PROJECT_ID ||
             serviceAccount.project_id
@@ -69,25 +63,23 @@ function initFirebaseAdmin() {
         process.env.FIREBASE_CLIENT_EMAIL &&
         process.env.FIREBASE_PRIVATE_KEY
       ) {
-
         admin.initializeApp({
-          credential:
-            admin.credential.cert({
+          credential: admin.credential.cert({
+            projectId:
+              process.env.FIREBASE_PROJECT_ID,
 
-              projectId:
-                process.env.FIREBASE_PROJECT_ID,
+            clientEmail:
+              process.env.FIREBASE_CLIENT_EMAIL,
 
-              clientEmail:
-                process.env.FIREBASE_CLIENT_EMAIL,
-
-              privateKey:
-                process.env.FIREBASE_PRIVATE_KEY
-                  .replace(/\\n/g, "\n")
-            })
+            privateKey:
+              process.env.FIREBASE_PRIVATE_KEY.replace(
+                /\\n/g,
+                "\n"
+              )
+          })
         });
 
       } else {
-
         console.warn(
           "⚠️ Firebase Admin credentials missing."
         );
@@ -96,11 +88,8 @@ function initFirebaseAdmin() {
       }
     }
 
-    firestore =
-      admin.firestore();
-
-    firebaseAuth =
-      admin.auth();
+    firestore = admin.firestore();
+    firebaseAuth = admin.auth();
 
     firebaseReady = true;
 
@@ -111,7 +100,6 @@ function initFirebaseAdmin() {
     return true;
 
   } catch (error) {
-
     console.error(
       "❌ Firebase Admin init failed:",
       error.message
@@ -130,41 +118,36 @@ async function oneSignalRequest(
   endpoint,
   options = {}
 ) {
-
   if (!ONESIGNAL_REST_API_KEY) {
     throw new Error(
       "ONESIGNAL_REST_API_KEY environment variable is missing."
     );
   }
 
-  const response =
-    await fetch(
-      ONESIGNAL_API + endpoint,
-      {
-        ...options,
+  const response = await fetch(
+    ONESIGNAL_API + endpoint,
+    {
+      ...options,
 
-        headers: {
-          "Content-Type":
-            "application/json",
+      headers: {
+        "Content-Type": "application/json",
 
-          Authorization:
-            `Key ${ONESIGNAL_REST_API_KEY}`,
+        Authorization:
+          `Key ${ONESIGNAL_REST_API_KEY}`,
 
-          ...(options.headers || {})
-        }
+        ...(options.headers || {})
       }
-    );
+    }
+  );
 
-  const text =
-    await response.text();
+  const text = await response.text();
 
   let data = {};
 
   try {
-    data =
-      text
-        ? JSON.parse(text)
-        : {};
+    data = text
+      ? JSON.parse(text)
+      : {};
   } catch {
     data = {
       raw: text
@@ -184,7 +167,6 @@ async function oneSignalRequest(
 ========================================================= */
 
 async function getAdminExternalId() {
-
   if (ADMIN_EXTERNAL_ID) {
     return ADMIN_EXTERNAL_ID;
   }
@@ -208,22 +190,14 @@ async function getAdminExternalId() {
    SCHEDULE
 ========================================================= */
 
-function normalizeScheduleDate(
-  value
-) {
-
+function normalizeScheduleDate(value) {
   if (!value) {
     return null;
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     throw new Error(
       "Invalid scheduled date/time."
     );
@@ -233,26 +207,18 @@ function normalizeScheduleDate(
 }
 
 
-function getScheduleInfo(
-  value
-) {
-
+function getScheduleInfo(value) {
   const date =
     normalizeScheduleDate(value);
 
   if (!date) {
-
     return {
       scheduled: false,
       date: null
     };
   }
 
-  if (
-    date.getTime() <=
-    Date.now()
-  ) {
-
+  if (date.getTime() <= Date.now()) {
     throw new Error(
       "Scheduled time must be in the future."
     );
@@ -269,25 +235,18 @@ function getScheduleInfo(
    FIRESTORE HISTORY
 ========================================================= */
 
-async function saveNotificationRecord(
-  data
-) {
-
+async function saveNotificationRecord(data) {
   if (!initFirebaseAdmin()) {
     return null;
   }
 
   try {
-
     const ref =
       firestore
-        .collection(
-          "notificationHistory"
-        )
+        .collection("notificationHistory")
         .doc();
 
     await ref.set({
-
       ...data,
 
       createdAt:
@@ -302,7 +261,6 @@ async function saveNotificationRecord(
     return ref.id;
 
   } catch (error) {
-
     console.error(
       "Notification history save failed:",
       error.message
@@ -325,14 +283,9 @@ function makeManualNotificationPayload({
   icon,
   image,
   url,
-  scheduledAt,
-  androidSound,
-  androidChannelId,
-  iosSound
+  scheduledAt
 }) {
-
   const payload = {
-
     app_id:
       ONESIGNAL_APP_ID,
 
@@ -367,15 +320,11 @@ function makeManualNotificationPayload({
   /* TARGET */
 
   if (target === "all") {
-
     payload.included_segments = [
       "Total Subscriptions"
     ];
 
-  } else if (
-    target === "specific"
-  ) {
-
+  } else if (target === "specific") {
     payload.include_aliases = {
       external_id: [
         externalId
@@ -387,21 +336,16 @@ function makeManualNotificationPayload({
   /* ICON */
 
   if (icon) {
+    payload.small_icon = icon;
 
-    payload.small_icon =
-      icon;
-
-    payload.chrome_web_icon =
-      icon;
+    payload.chrome_web_icon = icon;
   }
 
 
   /* IMAGE */
 
   if (image) {
-
-    payload.big_picture =
-      image;
+    payload.big_picture = image;
 
     payload.ios_attachments = {
       image
@@ -409,44 +353,9 @@ function makeManualNotificationPayload({
   }
 
 
-  /* ANDROID SOUND */
-
-  if (androidSound) {
-
-    payload.android_sound =
-      String(androidSound)
-        .replace(
-          /\.(mp3|wav|ogg)$/i,
-          ""
-        )
-        .trim();
-  }
-
-
-  /* ANDROID CHANNEL */
-
-  if (androidChannelId) {
-
-    payload.android_channel_id =
-      String(
-        androidChannelId
-      ).trim();
-  }
-
-
-  /* IOS SOUND */
-
-  if (iosSound) {
-
-    payload.ios_sound =
-      String(iosSound).trim();
-  }
-
-
   /* SERVER-SIDE SCHEDULE */
 
   if (scheduledAt) {
-
     payload.send_after =
       new Date(
         scheduledAt
@@ -467,7 +376,6 @@ async function sendAdminPush({
   requestId,
   data
 }) {
-
   const externalId =
     await getAdminExternalId();
 
@@ -504,13 +412,11 @@ async function sendAdminPush({
         ? "ডিপোজিট"
         : "উইথড্র"
     } রিকোয়েস্ট করেছে` +
-
     (
       amount
         ? ` — ৳${amount}`
         : ""
     ) +
-
     (
       method
         ? ` (${method})`
@@ -519,7 +425,6 @@ async function sendAdminPush({
 
   const payload =
     makeManualNotificationPayload({
-
       target:
         "specific",
 
@@ -541,8 +446,7 @@ async function sendAdminPush({
     await oneSignalRequest(
       "/notifications",
       {
-        method:
-          "POST",
+        method: "POST",
 
         body:
           JSON.stringify(
@@ -553,7 +457,6 @@ async function sendAdminPush({
 
 
   if (!result.ok) {
-
     throw new Error(
       `OneSignal failed (${result.status}): ` +
       JSON.stringify(
@@ -563,10 +466,7 @@ async function sendAdminPush({
   }
 
 
-  if (
-    initFirebaseAdmin()
-  ) {
-
+  if (initFirebaseAdmin()) {
     await firestore
       .collection(
         "adminNotifications"
@@ -574,41 +474,42 @@ async function sendAdminPush({
       .doc(
         `${type}_${requestId}`
       )
-      .set({
+      .set(
+        {
+          type,
 
-        type,
+          title,
 
-        title,
+          message,
 
-        message,
+          requestId:
+            String(requestId),
 
-        requestId:
-          String(requestId),
+          userName:
+            user,
 
-        userName:
-          user,
+          amount,
 
-        amount,
+          method,
 
-        method,
+          status:
+            "unread",
 
-        status:
-          "unread",
+          createdAt:
+            Date.now(),
 
-        createdAt:
-          Date.now(),
+          pushSent:
+            true,
 
-        pushSent:
-          true,
-
-        onesignalMessageId:
-          result.data?.id ||
-          result.data?.notification_id ||
-          null
-
-      }, {
-        merge: true
-      });
+          onesignalMessageId:
+            result.data?.id ||
+            result.data?.notification_id ||
+            null
+        },
+        {
+          merge: true
+        }
+      );
   }
 
   return result.data;
@@ -620,7 +521,6 @@ async function sendAdminPush({
 ========================================================= */
 
 function isPending(value) {
-
   return (
     String(
       value ?? "pending"
@@ -631,7 +531,6 @@ function isPending(value) {
 
 
 function looksLikeDeposit(data) {
-
   return (
     data?.type === "Deposit" ||
 
@@ -655,16 +554,13 @@ async function claimAndSend(
   requestId,
   data
 ) {
-
   if (!initFirebaseAdmin()) {
     return;
   }
 
   const claimRef =
     firestore
-      .collection(
-        "adminPushSent"
-      )
+      .collection("adminPushSent")
       .doc(
         `${type}_${requestId}`
       );
@@ -673,7 +569,6 @@ async function claimAndSend(
   const claimed =
     await firestore.runTransaction(
       async tx => {
-
         const snap =
           await tx.get(
             claimRef
@@ -686,7 +581,6 @@ async function claimAndSend(
         tx.set(
           claimRef,
           {
-
             type,
 
             requestId:
@@ -711,7 +605,6 @@ async function claimAndSend(
 
 
   try {
-
     const sendResult =
       await sendAdminPush({
         type,
@@ -722,7 +615,6 @@ async function claimAndSend(
 
     await claimRef.set(
       {
-
         status:
           "sent",
 
@@ -733,26 +625,21 @@ async function claimAndSend(
           sendResult?.id ||
           sendResult?.notification_id ||
           null
-
       },
       {
         merge: true
       }
     );
 
-
   } catch (error) {
-
     console.error(
       `❌ ${type} push failed:`,
       requestId,
       error.message
     );
 
-
     await claimRef.set(
       {
-
         status:
           "failed",
 
@@ -761,7 +648,6 @@ async function claimAndSend(
 
         failedAt:
           Date.now()
-
       },
       {
         merge: true
@@ -776,16 +662,12 @@ async function claimAndSend(
 ========================================================= */
 
 function startFirestoreWatchers() {
-
   if (!initFirebaseAdmin()) {
     return;
   }
 
-  let depositsReady =
-    false;
-
-  let withdrawsReady =
-    false;
+  let depositsReady = false;
+  let withdrawsReady = false;
 
 
   const handleDepositSnapshot =
@@ -795,7 +677,6 @@ function startFirestoreWatchers() {
     ) => {
 
       if (!depositsReady) {
-
         depositsReady = true;
 
         console.log(
@@ -814,7 +695,6 @@ function startFirestoreWatchers() {
           ) {
             return;
           }
-
 
           const data =
             change.doc.data() ||
@@ -853,11 +733,8 @@ function startFirestoreWatchers() {
 
 
   firestore
-    .collection(
-      "deposits"
-    )
+    .collection("deposits")
     .onSnapshot(
-
       snapshot =>
         handleDepositSnapshot(
           snapshot,
@@ -873,11 +750,8 @@ function startFirestoreWatchers() {
 
 
   firestore
-    .collection(
-      "transactions"
-    )
+    .collection("transactions")
     .onSnapshot(
-
       snapshot =>
         handleDepositSnapshot(
           snapshot,
@@ -893,15 +767,11 @@ function startFirestoreWatchers() {
 
 
   firestore
-    .collection(
-      "withdraws"
-    )
+    .collection("withdraws")
     .onSnapshot(
-
       snapshot => {
 
         if (!withdrawsReady) {
-
           withdrawsReady = true;
 
           console.log(
@@ -960,7 +830,6 @@ function startFirestoreWatchers() {
 ========================================================= */
 
 async function catchUpRecentRequests() {
-
   if (!initFirebaseAdmin()) {
     return;
   }
@@ -970,28 +839,30 @@ async function catchUpRecentRequests() {
     15 * 60 * 1000;
 
 
+  const sources = [
+    [
+      "deposit",
+      "deposits"
+    ],
+    [
+      "deposit",
+      "transactions"
+    ],
+    [
+      "withdraw",
+      "withdraws"
+    ]
+  ];
+
+
   for (
     const [
       type,
       collectionName
-    ] of [
-      [
-        "deposit",
-        "deposits"
-      ],
-      [
-        "deposit",
-        "transactions"
-      ],
-      [
-        "withdraw",
-        "withdraws"
-      ]
-    ]
+    ] of sources
   ) {
 
     try {
-
       const snap =
         await firestore
           .collection(
@@ -1053,7 +924,6 @@ async function catchUpRecentRequests() {
       }
 
     } catch (error) {
-
       console.error(
         `Catch-up ${type} error:`,
         error.message
@@ -1070,7 +940,6 @@ async function catchUpRecentRequests() {
 app.get(
   "/",
   (req, res) => {
-
     res.sendFile(
       path.join(
         __dirname,
@@ -1081,12 +950,14 @@ app.get(
 );
 
 
+/* =========================================================
+   HEALTH
+========================================================= */
+
 app.get(
   "/health",
   (req, res) => {
-
     res.json({
-
       success:
         true,
 
@@ -1114,7 +985,6 @@ app.post(
   async (req, res) => {
 
     try {
-
       const externalId =
         String(
           req.body.externalId ||
@@ -1123,9 +993,7 @@ app.post(
 
 
       if (!externalId) {
-
         return res.status(400).json({
-
           success:
             false,
 
@@ -1144,11 +1012,9 @@ app.post(
 
 
       if (!result.ok) {
-
         return res.status(
           result.status || 404
         ).json({
-
           success:
             false,
 
@@ -1178,7 +1044,6 @@ app.post(
 
 
       return res.json({
-
         success:
           true,
 
@@ -1194,7 +1059,6 @@ app.post(
         subscriptions:
           activeSubscriptions.map(
             subscription => ({
-
               id:
                 subscription.id,
 
@@ -1203,13 +1067,11 @@ app.post(
 
               enabled:
                 subscription.enabled
-
             })
           )
       });
 
     } catch (error) {
-
       console.error(
         "CHECK USER ERROR:",
         error
@@ -1217,7 +1079,6 @@ app.post(
 
 
       return res.status(500).json({
-
         success:
           false,
 
@@ -1239,7 +1100,6 @@ app.get(
   async (req, res) => {
 
     try {
-
       const externalId =
         String(
           req.query.externalId ||
@@ -1248,9 +1108,7 @@ app.get(
 
 
       if (!externalId) {
-
         return res.status(400).json({
-
           success:
             false,
 
@@ -1275,7 +1133,6 @@ app.get(
             : result.status
         )
         .json({
-
           success:
             result.ok,
 
@@ -1284,9 +1141,7 @@ app.get(
         });
 
     } catch (error) {
-
       return res.status(500).json({
-
         success:
           false,
 
@@ -1309,7 +1164,6 @@ app.post(
     try {
 
       const {
-
         target =
           "all",
 
@@ -1332,17 +1186,7 @@ app.post(
           "/notification.html",
 
         scheduledAt =
-          null,
-
-        androidSound =
-          "",
-
-        androidChannelId =
-          "",
-
-        iosSound =
-          ""
-
+          null
       } = req.body;
 
 
@@ -1358,36 +1202,22 @@ app.post(
         ).trim();
 
       const cleanIcon =
-        String(icon).trim();
+        String(icon
+        ).trim();
 
       const cleanImage =
-        String(image).trim();
+        String(image
+        ).trim();
 
       const cleanUrl =
-        String(url).trim();
-
-      const cleanAndroidSound =
-        String(
-          androidSound
-        ).trim();
-
-      const cleanAndroidChannelId =
-        String(
-          androidChannelId
-        ).trim();
-
-      const cleanIosSound =
-        String(
-          iosSound
+        String(url
         ).trim();
 
 
       /* VALIDATION */
 
       if (!cleanTitle) {
-
         return res.status(400).json({
-
           success:
             false,
 
@@ -1398,9 +1228,7 @@ app.post(
 
 
       if (!cleanMessage) {
-
         return res.status(400).json({
-
           success:
             false,
 
@@ -1414,9 +1242,7 @@ app.post(
         target !== "all" &&
         target !== "specific"
       ) {
-
         return res.status(400).json({
-
           success:
             false,
 
@@ -1430,9 +1256,7 @@ app.post(
         target === "specific" &&
         !cleanExternalId
       ) {
-
         return res.status(400).json({
-
           success:
             false,
 
@@ -1465,9 +1289,7 @@ app.post(
 
 
         if (!userResult.ok) {
-
           return res.status(404).json({
-
             success:
               false,
 
@@ -1485,7 +1307,6 @@ app.post(
 
       const payload =
         makeManualNotificationPayload({
-
           target,
 
           externalId:
@@ -1507,16 +1328,7 @@ app.post(
             cleanUrl,
 
           scheduledAt:
-            scheduleInfo.date,
-
-          androidSound:
-            cleanAndroidSound,
-
-          androidChannelId:
-            cleanAndroidChannelId,
-
-          iosSound:
-            cleanIosSound
+            scheduleInfo.date
         });
 
 
@@ -1526,7 +1338,6 @@ app.post(
         await oneSignalRequest(
           "/notifications",
           {
-
             method:
               "POST",
 
@@ -1539,11 +1350,9 @@ app.post(
 
 
       if (!result.ok) {
-
         return res.status(
           result.status || 500
         ).json({
-
           success:
             false,
 
@@ -1560,7 +1369,6 @@ app.post(
 
       const historyId =
         await saveNotificationRecord({
-
           target,
 
           externalId:
@@ -1592,18 +1400,6 @@ app.post(
               ? scheduleInfo.date.getTime()
               : null,
 
-          androidSound:
-            cleanAndroidSound ||
-            null,
-
-          androidChannelId:
-            cleanAndroidChannelId ||
-            null,
-
-          iosSound:
-            cleanIosSound ||
-            null,
-
           status:
             scheduleInfo.scheduled
               ? "scheduled"
@@ -1617,7 +1413,6 @@ app.post(
 
 
       return res.json({
-
         success:
           true,
 
@@ -1646,7 +1441,6 @@ app.post(
           result.data
       });
 
-
     } catch (error) {
 
       console.error(
@@ -1656,7 +1450,6 @@ app.post(
 
 
       return res.status(500).json({
-
         success:
           false,
 
@@ -1675,9 +1468,7 @@ app.post(
 
 app.use(
   (req, res) => {
-
     res.status(404).json({
-
       success:
         false,
 
@@ -1701,10 +1492,7 @@ app.listen(
     );
 
 
-    if (
-      !ONESIGNAL_REST_API_KEY
-    ) {
-
+    if (!ONESIGNAL_REST_API_KEY) {
       console.warn(
         "⚠️ ONESIGNAL_REST_API_KEY is missing."
       );
