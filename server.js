@@ -13,7 +13,7 @@ const ONESIGNAL_APP_ID =
 const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
 const ONESIGNAL_API = "https://api.onesignal.com";
 const ADMIN_EMAIL =
-  process.env.ADMIN_EMAIL "auraskill19@gmail.com";
+  process.env.ADMIN_EMAIL = "auraskill19@gmail.com";
 const ADMIN_EXTERNAL_ID = String(
   process.env.ADMIN_ONESIGNAL_EXTERNAL_ID || ""
 ).trim();
