@@ -11,7 +11,6 @@
 :root{
  --bg:#020617;
  --card:rgba(15,23,42,.9);
- --card2:#0f172a;
  --border:rgba(255,255,255,.09);
  --text:#f8fafc;
  --muted:#94a3b8;
@@ -19,7 +18,7 @@
  --purple:#7c3aed;
  --green:#22c55e;
  --red:#ef4444;
- --yellow:#f59e0b;
+ --yellow:#f59e0b
 }
 
 body{
@@ -27,7 +26,7 @@ body{
  background:radial-gradient(circle at top,#172554,#020617 55%);
  color:var(--text);
  min-height:100vh;
- padding:15px;
+ padding:15px
 }
 
 .container{
@@ -49,9 +48,7 @@ body{
  margin-bottom:10px
 }
 
-.header h1{
- font-size:23px
-}
+.header h1{font-size:23px}
 
 .header p{
  font-size:12px;
@@ -102,9 +99,7 @@ body{
  justify-content:space-between
 }
 
-.group{
- margin-bottom:16px
-}
+.group{margin-bottom:16px}
 
 label{
  display:block;
@@ -130,7 +125,8 @@ select{
 input:focus,
 textarea:focus,
 select:focus{
- border-color:#3b82f6
+ border-color:#3b82f6;
+ box-shadow:0 0 0 2px rgba(59,130,246,.08)
 }
 
 textarea{
@@ -138,9 +134,7 @@ textarea{
  resize:vertical
 }
 
-input[readonly]{
- opacity:.85
-}
+input[readonly]{opacity:.85}
 
 .row{
  display:grid;
@@ -169,9 +163,7 @@ button:disabled{
  cursor:not-allowed
 }
 
-.btn-secondary{
- background:#334155
-}
+.btn-secondary{background:#334155}
 
 .btn-green{
  background:linear-gradient(135deg,#16a34a,#059669)
@@ -209,9 +201,7 @@ button:disabled{
  margin-right:6px
 }
 
-.target span{
- font-size:12px
-}
+.target span{font-size:12px}
 
 #specificBox{
  display:none;
@@ -244,17 +234,11 @@ button:disabled{
  color:#facc15
 }
 
-.template-fields{
- display:none
-}
+.template-fields{display:none}
 
-.template-fields.show{
- display:block
-}
+.template-fields.show{display:block}
 
-.field{
- margin-bottom:9px
-}
+.field{margin-bottom:9px}
 
 .message-tools{
  display:flex;
@@ -347,9 +331,7 @@ button:disabled{
  word-break:break-word
 }
 
-.status.show{
- display:block
-}
+.status.show{display:block}
 
 .status.success{
  background:rgba(34,197,94,.12);
@@ -374,9 +356,7 @@ button:disabled{
  margin:12px 0
 }
 
-.progress.show{
- display:block
-}
+.progress.show{display:block}
 
 .progress-track{
  height:7px;
@@ -427,9 +407,7 @@ button:disabled{
  margin-top:10px
 }
 
-.schedule-box.show{
- display:block
-}
+.schedule-box.show{display:block}
 
 .schedule-note{
  margin-top:8px;
@@ -555,13 +533,8 @@ button:disabled{
  opacity:1
 }
 
-.popup.success{
- border-color:rgba(34,197,94,.4)
-}
-
-.popup.error{
- border-color:rgba(239,68,68,.4)
-}
+.popup.success{border-color:rgba(34,197,94,.4)}
+.popup.error{border-color:rgba(239,68,68,.4)}
 
 .footer{
  text-align:center;
@@ -572,21 +545,14 @@ button:disabled{
 
 @media(max-width:600px){
 
- body{
-  padding:10px
- }
+ body{padding:10px}
 
  .card{
   padding:14px;
   border-radius:18px
  }
 
- .stats{
-  grid-template-columns:repeat(3,1fr)
- }
-
- .row,
- .row3{
+ .row,.row3{
   grid-template-columns:1fr
  }
 
@@ -594,13 +560,6 @@ button:disabled{
   grid-template-columns:1fr
  }
 
- .template-top{
-  grid-template-columns:1fr auto
- }
-
- .specific-actions{
-  grid-template-columns:1fr 1fr
- }
 }
 </style>
 </head>
@@ -610,21 +569,14 @@ button:disabled{
 <div class="container">
 
 <div class="header">
-
 <img
  class="logo"
  src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
  alt="AURA"
 >
-
 <h1>AURA ARMAN TOUR</h1>
-
-<p>
-Premium Notification Management Center
-</p>
-
+<p>Premium Notification Management Center</p>
 </div>
-
 
 <div class="stats">
 
@@ -657,32 +609,22 @@ Premium Notification Management Center
 <div class="targets">
 
 <label class="target">
-<input
- type="radio"
- name="target"
- value="all"
- checked
->
+<input type="radio" name="target" value="all" checked>
 <span>All Users</span>
 </label>
 
 <label class="target">
-<input
- type="radio"
- name="target"
- value="specific"
->
+<input type="radio" name="target" value="specific">
 <span>Specific User</span>
 </label>
 
 </div>
 
-
 <div id="specificBox">
 
-<label>
-Firebase UID / External ID
-</label>
+<label>Firebase UID / External ID</label>
+
+<div style="display:grid;grid-template-columns:1fr auto;gap:7px">
 
 <input
  id="externalId"
@@ -691,21 +633,24 @@ Firebase UID / External ID
  autocomplete="off"
 >
 
-<div class="specific-actions">
-
 <button
  type="button"
- id="checkUserBtn"
+ id="pasteUidBtn"
  class="btn-secondary"
+ style="white-space:nowrap"
 >
+📋 PASTE
+</button>
+
+</div>
+
+<div class="specific-actions">
+
+<button type="button" id="checkUserBtn" class="btn-secondary">
 CHECK USER
 </button>
 
-<button
- type="button"
- id="clearUserBtn"
- class="btn-secondary"
->
+<button type="button" id="clearUserBtn" class="btn-secondary">
 CLEAR
 </button>
 
@@ -746,10 +691,7 @@ CLEAR
 
 <select id="template"></select>
 
-<div
- id="templateFields"
- class="template-fields group"
-></div>
+<div id="templateFields" class="template-fields group"></div>
 
 </div>
 
@@ -760,22 +702,15 @@ CLEAR
 
 <div class="section-title">
 
-<span>
-✏️ Message
-</span>
+<span>✏️ Message</span>
 
-<button
- id="resetBtn"
- class="btn-secondary small-btn"
->
+<button id="resetBtn" class="btn-secondary small-btn">
 RESET
 </button>
 
 </div>
 
-<label>
-Notification Title
-</label>
+<label>Notification Title</label>
 
 <input
  id="title"
@@ -795,13 +730,9 @@ Notification Title
 
 <div class="message-tools">
 
-<span>
-Custom message edit করা যাবে
-</span>
+<span>Custom message edit করা যাবে</span>
 
-<span>
-<b id="charCount">0</b>/1000
-</span>
+<span><b id="charCount">0</b>/1000</span>
 
 </div>
 
@@ -820,9 +751,7 @@ Custom message edit করা যাবে
 
 <div class="group">
 
-<label>
-Icon URL
-</label>
+<label>Icon URL</label>
 
 <input
  id="icon"
@@ -832,12 +761,9 @@ Icon URL
 
 </div>
 
-
 <div class="group">
 
-<label>
-Big Image URL
-</label>
+<label>Big Image URL</label>
 
 <input
  id="image"
@@ -849,12 +775,9 @@ Big Image URL
 
 </div>
 
-
 <div class="group">
 
-<label>
-Click URL
-</label>
+<label>Click URL</label>
 
 <input
  id="url"
@@ -875,10 +798,7 @@ Click URL
 🔊 Notification Sound
 </div>
 
-
-<label>
-Sound Preview URL
-</label>
+<label>Sound Preview URL</label>
 
 <input
  id="sound"
@@ -886,40 +806,25 @@ Sound Preview URL
  placeholder="https://example.com/notification.mp3"
 >
 
-
 <div class="row" style="margin-top:8px">
 
-<button
- id="playSoundBtn"
- class="btn-secondary"
->
+<button id="playSoundBtn" class="btn-secondary">
 ▶ PLAY SOUND
 </button>
 
-<button
- id="clearSoundBtn"
- class="btn-secondary"
->
+<button id="clearSoundBtn" class="btn-secondary">
 CLEAR SOUND
 </button>
 
 </div>
 
-
 <div id="soundStatus" class="status"></div>
 
-<audio
- id="soundPlayer"
- preload="none"
-></audio>
-
+<audio id="soundPlayer" preload="none"></audio>
 
 <div style="height:14px"></div>
 
-
-<label>
-Android Sound File Name
-</label>
+<label>Android Sound File Name</label>
 
 <input
  id="androidSound"
@@ -929,20 +834,16 @@ Android Sound File Name
 >
 
 <div style="font-size:10px;color:#64748b;margin-top:6px;line-height:1.5">
-APK-এর ভিতরে থাকা sound file-এর নাম লিখুন।
+APK-এর ভিতরে থাকা sound resource-এর নাম লিখুন।
 <br>
-Example: <b>notification</b> অথবা <b>tournament</b>
+Example: <b>notification</b>
 <br>
-<strong>.mp3 / .wav extension না দিলেও হবে।</strong>
+<strong>.mp3 / .wav extension দেবেন না।</strong>
 </div>
-
 
 <div style="height:12px"></div>
 
-
-<label>
-Android Notification Channel ID
-</label>
+<label>Android Notification Channel ID</label>
 
 <input
  id="androidChannelId"
@@ -953,7 +854,7 @@ Android Notification Channel ID
 >
 
 <div style="font-size:10px;color:#64748b;margin-top:6px;line-height:1.5">
-এই Channel ID অবশ্যই তোমার Android/Median OneSignal configuration-এর channel-এর সাথে match করতে হবে।
+Android app-এর তৈরি করা notification channel-এর ID-এর সাথে এটি match করতে হবে।
 </div>
 
 </div>
@@ -965,16 +866,11 @@ Android Notification Channel ID
 
 <div class="section-title">
 
-<span>
-👀 Live Notification Preview
-</span>
+<span>👀 Live Notification Preview</span>
 
-<span style="font-size:10px;color:#64748b">
-LIVE
-</span>
+<span style="font-size:10px;color:#64748b">LIVE</span>
 
 </div>
-
 
 <div class="preview">
 
@@ -985,12 +881,9 @@ LIVE
  src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
 >
 
-<span>
-Now • AURA ARMAN TOUR
-</span>
+<span>Now • AURA ARMAN TOUR</span>
 
 </div>
-
 
 <div class="notification-preview">
 
@@ -1006,23 +899,15 @@ Now • AURA ARMAN TOUR
 
 <div>
 
-<span
- id="previewTitle"
- class="preview-title"
->
+<span id="previewTitle" class="preview-title">
 AURA ARMAN TOUR
 </span>
 
-<span class="preview-time">
-now
-</span>
+<span class="preview-time">now</span>
 
 </div>
 
-<div
- id="previewMessage"
- class="preview-msg"
->
+<div id="previewMessage" class="preview-msg">
 আপনার notification message এখানে দেখা যাবে।
 </div>
 
@@ -1030,11 +915,7 @@ now
 
 </div>
 
-
-<img
- id="previewImage"
- class="preview-image"
->
+<img id="previewImage" class="preview-image">
 
 </div>
 
@@ -1051,103 +932,65 @@ now
 📤 Send Notification
 </div>
 
-
 <div class="send-mode">
 
-<div
- class="mode active"
- data-mode="now"
->
+<div class="mode active" data-mode="now">
 ⚡ Send Now
 </div>
 
-<div
- class="mode"
- data-mode="schedule"
->
+<div class="mode" data-mode="schedule">
 ⏰ Schedule
 </div>
 
 </div>
 
-
-<div
- id="scheduleBox"
- class="schedule-box"
->
+<div id="scheduleBox" class="schedule-box">
 
 <div class="row">
 
 <div>
 
-<label>
-Date
-</label>
+<label>Date</label>
 
-<input
- id="scheduleDate"
- type="date"
->
+<input id="scheduleDate" type="date">
 
 </div>
-
 
 <div>
 
-<label>
-Time
-</label>
+<label>Time</label>
 
-<input
- id="scheduleTime"
- type="time"
->
+<input id="scheduleTime" type="time">
 
 </div>
 
 </div>
-
 
 <div class="schedule-note">
-⏰ Schedule server-side OneSignal-এর মাধ্যমে হবে।
-Admin panel/browser বন্ধ থাকলেও notification নির্ধারিত সময়ে যাবে।
+⏰ Schedule server-side হবে। Request backend-এ পাঠানো হবে এবং backend-কে OneSignal-এর persistent scheduling ব্যবহার করতে হবে। তাই admin/browser বন্ধ থাকলেও notification পাঠানো সম্ভব হবে।
 </div>
 
 </div>
 
-
-<div
- class="progress"
- id="progress"
->
+<div class="progress" id="progress">
 
 <div class="progress-track">
 
-<div
- class="progress-bar"
- id="progressBar"
-></div>
+<div class="progress-bar" id="progressBar"></div>
 
 </div>
 
-<div
- class="progress-text"
- id="progressText"
->
+<div class="progress-text" id="progressText">
 Preparing...
 </div>
 
 </div>
 
-
 <button id="sendBtn">
 SEND NOTIFICATION
 </button>
 
-<div
- id="result"
- class="status"
-></div>
+<div id="result" class="status"></div>
 
 </div>
 
@@ -1158,19 +1001,13 @@ SEND NOTIFICATION
 
 <div class="section-title">
 
-<span>
-📋 Recent Notifications
-</span>
+<span>📋 Recent Notifications</span>
 
-<button
- id="clearHistoryBtn"
- class="btn-red small-btn"
->
+<button id="clearHistoryBtn" class="btn-red small-btn">
 CLEAR
 </button>
 
 </div>
-
 
 <div class="history-tools">
 
@@ -1182,34 +1019,18 @@ CLEAR
 
 <select id="historyFilter">
 
-<option value="all">
-All Status
-</option>
-
-<option value="success">
-Success
-</option>
-
-<option value="failed">
-Failed
-</option>
-
-<option value="scheduled">
-Scheduled
-</option>
+<option value="all">All Status</option>
+<option value="success">Success</option>
+<option value="failed">Failed</option>
+<option value="scheduled">Scheduled</option>
 
 </select>
 
 </div>
 
-
-<div
- id="history"
- class="history"
-></div>
+<div id="history" class="history"></div>
 
 </div>
-
 
 <div class="footer">
 AURA ARMAN TOUR • Notification Management Center
@@ -1217,16 +1038,11 @@ AURA ARMAN TOUR • Notification Management Center
 
 </div>
 
-
-<div
- id="popup"
- class="popup"
-></div>
+<div id="popup" class="popup"></div>
 
 
 <script>
 "use strict";
-
 
 /* =========================================================
    CONFIG
@@ -1235,142 +1051,89 @@ AURA ARMAN TOUR • Notification Management Center
 const DEFAULT_ICON =
 "https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg";
 
+const DEFAULT_URL =
+"https://aura-skill-com.onrender.com";
+
 const API_SEND =
 "/api/notifications/send";
 
 const API_CHECK =
 "/api/notifications/check-user";
 
+const HISTORY_KEY =
+"aura_notification_history";
+
+const FAVORITES_KEY =
+"aura_notification_favorites";
+
+const DRAFT_KEY =
+"aura_notification_draft";
+
+
+/* =========================================================
+   ELEMENT HELPER
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
 
 /* =========================================================
    ELEMENTS
 ========================================================= */
 
-const $ =
-id => document.getElementById(id);
+const externalId = $("externalId");
+const template = $("template");
+const templateSearch = $("templateSearch");
+const templateFields = $("templateFields");
+const favoriteBtn = $("favoriteBtn");
 
+const message = $("message");
+const icon = $("icon");
+const image = $("image");
+const url = $("url");
+
+const sound = $("sound");
+const androidSound = $("androidSound");
+const androidChannelId = $("androidChannelId");
+
+const sendBtn = $("sendBtn");
+const result = $("result");
+
+const progress = $("progress");
+const progressBar = $("progressBar");
+const progressText = $("progressText");
+
+const historyBox = $("history");
+const historySearch = $("historySearch");
+const historyFilter = $("historyFilter");
+
+const userStatus = $("userStatus");
+const specificBox = $("specificBox");
 
 const targetInputs =
-document.querySelectorAll(
- 'input[name="target"]'
-);
-
-const specificBox =
-$("specificBox");
-
-const externalId =
-$("externalId");
-
-const checkUserBtn =
-$("checkUserBtn");
-
-const clearUserBtn =
-$("clearUserBtn");
-
-const userStatus =
-$("userStatus");
-
-const template =
-$("template");
-
-const templateSearch =
-$("templateSearch");
-
-const templateFields =
-$("templateFields");
-
-const favoriteBtn =
-$("favoriteBtn");
-
-const message =
-$("message");
-
-const title =
-$("title");
-
-const icon =
-$("icon");
-
-const image =
-$("image");
-
-const url =
-$("url");
-
-const sound =
-$("sound");
-
-const androidSound =
-$("androidSound");
-
-const androidChannelId =
-$("androidChannelId");
-
-const sendBtn =
-$("sendBtn");
-
-const result =
-$("result");
-
-const progress =
-$("progress");
-
-const progressBar =
-$("progressBar");
-
-const progressText =
-$("progressText");
-
-const previewIcon =
-$("previewIcon");
-
-const previewSmallIcon =
-$("previewSmallIcon");
-
-const previewTitle =
-$("previewTitle");
-
-const previewMessage =
-$("previewMessage");
-
-const previewImage =
-$("previewImage");
-
-const historyBox =
-$("history");
-
-const historySearch =
-$("historySearch");
-
-const historyFilter =
-$("historyFilter");
+document.querySelectorAll('input[name="target"]');
 
 
-let sendMode =
-"now";
+/* =========================================================
+   STATE
+========================================================= */
 
-let currentTemplate =
-"";
-
+let sendMode = "now";
+let currentTemplate = "";
 
 let historyData =
 JSON.parse(
- localStorage.getItem(
-  "aura_notification_history"
- ) || "[]"
+ localStorage.getItem(HISTORY_KEY) || "[]"
 );
-
 
 let favorites =
 JSON.parse(
- localStorage.getItem(
-  "aura_notification_favorites"
- ) || "[]"
+ localStorage.getItem(FAVORITES_KEY) || "[]"
 );
 
 
 /* =========================================================
-   TEMPLATE DATA
+   TEMPLATES
 ========================================================= */
 
 const templates = {
@@ -1594,6 +1357,10 @@ special_notice:{
 };
 
 
+/* =========================================================
+   FIELD LABELS
+========================================================= */
+
 const labels={
  amount:"Amount (৳)",
  reason:"কারণ",
@@ -1619,23 +1386,17 @@ const labels={
 
 function money(value){
 
- let raw=
+ const raw =
  String(value ?? "")
  .replace(/[^\d.]/g,"");
 
- if(!raw){
-  return "৳0";
- }
+ if(!raw) return "৳0";
 
- let n=
- Number(raw);
+ const n = Number(raw);
 
- if(!Number.isFinite(n)){
-  return "৳0";
- }
+ if(!Number.isFinite(n)) return "৳0";
 
- return "৳"+
- n.toLocaleString("en-US");
+ return "৳" + n.toLocaleString("en-US");
 }
 
 
@@ -1650,63 +1411,40 @@ function escapeHTML(value){
 }
 
 
-function showStatus(
- el,
- text,
- type="info"
-){
+function showStatus(el,text,type="info"){
 
  el.textContent=text;
-
- el.className=
- "status show "+type;
+ el.className="status show "+type;
 }
 
 
 function clearStatus(el){
 
  el.textContent="";
-
- el.className=
- "status";
+ el.className="status";
 }
 
 
-function popup(
- text,
- type="success"
-){
+function popup(text,type="success"){
 
- const p=
- $("popup");
+ const p=$("popup");
 
- p.textContent=
- text;
+ p.textContent=text;
+ p.className="popup show "+type;
 
- p.className=
- "popup show "+type;
+ clearTimeout(p._timer);
 
- clearTimeout(
-  p._timer
- );
-
- p._timer=
- setTimeout(
-  ()=>{
-   p.className="popup";
-  },
-  3000
- );
+ p._timer=setTimeout(()=>{
+  p.className="popup";
+ },3000);
 }
 
 
 function saveHistory(){
 
  localStorage.setItem(
-  "aura_notification_history",
-  JSON.stringify(
-   historyData.slice(0,100)
-  )
+  HISTORY_KEY,
+  JSON.stringify(historyData.slice(0,100))
  );
 }
 
@@ -1714,10 +1452,8 @@ function saveHistory(){
 function saveFavorites(){
 
  localStorage.setItem(
-  "aura_notification_favorites",
-  JSON.stringify(
-   favorites
-  )
+  FAVORITES_KEY,
+  JSON.stringify(favorites)
  );
 }
 
@@ -1729,251 +1465,173 @@ function getFormData(){
  templateFields
  .querySelectorAll("[data-field]")
  .forEach(input=>{
-
-  fields[
-   input.dataset.field
-  ]=
-   input.value.trim();
-
+  fields[input.dataset.field]=input.value.trim();
  });
 
  return fields;
 }
 
 
+function wait(ms){
+
+ return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
+
 /* =========================================================
-   TEMPLATE
+   TEMPLATE LIST
 ========================================================= */
 
 function renderTemplateList(){
 
  const search=
- templateSearch.value
- .trim()
- .toLowerCase();
-
+ templateSearch.value.trim().toLowerCase();
 
  const entries=
  Object.entries(templates)
  .filter(([key,cfg])=>{
 
-  const fav=
-   favorites.includes(key);
+  if(!search) return true;
 
-  return !search ||
+  return (
    cfg.name.toLowerCase().includes(search) ||
-   key.toLowerCase().includes(search) ||
-   (fav && search==="favorite");
-
+   key.toLowerCase().includes(search)
+  );
  })
  .sort((a,b)=>{
 
-  const af=
-   favorites.includes(a[0]) ? 0 : 1;
-
-  const bf=
-   favorites.includes(b[0]) ? 0 : 1;
+  const af=favorites.includes(a[0]) ? 0 : 1;
+  const bf=favorites.includes(b[0]) ? 0 : 1;
 
   return af-bf;
  });
 
-
- const old=
- currentTemplate ||
- template.value;
-
+ const selected=currentTemplate || template.value;
 
  template.innerHTML=
  `<option value="">Select a message template</option>`+
- entries.map(([key,cfg])=>
-
-  `<option value="${escapeHTML(key)}">${
-   escapeHTML(
-    favorites.includes(key)
-     ? "⭐ "
-     : ""
-   )
-  }${escapeHTML(cfg.name)}</option>`
-
- ).join("");
-
+ entries.map(([key,cfg])=>`
+  <option value="${escapeHTML(key)}">
+   ${favorites.includes(key)?"⭐ ":""}${escapeHTML(cfg.name)}
+  </option>
+ `).join("");
 
  if(
-  old &&
-  templates[old] &&
-  entries.some(
-   x=>x[0]===old
-  )
+  selected &&
+  templates[selected] &&
+  entries.some(x=>x[0]===selected)
  ){
-
-  template.value=
-   old;
+  template.value=selected;
  }
-
 
  updateFavoriteButton();
 }
 
 
+/* =========================================================
+   TEMPLATE FIELDS
+========================================================= */
+
 function renderTemplateFields(){
 
- const key=
- template.value;
+ const key=template.value;
 
- currentTemplate=
- key;
+ currentTemplate=key;
 
- const cfg=
- templates[key];
+ const cfg=templates[key];
 
  templateFields.innerHTML="";
 
-
  if(!cfg){
 
-  templateFields
-   .classList
-   .remove("show");
+  templateFields.classList.remove("show");
 
   updatePreview();
 
   return;
  }
 
+ templateFields.classList.add("show");
 
- templateFields
- .classList
- .add("show");
+ cfg.fields.forEach(field=>{
 
+  const wrap=document.createElement("div");
+  wrap.className="field";
 
- cfg.fields.forEach(
- field=>{
+  const label=document.createElement("label");
+  label.textContent=labels[field] || field;
 
-  const wrap=
-   document.createElement(
-    "div"
-   );
+  const input=document.createElement("input");
 
-  wrap.className=
-   "field";
+  input.type="text";
+  input.dataset.field=field;
+  input.placeholder=labels[field] || field;
 
-
-  const label=
-   document.createElement(
-    "label"
-   );
-
-  label.textContent=
-   labels[field] ||
-   field;
-
-
-  const input=
-   document.createElement(
-    "input"
-   );
-
-  input.type=
-   "text";
-
-  input.dataset.field=
-   field;
-
-  input.placeholder=
-   labels[field] ||
-   field;
-
-
-  if(
-   [
-    "amount",
-    "entry",
-    "prize"
-   ].includes(field)
-  ){
-
-   input.inputMode=
-    "decimal";
+  if(["amount","entry","prize"].includes(field)){
+   input.inputMode="decimal";
   }
 
-
-  wrap.append(
-   label,
-   input
-  );
-
-  templateFields.appendChild(
-   wrap
-  );
-
+  wrap.append(label,input);
+  templateFields.appendChild(wrap);
  });
 
-
  updateTemplateMessage();
-
  updateFavoriteButton();
 }
 
 
 function updateTemplateMessage(){
 
- const cfg=
-  templates[template.value];
+ const cfg=templates[template.value];
 
- if(!cfg){
-  return;
- }
+ if(!cfg) return;
 
- const data=
-  getFormData();
+ message.value=cfg.msg(getFormData());
 
- message.value=
-  cfg.msg(data);
+ $("charCount").textContent=message.value.length;
 
  updatePreview();
+ saveDraft();
 }
 
 
 function updateFavoriteButton(){
 
- const key=
-  template.value;
+ const key=template.value;
+
+ const active=
+ key &&
+ favorites.includes(key);
 
  favoriteBtn.textContent=
-  key &&
-  favorites.includes(key)
-   ? "★"
-   : "☆";
-
+ active ? "★" : "☆";
 
  favoriteBtn.classList.toggle(
   "active",
-  !!(
-   key &&
-   favorites.includes(key)
-  )
+  !!active
  );
 }
 
+
+/* =========================================================
+   TEMPLATE EVENTS
+========================================================= */
 
 template.addEventListener(
  "change",
  renderTemplateFields
 );
 
-
 templateSearch.addEventListener(
  "input",
  renderTemplateList
 );
 
-
 favoriteBtn.addEventListener(
  "click",
  ()=>{
 
-  const key=
-   template.value;
+  const key=template.value;
 
   if(!key){
 
@@ -1985,36 +1643,24 @@ favoriteBtn.addEventListener(
    return;
   }
 
+  if(favorites.includes(key)){
 
-  if(
-   favorites.includes(key)
-  ){
+   favorites=favorites.filter(x=>x!==key);
 
-   favorites=
-    favorites.filter(
-     x=>x!==key
-    );
-
-   popup(
-    "Favorite থেকে remove হয়েছে."
-   );
+   popup("Favorite থেকে remove হয়েছে.");
 
   }else{
 
    favorites.unshift(key);
 
-   popup(
-    "⭐ Favorite করা হয়েছে."
-   );
+   popup("⭐ Favorite করা হয়েছে.");
   }
-
 
   saveFavorites();
 
   renderTemplateList();
 
-  template.value=
-   key;
+  template.value=key;
 
   updateFavoriteButton();
  }
@@ -2029,56 +1675,23 @@ templateFields.addEventListener(
  "input",
  e=>{
 
-  if(
-   !e.target.matches(
-    "[data-field]"
-   )
-  ){
-   return;
-  }
+  if(!e.target.matches("[data-field]")) return;
 
+  const field=e.target.dataset.field;
 
-  const field=
-   e.target.dataset.field;
-
-
-  if(
-   [
-    "amount",
-    "entry",
-    "prize"
-   ].includes(field)
-  ){
-
-   const cursor=
-    e.target.selectionStart;
+  if(["amount","entry","prize"].includes(field)){
 
    e.target.value=
-    e.target.value.replace(
-     /[^\d.]/g,
-     ""
-    );
-
-   try{
-
-    e.target.setSelectionRange(
-     cursor,
-     cursor
-    );
-
-   }catch{}
+    e.target.value.replace(/[^\d.]/g,"");
   }
 
-
   updateTemplateMessage();
-
-  saveDraft();
  }
 );
 
 
 /* =========================================================
-   MESSAGE / PREVIEW
+   MESSAGE
 ========================================================= */
 
 message.addEventListener(
@@ -2095,114 +1708,127 @@ message.addEventListener(
 );
 
 
+/* =========================================================
+   PREVIEW
+========================================================= */
+
 function updatePreview(){
 
- previewTitle.textContent=
+ $("previewTitle").textContent=
   "AURA ARMAN TOUR";
 
-
- previewMessage.textContent=
+ $("previewMessage").textContent=
   message.value ||
-  "আপনার notification message এখানে দেখা যাবে.";
-
+  "আপনার notification message এখানে দেখা যাবে।";
 
  const iconURL=
   icon.value.trim() ||
   DEFAULT_ICON;
 
+ $("previewIcon").src=iconURL;
+ $("previewSmallIcon").src=iconURL;
 
- previewIcon.src=
-  iconURL;
+ $("previewIcon").onerror=()=>{
+  $("previewIcon").src=DEFAULT_ICON;
+ };
 
- previewSmallIcon.src=
-  iconURL;
+ $("previewSmallIcon").onerror=()=>{
+  $("previewSmallIcon").src=DEFAULT_ICON;
+ };
 
-
- previewIcon.onerror=
-  ()=>{
-   previewIcon.src=
-    DEFAULT_ICON;
-  };
-
-
- previewSmallIcon.onerror=
-  ()=>{
-   previewSmallIcon.src=
-    DEFAULT_ICON;
-  };
-
-
- const img=
-  image.value.trim();
-
+ const img=image.value.trim();
 
  if(img){
 
-  previewImage.src=
-   img;
+  $("previewImage").src=img;
+  $("previewImage").style.display="block";
 
-  previewImage.style.display=
-   "block";
-
-  previewImage.onerror=
-   ()=>{
-    previewImage.style.display=
-     "none";
-   };
+  $("previewImage").onerror=()=>{
+   $("previewImage").style.display="none";
+  };
 
  }else{
 
-  previewImage.style.display=
-   "none";
+  $("previewImage").style.display="none";
  }
 }
 
 
-[
- icon,
- image
-].forEach(
- el=>
-  el.addEventListener(
-   "input",
-   ()=>{
-    updatePreview();
-    saveDraft();
-   }
-  )
-);
+[icon,image].forEach(el=>{
+ el.addEventListener("input",()=>{
+  updatePreview();
+  saveDraft();
+ });
+});
 
 
 /* =========================================================
    TARGET
 ========================================================= */
 
-targetInputs.forEach(
- input=>{
+targetInputs.forEach(input=>{
 
-  input.addEventListener(
-   "change",
-   ()=>{
+ input.addEventListener(
+  "change",
+  ()=>{
 
-    if(
-     input.checked &&
-     input.value==="specific"
-    ){
+   const specific=
+    document.querySelector(
+     'input[name="target"][value="specific"]'
+    ).checked;
 
-     specificBox.style.display=
-      "block";
+   specificBox.style.display=
+    specific ? "block" : "none";
 
-    }else{
-
-     specificBox.style.display=
-      "none";
-
-     clearStatus(
-      userStatus
-     );
-    }
+   if(!specific){
+    clearStatus(userStatus);
    }
-  );
+
+   saveDraft();
+  }
+ );
+});
+
+
+/* =========================================================
+   PASTE UID
+========================================================= */
+
+$("pasteUidBtn").addEventListener(
+ "click",
+ async()=>{
+
+  try{
+
+   const text=
+    await navigator.clipboard.readText();
+
+   if(!text){
+
+    popup(
+     "Clipboard খালি.",
+     "error"
+    );
+
+    return;
+   }
+
+   externalId.value=text.trim();
+
+   saveDraft();
+
+   popup(
+    "📋 Firebase UID paste হয়েছে.",
+    "success"
+   );
+
+  }catch{
+
+   popup(
+    "Clipboard access পাওয়া যায়নি।",
+    "error"
+   );
+  }
  }
 );
 
@@ -2211,13 +1837,11 @@ targetInputs.forEach(
    USER CHECK
 ========================================================= */
 
-checkUserBtn.addEventListener(
+$("checkUserBtn").addEventListener(
  "click",
  async()=>{
 
-  const id=
-   externalId.value.trim();
-
+  const id=externalId.value.trim();
 
   if(!id){
 
@@ -2230,13 +1854,10 @@ checkUserBtn.addEventListener(
    return;
   }
 
+  const btn=$("checkUserBtn");
 
-  checkUserBtn.disabled=
-   true;
-
-  checkUserBtn.textContent=
-   "CHECKING...";
-
+  btn.disabled=true;
+  btn.textContent="CHECKING...";
 
   try{
 
@@ -2245,45 +1866,29 @@ checkUserBtn.addEventListener(
      API_CHECK,
      {
       method:"POST",
-
       headers:{
-       "Content-Type":
-        "application/json"
+       "Content-Type":"application/json"
       },
-
-      body:
-       JSON.stringify({
-        externalId:id
-       })
+      body:JSON.stringify({
+       externalId:id
+      })
      }
     );
 
-
-   const raw=
-    await response.text();
+   const raw=await response.text();
 
    let data;
 
    try{
-
-    data=
-     JSON.parse(raw);
-
+    data=JSON.parse(raw);
    }catch{
-
     data={
      success:false,
-     error:
-      raw ||
-      "Invalid server response."
+     error:raw || "Invalid server response."
     };
    }
 
-
-   if(
-    !response.ok ||
-    !data.success
-   ){
+   if(!response.ok || !data.success){
 
     throw new Error(
      data.error ||
@@ -2291,16 +1896,12 @@ checkUserBtn.addEventListener(
     );
    }
 
-
    if(data.subscribed){
 
     showStatus(
      userStatus,
-
-     "✅ User is subscribed.\n"+
-     "Active subscriptions: "+
+     "✅ User is subscribed.\nActive subscriptions: "+
      (data.subscriptionCount ?? 0),
-
      "success"
     );
 
@@ -2308,50 +1909,36 @@ checkUserBtn.addEventListener(
 
     showStatus(
      userStatus,
-
      "⚠️ User exists, but no active push subscription was found.",
-
      "error"
     );
    }
-
 
   }catch(err){
 
    showStatus(
     userStatus,
-
-    "❌ "+
-    (
-     err.message ||
-     "User check failed."
-    ),
-
+    "❌ "+(err.message || "User check failed."),
     "error"
    );
 
   }finally{
 
-   checkUserBtn.disabled=
-    false;
-
-   checkUserBtn.textContent=
-    "CHECK USER";
+   btn.disabled=false;
+   btn.textContent="CHECK USER";
   }
 });
 
 
-clearUserBtn.addEventListener(
+$("clearUserBtn").addEventListener(
  "click",
  ()=>{
 
   externalId.value="";
-
-  clearStatus(
-   userStatus
-  );
-
+  clearStatus(userStatus);
   externalId.focus();
+
+  saveDraft();
  }
 );
 
@@ -2364,53 +1951,38 @@ $("playSoundBtn").addEventListener(
  "click",
  async()=>{
 
-  const value=
-   sound.value.trim();
-
+  const value=sound.value.trim();
 
   if(!value){
 
    showStatus(
     $("soundStatus"),
-
     "আগে একটি MP3/WAV sound URL দিন.",
-
     "error"
    );
 
    return;
   }
 
+  const player=$("soundPlayer");
 
-  const player=
-   $("soundPlayer");
-
-
-  player.src=
-   value;
-
+  player.src=value;
 
   try{
 
    await player.play();
 
-
    showStatus(
     $("soundStatus"),
-
     "▶ Sound preview চলছে.",
-
     "success"
    );
-
 
   }catch{
 
    showStatus(
     $("soundStatus"),
-
     "❌ Sound play করা যায়নি। URL ও format check করুন.",
-
     "error"
    );
   }
@@ -2421,17 +1993,15 @@ $("clearSoundBtn").addEventListener(
  "click",
  ()=>{
 
+  const player=$("soundPlayer");
+
+  player.pause();
+  player.removeAttribute("src");
+  player.load();
+
   sound.value="";
 
-  $("soundPlayer").pause();
-
-  $("soundPlayer").removeAttribute(
-   "src"
-  );
-
-  clearStatus(
-   $("soundStatus")
-  );
+  clearStatus($("soundStatus"));
 
   saveDraft();
  }
@@ -2442,91 +2012,57 @@ $("clearSoundBtn").addEventListener(
    SEND MODE
 ========================================================= */
 
-document
-.querySelectorAll(".mode")
-.forEach(
- mode=>{
+document.querySelectorAll(".mode").forEach(mode=>{
 
-  mode.addEventListener(
-   "click",
-   ()=>{
+ mode.addEventListener(
+  "click",
+  ()=>{
 
-    document
-    .querySelectorAll(".mode")
-    .forEach(
-     x=>
-      x.classList.remove(
-       "active"
-      )
-    );
+   document.querySelectorAll(".mode")
+   .forEach(x=>x.classList.remove("active"));
 
+   mode.classList.add("active");
 
-    mode.classList.add(
-     "active"
-    );
+   sendMode=mode.dataset.mode;
 
+   $("scheduleBox")
+   .classList.toggle(
+    "show",
+    sendMode==="schedule"
+   );
 
-    sendMode=
-     mode.dataset.mode;
-
-
-    $("scheduleBox")
-     .classList
-     .toggle(
-      "show",
-      sendMode==="schedule"
-     );
-   }
-  );
- }
-);
+   saveDraft();
+  }
+ );
+});
 
 
 /* =========================================================
-   SCHEDULE DEFAULT
+   DEFAULT SCHEDULE
 ========================================================= */
 
 function setDefaultSchedule(){
 
- const now=
-  new Date();
+ const now=new Date();
 
  now.setMinutes(
   now.getMinutes()+10
  );
 
-
- const year=
-  now.getFullYear();
+ const year=now.getFullYear();
 
  const month=
-  String(
-   now.getMonth()+1
-  ).padStart(
-   2,
-   "0"
-  );
+  String(now.getMonth()+1).padStart(2,"0");
 
  const day=
-  String(
-   now.getDate()
-  ).padStart(
-   2,
-   "0"
-  );
-
+  String(now.getDate()).padStart(2,"0");
 
  $("scheduleDate").value=
   `${year}-${month}-${day}`;
 
-
  $("scheduleTime").value=
-  now.toTimeString()
-   .slice(0,5);
+  now.toTimeString().slice(0,5);
 }
-
-
-setDefaultSchedule();
 
 
 /* =========================================================
@@ -2538,50 +2074,25 @@ function buildPayload(){
  const target=
   document.querySelector(
    'input[name="target"]:checked'
-  )?.value ||
-  "all";
+  )?.value || "all";
 
+ let scheduledAt=null;
 
- let scheduledAt=
-  null;
+ if(sendMode==="schedule"){
 
-
- if(
-  sendMode==="schedule"
- ){
-
-  const date=
-   $("scheduleDate").value;
-
-  const time=
-   $("scheduleTime").value;
-
+  const date=$("scheduleDate").value;
+  const time=$("scheduleTime").value;
 
   if(date && time){
 
-   /*
-    Local Bangladesh/browser time
-    is converted to ISO automatically.
-   */
-
    const localDate=
-    new Date(
-     `${date}T${time}`
-    );
+    new Date(`${date}T${time}`);
 
-
-   if(
-    Number.isFinite(
-     localDate.getTime()
-    )
-   ){
-
-    scheduledAt=
-     localDate.toISOString();
+   if(Number.isFinite(localDate.getTime())){
+    scheduledAt=localDate.toISOString();
    }
   }
  }
-
 
  return {
 
@@ -2606,20 +2117,19 @@ function buildPayload(){
    url.value.trim(),
 
   /*
-   Only for local preview/history.
-   This is NOT sent as Android notification sound.
+   Sound URL শুধু browser preview-এর জন্য।
   */
   sound:
    sound.value.trim(),
 
   /*
-   Native Android OneSignal sound.
+   Native Android notification sound.
   */
   androidSound:
    androidSound.value.trim(),
 
   /*
-   Native Android notification channel.
+   Native Android channel.
   */
   androidChannelId:
    androidChannelId.value.trim(),
@@ -2630,7 +2140,14 @@ function buildPayload(){
   templateFields:
    getFormData(),
 
-  scheduledAt
+  scheduledAt,
+
+  /*
+   Backend চাইলে timezone log/use করতে পারবে।
+  */
+  timezone:
+   Intl.DateTimeFormat().resolvedOptions().timeZone ||
+   "Asia/Dhaka"
  };
 }
 
@@ -2643,14 +2160,9 @@ sendBtn.addEventListener(
  "click",
  async()=>{
 
-  if(sendBtn.disabled){
-   return;
-  }
+  if(sendBtn.disabled) return;
 
-
-  const payload=
-   buildPayload();
-
+  const payload=buildPayload();
 
   if(!payload.message){
 
@@ -2663,7 +2175,6 @@ sendBtn.addEventListener(
 
    return;
   }
-
 
   if(
    payload.target==="specific" &&
@@ -2680,10 +2191,7 @@ sendBtn.addEventListener(
    return;
   }
 
-
-  if(
-   sendMode==="schedule"
-  ){
+  if(sendMode==="schedule"){
 
    if(
     !$("scheduleDate").value ||
@@ -2698,10 +2206,7 @@ sendBtn.addEventListener(
     return;
    }
 
-
-   if(
-    !payload.scheduledAt
-   ){
+   if(!payload.scheduledAt){
 
     popup(
      "সঠিক date/time নির্বাচন করুন.",
@@ -2711,19 +2216,12 @@ sendBtn.addEventListener(
     return;
    }
 
-
    const scheduledDate=
-    new Date(
-     payload.scheduledAt
-    );
-
+    new Date(payload.scheduledAt);
 
    if(
-    !Number.isFinite(
-     scheduledDate.getTime()
-    ) ||
-    scheduledDate.getTime() <=
-     Date.now()
+    !Number.isFinite(scheduledDate.getTime()) ||
+    scheduledDate.getTime()<=Date.now()
    ){
 
     popup(
@@ -2735,176 +2233,124 @@ sendBtn.addEventListener(
    }
   }
 
-
-  /*
-   IMPORTANT:
-   Schedule-এর ক্ষেত্রেও server-এ request যাবে।
-   আগের মতো localStorage-এ শুধু রেখে দেওয়া হবে না।
-  */
-
-  await sendNotification(
-   payload
-  );
- }
-);
+  await sendNotification(payload);
+ });
 
 
 /* =========================================================
-   ACTUAL SEND
+   SEND
 ========================================================= */
 
-async function sendNotification(
- payload,
- historyId=null
-){
+async function sendNotification(payload){
 
- sendBtn.disabled=
-  true;
+ sendBtn.disabled=true;
 
  sendBtn.textContent=
-  "SENDING...";
+  payload.scheduledAt
+   ? "SCHEDULING..."
+   : "SENDING...";
 
-
- progress.classList.add(
-  "show"
- );
-
-
- result.className=
-  "status";
-
+ progress.classList.add("show");
 
  setProgress(
-  20,
+  15,
   payload.scheduledAt
-   ? "Creating server schedule..."
-   : "Preparing notification..."
+   ? "Schedule প্রস্তুত করা হচ্ছে..."
+   : "Notification প্রস্তুত করা হচ্ছে..."
  );
-
 
  try{
 
-  await wait(250);
-
+  await wait(150);
 
   setProgress(
-   50,
+   45,
    payload.scheduledAt
-    ? "Sending schedule to OneSignal..."
-    : "Sending notification..."
+    ? "Server-এ schedule পাঠানো হচ্ছে..."
+    : "Notification পাঠানো হচ্ছে..."
   );
-
 
   const response=
    await fetch(
     API_SEND,
     {
-
-     method:
-      "POST",
+     method:"POST",
 
      headers:{
-      "Content-Type":
-       "application/json"
+      "Content-Type":"application/json"
      },
 
      body:
-      JSON.stringify(
-       payload
-      )
+      JSON.stringify(payload)
     }
    );
 
-
-  const raw=
-   await response.text();
-
+  const raw=await response.text();
 
   let data;
 
-
   try{
-
-   data=
-    JSON.parse(raw);
-
+   data=JSON.parse(raw);
   }catch{
-
    data={
     success:false,
-    error:
-     raw ||
-     "Invalid server response."
+    error:raw || "Invalid server response."
    };
   }
-
 
   if(
    !response.ok ||
    !data.success
   ){
 
-   let err=
+   let error=
     data.error ||
     "Notification sending failed.";
 
-
    if(
     data.onesignal &&
-    Array.isArray(
-     data.onesignal.errors
-    )
+    Array.isArray(data.onesignal.errors)
    ){
 
-    err+=
+    error+=
      "\n\nOneSignal: "+
-     data.onesignal.errors.join(
-      ", "
-     );
+     data.onesignal.errors.join(", ");
    }
 
-
-   throw new Error(
-    err
-   );
+   throw new Error(error);
   }
 
+  const scheduled=
+   Boolean(
+    data.scheduled ||
+    data.status==="scheduled"
+   );
 
   setProgress(
    100,
-   data.scheduled
-    ? "Scheduled successfully"
-    : "Completed"
+   scheduled
+    ? "Schedule সফল হয়েছে"
+    : "Notification sent"
   );
-
-
-  /*
-   Server schedule response হলে
-   local history-তেও scheduled রাখব।
-  */
-
-  const finalStatus=
-   data.scheduled
-    ? "scheduled"
-    : "success";
-
 
   const record={
 
    id:
-    historyId ||
     Date.now().toString(),
 
    ...payload,
 
    status:
-    finalStatus,
+    scheduled
+     ? "scheduled"
+     : "success",
 
    createdAt:
     new Date().toISOString(),
 
    serverScheduledAt:
     data.scheduledAt ||
+    payload.scheduledAt ||
     null,
 
    response:
@@ -2912,35 +2358,10 @@ async function sendNotification(
     data
   };
 
+  historyData.unshift(record);
 
-  if(historyId){
-
-   const index=
-    historyData.findIndex(
-     x=>
-      x.id===historyId
-    );
-
-
-   if(index>=0){
-
-    historyData[index]=
-     record;
-
-   }else{
-
-    historyData.unshift(
-     record
-    );
-   }
-
-  }else{
-
-   historyData.unshift(
-    record
-   );
-  }
-
+  historyData=
+   historyData.slice(0,100);
 
   saveHistory();
 
@@ -2948,23 +2369,20 @@ async function sendNotification(
 
   updateStats();
 
+  if(scheduled){
 
-  if(data.scheduled){
+   const serverTime=
+    data.scheduledAt ||
+    payload.scheduledAt;
 
    showStatus(
-
     result,
-
     "⏰ Notification successfully scheduled!\n\n"+
-    "Time: "+
-    new Date(
-     data.scheduledAt
-    ).toLocaleString()+
-    "\n\nAdmin panel বন্ধ থাকলেও notification যাবে.",
-
+    "Scheduled time: "+
+    new Date(serverTime).toLocaleString()+
+    "\n\nAdmin panel/browser বন্ধ থাকলেও server-side schedule অনুযায়ী পাঠানো হবে.",
     "success"
    );
-
 
    popup(
     "⏰ Notification scheduled!",
@@ -2974,22 +2392,17 @@ async function sendNotification(
   }else{
 
    showStatus(
-
     result,
-
     "✅ Notification sent successfully!\n\n"+
     formatSendResult(data),
-
     "success"
    );
-
 
    popup(
     "🔔 Notification successfully sent!",
     "success"
    );
   }
-
 
  }catch(err){
 
@@ -2998,17 +2411,14 @@ async function sendNotification(
    "Failed"
   );
 
-
-  const record={
+  historyData.unshift({
 
    id:
-    historyId ||
     Date.now().toString(),
 
    ...payload,
 
-   status:
-    "failed",
+   status:"failed",
 
    createdAt:
     new Date().toISOString(),
@@ -3016,37 +2426,10 @@ async function sendNotification(
    error:
     err.message ||
     "Something went wrong."
-  };
+  });
 
-
-  if(historyId){
-
-   const index=
-    historyData.findIndex(
-     x=>
-      x.id===historyId
-    );
-
-
-   if(index>=0){
-
-    historyData[index]=
-     record;
-
-   }else{
-
-    historyData.unshift(
-     record
-    );
-   }
-
-  }else{
-
-   historyData.unshift(
-    record
-   );
-  }
-
+  historyData=
+   historyData.slice(0,100);
 
   saveHistory();
 
@@ -3054,41 +2437,25 @@ async function sendNotification(
 
   updateStats();
 
-
   showStatus(
-
    result,
-
    "❌ Notification failed\n\n"+
-   (
-    err.message ||
-    "Something went wrong."
-   ),
-
+   (err.message || "Something went wrong."),
    "error"
   );
-
 
   popup(
    "Notification failed.",
    "error"
   );
 
-
  }finally{
 
-  setTimeout(
-   ()=>{
-    progress.classList.remove(
-     "show"
-    );
-   },
-   1000
-  );
+  setTimeout(()=>{
+   progress.classList.remove("show");
+  },1000);
 
-
-  sendBtn.disabled=
-   false;
+  sendBtn.disabled=false;
 
   sendBtn.textContent=
    "SEND NOTIFICATION";
@@ -3096,100 +2463,44 @@ async function sendNotification(
 }
 
 
-function formatSendResult(
- data
-){
+/* =========================================================
+   RESULT FORMAT
+========================================================= */
 
- const o=
-  data.onesignal ||
-  data;
+function formatSendResult(data){
 
+ const o=data.onesignal || data;
 
  const parts=[];
 
+ if(o.recipients!=null)
+  parts.push("Recipients: "+o.recipients);
 
- if(
-  o.recipients!=null
- ){
+ if(o.successful!=null)
+  parts.push("Successful: "+o.successful);
 
-  parts.push(
-   "Recipients: "+
-   o.recipients
-  );
- }
+ if(o.failed!=null)
+  parts.push("Failed: "+o.failed);
 
+ if(o.notSubscribed!=null)
+  parts.push("Not subscribed: "+o.notSubscribed);
 
- if(
-  o.successful!=null
- ){
-
-  parts.push(
-   "Successful: "+
-   o.successful
-  );
- }
-
-
- if(
-  o.failed!=null
- ){
-
-  parts.push(
-   "Failed: "+
-   o.failed
-  );
- }
-
-
- if(
-  o.notSubscribed!=null
- ){
-
-  parts.push(
-   "Not subscribed: "+
-   o.notSubscribed
-  );
- }
-
-
- if(!parts.length){
-
-  return JSON.stringify(
-   o,
-   null,
-   2
-  );
- }
-
-
- return parts.join(
-  "\n"
- );
+ return parts.length
+  ? parts.join("\n")
+  : JSON.stringify(o,null,2);
 }
 
 
-function setProgress(
- percent,
- text
-){
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+function setProgress(percent,text){
 
  progressBar.style.width=
   percent+"%";
 
- progressText.textContent=
-  text;
-}
-
-
-function wait(ms){
-
- return new Promise(
-  resolve=>
-   setTimeout(
-    resolve,
-    ms
-   )
- );
+ progressText.textContent=text;
 }
 
 
@@ -3200,44 +2511,27 @@ function wait(ms){
 function renderHistory(){
 
  const search=
-  historySearch.value
-   .trim()
-   .toLowerCase();
-
+  historySearch.value.trim().toLowerCase();
 
  const filter=
   historyFilter.value;
 
-
  const list=
-  historyData.filter(
-   item=>{
+  historyData.filter(item=>{
 
-    const text=
-     JSON.stringify(
-      item
-     ).toLowerCase();
+   const text=
+    JSON.stringify(item).toLowerCase();
 
+   const matchSearch=
+    !search ||
+    text.includes(search);
 
-    const matchSearch=
-     !search ||
-     text.includes(
-      search
-     );
+   const matchFilter=
+    filter==="all" ||
+    item.status===filter;
 
-
-    const matchFilter=
-     filter==="all" ||
-     item.status===filter;
-
-
-    return (
-     matchSearch &&
-     matchFilter
-    );
-   }
-  );
-
+   return matchSearch && matchFilter;
+  });
 
  if(!list.length){
 
@@ -3249,53 +2543,42 @@ function renderHistory(){
   return;
  }
 
-
  historyBox.innerHTML=
-  list.map(
-   item=>{
+  list.map(item=>{
 
-    const cfg=
-     templates[
-      item.template
-     ];
+   const cfg=
+    templates[item.template];
 
+   const statusClass=
+    item.status==="success"
+     ? "success"
+     : item.status==="failed"
+     ? "failed"
+     : "scheduled";
 
-    const statusClass=
-     item.status==="success"
-      ? "success"
-      : item.status==="failed"
-      ? "failed"
-      : "scheduled";
+   const statusText=
+    item.status==="success"
+     ? "SUCCESS"
+     : item.status==="failed"
+     ? "FAILED"
+     : "SCHEDULED";
 
+   const targetText=
+    item.target==="specific"
+     ? `Specific: ${escapeHTML(item.externalId || "UID")}`
+     : "All Users";
 
-    const statusText=
-     item.status==="success"
-      ? "SUCCESS"
-      : item.status==="failed"
-      ? "FAILED"
-      : "SCHEDULED";
+   const rawTime=
+    item.serverScheduledAt ||
+    item.scheduledAt ||
+    item.createdAt;
 
+   const time=
+    rawTime
+     ? new Date(rawTime).toLocaleString()
+     : "Unknown";
 
-    const targetText=
-     item.target==="specific"
-      ? `Specific: ${escapeHTML(
-         item.externalId ||
-         "UID"
-        )}`
-      : "All Users";
-
-
-    const time=
-     item.scheduledAt
-      ? new Date(
-         item.scheduledAt
-        ).toLocaleString()
-      : new Date(
-         item.createdAt
-        ).toLocaleString();
-
-
-    return `
+   return `
 
 <div class="history-item">
 
@@ -3304,20 +2587,14 @@ function renderHistory(){
 <div>
 
 <div class="history-title">
-
 ${escapeHTML(
  cfg?.name ||
  "Custom Notification"
 )}
-
 </div>
 
 <div class="history-meta">
-
-${targetText}
-•
-${escapeHTML(time)}
-
+${targetText} • ${escapeHTML(time)}
 </div>
 
 </div>
@@ -3328,37 +2605,32 @@ ${statusText}
 
 </div>
 
-
 <div class="history-msg">
-
-${escapeHTML(
- item.message
-)}
-
+${escapeHTML(item.message)}
 </div>
-
 
 <div class="history-actions">
 
 <button
  class="btn-secondary"
- onclick="resendHistory('${escapeHTML(item.id)}')"
+ data-action="resend"
+ data-id="${escapeHTML(item.id)}"
 >
 🔁 RESEND
 </button>
 
-
 <button
  class="btn-secondary"
- onclick="copyHistory('${escapeHTML(item.id)}')"
+ data-action="copy"
+ data-id="${escapeHTML(item.id)}"
 >
 📋 COPY
 </button>
 
-
 <button
  class="btn-red"
- onclick="deleteHistory('${escapeHTML(item.id)}')"
+ data-action="delete"
+ data-id="${escapeHTML(item.id)}"
 >
 🗑️
 </button>
@@ -3368,200 +2640,162 @@ ${escapeHTML(
 </div>
 
 `;
+  }).join("");
+}
+
+
+/* =========================================================
+   HISTORY ACTIONS
+========================================================= */
+
+historyBox.addEventListener(
+ "click",
+ async e=>{
+
+  const btn=
+   e.target.closest("button[data-action]");
+
+  if(!btn) return;
+
+  const id=btn.dataset.id;
+
+  const item=
+   historyData.find(
+    x=>String(x.id)===String(id)
+   );
+
+  if(!item) return;
+
+  const action=btn.dataset.action;
+
+  if(action==="delete"){
+
+   historyData=
+    historyData.filter(
+     x=>String(x.id)!==String(id)
+    );
+
+   saveHistory();
+   renderHistory();
+   updateStats();
+
+   return;
+  }
+
+  if(action==="copy"){
+
+   try{
+
+    await navigator.clipboard.writeText(
+     item.message || ""
+    );
+
+    popup(
+     "📋 Message copied.",
+     "success"
+    );
+
+   }catch{
+
+    popup(
+     "Copy করা যায়নি.",
+     "error"
+    );
    }
-  )
-  .join("");
-}
+
+   return;
+  }
+
+  if(action==="resend"){
+
+   restoreHistory(item);
+  }
+ });
 
 
-function findHistory(id){
+/* =========================================================
+   RESTORE HISTORY
+========================================================= */
 
- return historyData.find(
-  x=>
-   String(x.id)===
-   String(id)
- );
-}
-
-
-window.resendHistory=
-function(id){
-
- const item=
-  findHistory(id);
-
- if(!item){
-  return;
- }
-
+function restoreHistory(item){
 
  if(
   item.template &&
   templates[item.template]
  ){
 
-  template.value=
-   item.template;
+  template.value=item.template;
 
   renderTemplateFields();
 
-
   Object.entries(
-   item.templateFields ||
-   {}
-  ).forEach(
-   ([key,value])=>{
+   item.templateFields || {}
+  ).forEach(([key,value])=>{
 
-    const field=
-     templateFields
-     .querySelector(
-      `[data-field="${key}"]`
-     );
+   const field=
+    templateFields.querySelector(
+     `[data-field="${CSS.escape(key)}"]`
+    );
 
-
-    if(field){
-
-     field.value=
-      value;
-    }
-   }
-  );
+   if(field) field.value=value;
+  });
  }
 
-
  externalId.value=
-  item.externalId ||
-  "";
-
+  item.externalId || "";
 
  message.value=
-  item.message ||
-  "";
-
+  item.message || "";
 
  icon.value=
-  item.icon ||
-  DEFAULT_ICON;
-
+  item.icon || DEFAULT_ICON;
 
  image.value=
-  item.image ||
-  "";
-
+  item.image || "";
 
  url.value=
-  item.url ||
-  "https://aura-skill-com.onrender.com";
-
+  item.url || DEFAULT_URL;
 
  sound.value=
-  item.sound ||
-  "";
-
+  item.sound || "";
 
  androidSound.value=
-  item.androidSound ||
-  "";
-
+  item.androidSound || "";
 
  androidChannelId.value=
-  item.androidChannelId ||
-  "aura_default";
+  item.androidChannelId || "aura_default";
 
-
- const targetRadio=
+ const radio=
   document.querySelector(
-   `input[name="target"][value="${
-    item.target || "all"
-   }"]`
+   `input[name="target"][value="${item.target || "all"}"]`
   );
 
+ if(radio){
 
- if(targetRadio){
+  radio.checked=true;
 
-  targetRadio.checked=
-   true;
-
-  targetRadio.dispatchEvent(
+  radio.dispatchEvent(
    new Event("change")
   );
  }
 
-
  $("charCount").textContent=
   message.value.length;
-
 
  updatePreview();
 
  saveDraft();
-
 
  window.scrollTo({
   top:0,
   behavior:"smooth"
  });
 
-
  popup(
   "🔁 Notification form restore হয়েছে.",
   "success"
- );
-};
-
-
-window.copyHistory=
-async function(id){
-
- const item=
-  findHistory(id);
-
- if(!item){
-  return;
- }
-
-
- try{
-
-  await navigator.clipboard
-   .writeText(
-    item.message ||
-    ""
-   );
-
-
-  popup(
-   "📋 Message copied.",
-   "success"
-  );
-
- }catch{
-
-  popup(
-   "Copy করা যায়নি.",
-   "error"
-  );
- }
-};
-
-
-window.deleteHistory=
-function(id){
-
- historyData=
-  historyData.filter(
-   x=>
-    String(x.id)!==
-    String(id)
-  );
-
-
- saveHistory();
-
- renderHistory();
-
- updateStats();
-};
+);
+}
 
 
 /* =========================================================
@@ -3573,22 +2807,16 @@ historySearch.addEventListener(
  renderHistory
 );
 
-
 historyFilter.addEventListener(
  "change",
  renderHistory
 );
 
-
-$("clearHistoryBtn")
-.addEventListener(
+$("clearHistoryBtn").addEventListener(
  "click",
  ()=>{
 
-  if(!historyData.length){
-   return;
-  }
-
+  if(!historyData.length) return;
 
   if(
    confirm(
@@ -3599,9 +2827,7 @@ $("clearHistoryBtn")
    historyData=[];
 
    saveHistory();
-
    renderHistory();
-
    updateStats();
 
    popup(
@@ -3622,32 +2848,24 @@ function updateStats(){
  const today=
   new Date().toDateString();
 
-
  const sentToday=
-  historyData.filter(
-   x=>
-    x.status==="success" &&
-    new Date(
-     x.createdAt
-    ).toDateString()===
-    today
+  historyData.filter(item=>
+   item.status==="success" &&
+   new Date(
+    item.createdAt
+   ).toDateString()===today
   ).length;
-
 
  const scheduled=
   historyData.filter(
-   x=>
-    x.status==="scheduled"
+   item=>item.status==="scheduled"
   ).length;
-
 
  $("todaySent").textContent=
   sentToday;
 
-
  $("scheduledCount").textContent=
   scheduled;
-
 
  $("historyCount").textContent=
   historyData.length;
@@ -3665,8 +2883,7 @@ function saveDraft(){
   target:
    document.querySelector(
     'input[name="target"]:checked'
-   )?.value ||
-   "all",
+   )?.value || "all",
 
   externalId:
    externalId.value,
@@ -3696,12 +2913,9 @@ function saveDraft(){
    androidChannelId.value
  };
 
-
  localStorage.setItem(
-  "aura_notification_draft",
-  JSON.stringify(
-   draft
-  )
+  DRAFT_KEY,
+  JSON.stringify(draft)
  );
 }
 
@@ -3712,17 +2926,10 @@ function loadDraft(){
 
   const draft=
    JSON.parse(
-    localStorage.getItem(
-     "aura_notification_draft"
-    ) ||
-    "null"
+    localStorage.getItem(DRAFT_KEY) || "null"
    );
 
-
-  if(!draft){
-   return;
-  }
-
+  if(!draft) return;
 
   if(draft.target){
 
@@ -3731,11 +2938,9 @@ function loadDraft(){
      `input[name="target"][value="${draft.target}"]`
     );
 
-
    if(radio){
 
-    radio.checked=
-     true;
+    radio.checked=true;
 
     radio.dispatchEvent(
      new Event("change")
@@ -3743,16 +2948,16 @@ function loadDraft(){
    }
   }
 
-
   externalId.value=
-   draft.externalId ||
-   "";
-
+   draft.externalId || "";
 
   if(
    draft.template &&
    templates[draft.template]
   ){
+
+   currentTemplate=
+    draft.template;
 
    template.value=
     draft.template;
@@ -3760,50 +2965,44 @@ function loadDraft(){
    renderTemplateFields();
   }
 
+  /*
+   Draft message-কে template-generated message
+   দিয়ে overwrite না করার জন্য শেষে restore করছি।
+  */
 
   message.value=
-   draft.message ||
-   "";
-
+   draft.message || "";
 
   icon.value=
-   draft.icon ||
-   DEFAULT_ICON;
-
+   draft.icon || DEFAULT_ICON;
 
   image.value=
-   draft.image ||
-   "";
-
+   draft.image || "";
 
   url.value=
-   draft.url ||
-   "https://aura-skill-com.onrender.com";
-
+   draft.url || DEFAULT_URL;
 
   sound.value=
-   draft.sound ||
-   "";
-
+   draft.sound || "";
 
   androidSound.value=
-   draft.androidSound ||
-   "";
-
+   draft.androidSound || "";
 
   androidChannelId.value=
-   draft.androidChannelId ||
-   "aura_default";
-
+   draft.androidChannelId || "aura_default";
 
   $("charCount").textContent=
    message.value.length;
 
-
   updatePreview();
 
+ }catch(err){
 
- }catch{}
+  console.warn(
+   "Draft load failed:",
+   err
+  );
+ }
 }
 
 
@@ -3811,142 +3010,70 @@ function loadDraft(){
    RESET
 ========================================================= */
 
-$("resetBtn")
-.addEventListener(
+$("resetBtn").addEventListener(
  "click",
  ()=>{
 
   if(
-   !confirm(
-    "Form reset করবেন?"
-   )
+   !confirm("Form reset করবেন?")
   ){
    return;
   }
 
-
   externalId.value="";
 
-
   template.value="";
-
+  currentTemplate="";
 
   templateFields.innerHTML="";
-
-
-  templateFields
-   .classList
-   .remove("show");
-
+  templateFields.classList.remove("show");
 
   message.value="";
 
-
-  icon.value=
-   DEFAULT_ICON;
-
-
+  icon.value=DEFAULT_ICON;
   image.value="";
-
-
-  url.value=
-   "https://aura-skill-com.onrender.com";
-
+  url.value=DEFAULT_URL;
 
   sound.value="";
-
-
   androidSound.value="";
-
-
-  androidChannelId.value=
-   "aura_default";
-
+  androidChannelId.value="aura_default";
 
   document.querySelector(
    'input[name="target"][value="all"]'
-  ).checked=
-   true;
+  ).checked=true;
 
+  specificBox.style.display="none";
 
-  specificBox.style.display=
-   "none";
+  sendMode="now";
 
-
-  sendMode=
-   "now";
-
-
-  document
-  .querySelectorAll(".mode")
-  .forEach(
-   x=>{
-    x.classList.toggle(
-     "active",
-     x.dataset.mode==="now"
-    );
-   }
-  );
-
+  document.querySelectorAll(".mode")
+  .forEach(x=>{
+   x.classList.toggle(
+    "active",
+    x.dataset.mode==="now"
+   );
+  });
 
   $("scheduleBox")
-   .classList
-   .remove("show");
+   .classList.remove("show");
 
+  $("charCount").textContent="0";
 
-  $("charCount").textContent=
-   "0";
+  clearStatus(userStatus);
+  clearStatus(result);
+  clearStatus($("soundStatus"));
 
-
-  clearStatus(
-   userStatus
-  );
-
-
-  clearStatus(
-   result
-  );
-
-
-  clearStatus(
-   $("soundStatus")
-  );
-
+  setDefaultSchedule();
 
   updatePreview();
 
-
-  localStorage.removeItem(
-   "aura_notification_draft"
-  );
-
+  localStorage.removeItem(DRAFT_KEY);
 
   popup(
    "🧹 Form reset হয়েছে.",
    "success"
   );
- }
-);
-
-
-/* =========================================================
-   ENTER KEY
-========================================================= */
-
-externalId.addEventListener(
- "keydown",
- e=>{
-
-  if(
-   e.key==="Enter"
-  ){
-
-   e.preventDefault();
-
-   checkUserBtn.click();
-  }
- }
-);
+ });
 
 
 /* =========================================================
@@ -3961,26 +3088,37 @@ externalId.addEventListener(
  sound,
  androidSound,
  androidChannelId
-].forEach(
- el=>{
+].forEach(el=>{
 
-  el.addEventListener(
-   "input",
-   saveDraft
-  );
- }
-);
+ el.addEventListener(
+  "input",
+  saveDraft
+ );
+});
 
 
-template.addEventListener(
- "change",
- saveDraft
-);
+/* =========================================================
+   ENTER UID
+========================================================= */
+
+externalId.addEventListener(
+ "keydown",
+ e=>{
+
+  if(e.key==="Enter"){
+
+   e.preventDefault();
+
+   $("checkUserBtn").click();
+  }
+ });
 
 
 /* =========================================================
    INITIALIZE
 ========================================================= */
+
+setDefaultSchedule();
 
 renderTemplateList();
 
@@ -3992,14 +3130,8 @@ updateStats();
 
 updatePreview();
 
-
 $("charCount").textContent=
  message.value.length;
-
-
-/* =========================================================
-   BEFORE LEAVE
-========================================================= */
 
 window.addEventListener(
  "beforeunload",
