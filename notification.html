@@ -136,6 +136,13 @@
             resize: vertical;
         }
 
+        .template-select { width:100%; border:1px solid #334155; background:#020617; color:white; border-radius:14px; padding:13px; outline:none; }
+        .template-fields { display:none; }
+        .template-fields.show { display:block; }
+        .template-fields .field { margin-bottom:10px; }
+        .template-fields .field:last-child { margin-bottom:0; }
+
+
         .targets {
             display: grid;
 
@@ -475,74 +482,58 @@
                 Notification Title
             </label>
 
-            <input
-                id="title"
-                type="text"
-                value="AURA ARMAN TOUR"
-                readonly
-                maxlength="150"
-                aria-readonly="true"
-            >
+            <input id="title" type="text" value="AURA ARMAN TOUR" readonly maxlength="150">
 
         </div>
 
-
         <div class="group">
-
-            <label>
-                Message Template
-            </label>
-
-            <select id="messageTemplate" style="
-                width:100%;
-                border:1px solid #334155;
-                background:#020617;
-                color:white;
-                border-radius:14px;
-                padding:13px;
-                outline:none;
-                font-size:14px;
-            ">
-                <option value="">— মেসেজ নির্বাচন করুন —</option>
-                <option value="deposit_approve">ডিপোজিট অনুমোদন</option>
-                <option value="deposit_reject">ডিপোজিট বাতিল</option>
-                <option value="withdraw_approve">উইথড্র অনুমোদন</option>
-                <option value="withdraw_reject">উইথড্র বাতিল</option>
+            <label>Notification Template</label>
+            <select id="template" class="template-select">
+                <option value="">Select a message template</option>
+                <option value="deposit_approve">📥 ডিপোজিট অনুমোদন</option>
+                <option value="deposit_reject">❌ ডিপোজিট বাতিল</option>
+                <option value="withdraw_approve">📤 উইথড্র অনুমোদন</option>
+                <option value="withdraw_reject">❌ উইথড্র বাতিল</option>
+                <option value="bonus">💰 বোনাস যোগ</option>
+                <option value="reward">🎁 রিওয়ার্ড যোগ</option>
+                <option value="tournament_win">🏆 টুর্নামেন্ট জিতেছেন</option>
+                <option value="match_start">🎮 টুর্নামেন্ট শুরু</option>
+                <option value="new_tournament">📢 নতুন টুর্নামেন্ট</option>
+                <option value="tournament_cancel">⚠️ টুর্নামেন্ট বাতিল</option>
+                <option value="account_update">⚠️ অ্যাকাউন্টে গুরুত্বপূর্ণ আপডেট</option>
+                <option value="congratulations">🎉 অভিনন্দন বার্তা</option>
+                <option value="announcement">📢 সবার জন্য ঘোষণা</option>
+                <option value="new_update">🔥 নতুন আপডেট</option>
+                <option value="urgent">🚨 জরুরি ঘোষণা</option>
+                <option value="offer">🎁 বিশেষ অফার</option>
+                <option value="notice">📣 গুরুত্বপূর্ণ নোটিশ</option>
+                <option value="welcome">👋 স্বাগতম বার্তা</option>
+                <option value="password_changed">🔄 পাসওয়ার্ড পরিবর্তন সফল</option>
+                <option value="account_warning">⚠️ অ্যাকাউন্ট সতর্কতা</option>
+                <option value="birthday">🎂 জন্মদিনের শুভেচ্ছা</option>
+                <option value="match_soon">⏰ ম্যাচ শুরু হতে চলেছে</option>
+                <option value="room_info">📋 রুম ID / Password প্রকাশ</option>
+                <option value="match_suspended">🚫 ম্যাচ স্থগিত</option>
+                <option value="results">📊 রেজাল্ট প্রকাশ</option>
+                <option value="prize_distributed">🏅 পুরস্কার বিতরণ সম্পন্ন</option>
+                <option value="team_update">👥 স্কোয়াড/টিম সংক্রান্ত আপডেট</option>
+                <option value="cashback">💎 ক্যাশব্যাক যোগ</option>
+                <option value="promo_reward">🎁 প্রোমো কোড রিওয়ার্ড</option>
+                <option value="balance_adjustment">💸 ব্যালেন্স সমন্বয়</option>
+                <option value="winning_prize">🪙 জয়ী পুরস্কার যোগ</option>
+                <option value="maintenance">🛠️ সিস্টেম মেইনটেন্যান্স</option>
+                <option value="event">📅 নতুন ইভেন্ট ঘোষণা</option>
+                <option value="campaign">🔥 বিশেষ ক্যাম্পেইন</option>
+                <option value="rules_update">📣 নিয়ম/নীতিমালা আপডেট</option>
+                <option value="special_notice">🌟 বিশেষ নোটিশ</option>
             </select>
-
         </div>
 
-
-        <div class="group" id="amountGroup" style="display:none;">
-
-            <label>
-                Amount (৳)
-            </label>
-
-            <input
-                id="amount"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="যেমন: 500"
-                inputmode="decimal"
-            >
-
-        </div>
-
+        <div id="templateFields" class="group template-fields"></div>
 
         <div class="group">
-
-            <label>
-                Message
-            </label>
-
-            <textarea
-                id="message"
-                placeholder="Write your notification message..."
-                maxlength="1000"
-            ></textarea>
-
+            <label>Message</label>
+            <textarea id="message" placeholder="Template select করলে message তৈরি হবে..." maxlength="1000"></textarea>
         </div>
 
 
@@ -659,6 +650,55 @@ const userStatus =
     document.getElementById(
         "userStatus"
     );
+
+const templateSelect = document.getElementById("template");
+const templateFields = document.getElementById("templateFields");
+const messageInput = document.getElementById("message");
+
+const templateConfig = {
+    deposit_approve:{fields:["amount"],msg:a=>`✅ আপনার ৳${a.amount||"0"} ডিপোজিট সফলভাবে অনুমোদন করা হয়েছে। আপনার AURA ARMAN TOUR অ্যাকাউন্টে টাকা যোগ হয়েছে।`},
+    deposit_reject:{fields:["amount","reason"],msg:a=>`❌ আপনার ৳${a.amount||"0"} ডিপোজিটটি বাতিল করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
+    withdraw_approve:{fields:["amount"],msg:a=>`✅ আপনার ৳${a.amount||"0"} উইথড্র সফলভাবে অনুমোদন করা হয়েছে।`},
+    withdraw_reject:{fields:["amount","reason"],msg:a=>`❌ আপনার ৳${a.amount||"0"} উইথড্র অনুরোধটি বাতিল করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
+    bonus:{fields:["amount"],msg:a=>`🎁 আপনার অ্যাকাউন্টে ৳${a.amount||"0"} বোনাস যোগ করা হয়েছে।`},
+    reward:{fields:["reward"],msg:a=>`🎁 অভিনন্দন! আপনি ${a.reward||"বিশেষ রিওয়ার্ড"} পেয়েছেন।`},
+    tournament_win:{fields:["amount"],msg:a=>`🏆 অভিনন্দন! আপনি টুর্নামেন্টে জয়ী হয়েছেন এবং ৳${a.amount||"0"} পুরস্কার পেয়েছেন।`},
+    match_start:{fields:["tournament","time"],msg:a=>`🎮 ${a.tournament||"টুর্নামেন্ট"} শুরু হবে ${a.time||"শীঘ্রই"}। প্রস্তুত থাকুন!`},
+    new_tournament:{fields:["tournament","entry"],msg:a=>`📢 নতুন টুর্নামেন্ট: ${a.tournament||"নতুন টুর্নামেন্ট"}${a.entry?` | Entry Fee: ৳${a.entry}`:""}। এখনই রেজিস্ট্রেশন করুন!`},
+    tournament_cancel:{fields:["tournament","reason"],msg:a=>`⚠️ ${a.tournament||"টুর্নামেন্ট"} বাতিল করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
+    account_update:{fields:["text"],msg:a=>`⚠️ আপনার অ্যাকাউন্টে গুরুত্বপূর্ণ আপডেট রয়েছে। ${a.text||"দয়া করে অ্যাকাউন্টটি চেক করুন।"}`},
+    congratulations:{fields:["text"],msg:a=>`🎉 অভিনন্দন! ${a.text||"আপনার জন্য একটি বিশেষ শুভেচ্ছা রইল।"}`},
+    announcement:{fields:["text"],msg:a=>`📢 ঘোষণা: ${a.text||"গুরুত্বপূর্ণ ঘোষণা রয়েছে।"}`},
+    new_update:{fields:["text"],msg:a=>`🔥 নতুন আপডেট: ${a.text||"নতুন কিছু এসেছে! অ্যাপটি চেক করুন।"}`},
+    urgent:{fields:["text"],msg:a=>`🚨 জরুরি ঘোষণা: ${a.text||"দয়া করে সর্বশেষ নির্দেশনা অনুসরণ করুন।"}`},
+    offer:{fields:["text"],msg:a=>`🎁 বিশেষ অফার! ${a.text||"আজকের বিশেষ অফারটি মিস করবেন না।"}`},
+    notice:{fields:["text"],msg:a=>`📣 গুরুত্বপূর্ণ নোটিশ: ${a.text||"দয়া করে নোটিশটি দেখে নিন।"}`},
+    welcome:{fields:["name"],msg:a=>`👋 AURA ARMAN TOUR-এ আপনাকে স্বাগতম${a.name?`, ${a.name}`:""}! আমাদের সাথে থাকুন।`},
+    password_changed:{fields:[],msg:()=>`🔄 আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।`},
+    account_warning:{fields:["reason"],msg:a=>`⚠️ আপনার অ্যাকাউন্ট সম্পর্কে সতর্কতা: ${a.reason||"দয়া করে নিয়ম মেনে চলুন।"}`},
+    birthday:{fields:["name"],msg:a=>`🎂 শুভ জন্মদিন${a.name?`, ${a.name}`:""}! AURA ARMAN TOUR-এর পক্ষ থেকে অনেক শুভেচ্ছা।`},
+    match_soon:{fields:["tournament","time"],msg:a=>`⏰ ${a.tournament||"ম্যাচ"} শুরু হতে চলেছে${a.time?` — ${a.time}`:""}। প্রস্তুত থাকুন!`},
+    room_info:{fields:["room","password"],msg:a=>`📋 রুম তথ্য প্রকাশ করা হয়েছে। Room ID: ${a.room||"—"} | Password: ${a.password||"—"}`},
+    match_suspended:{fields:["tournament","reason"],msg:a=>`🚫 ${a.tournament||"ম্যাচ"} স্থগিত করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
+    results:{fields:["tournament"],msg:a=>`📊 ${a.tournament||"টুর্নামেন্ট"}-এর রেজাল্ট প্রকাশ করা হয়েছে। এখনই দেখে নিন!`},
+    prize_distributed:{fields:["amount"],msg:a=>`🏅 পুরস্কার বিতরণ সম্পন্ন হয়েছে। আপনার পুরস্কারের পরিমাণ: ৳${a.amount||"0"}।`},
+    team_update:{fields:["text"],msg:a=>`👥 স্কোয়াড/টিম আপডেট: ${a.text||"আপনার টিম সংক্রান্ত নতুন তথ্য রয়েছে।"}`},
+    cashback:{fields:["amount"],msg:a=>`💎 আপনার অ্যাকাউন্টে ৳${a.amount||"0"} ক্যাশব্যাক যোগ করা হয়েছে।`},
+    promo_reward:{fields:["amount","code"],msg:a=>`🎁 প্রোমো রিওয়ার্ড!${a.amount?` ৳${a.amount}`:""}${a.code?` | Code: ${a.code}`:""}`},
+    balance_adjustment:{fields:["amount","reason"],msg:a=>`💸 আপনার ব্যালেন্সে ৳${a.amount||"0"} সমন্বয় করা হয়েছে।${a.reason?` কারণ: ${a.reason}`:""}`},
+    winning_prize:{fields:["amount"],msg:a=>`🪙 অভিনন্দন! আপনার জয়ী পুরস্কার ৳${a.amount||"0"} ব্যালেন্সে যোগ করা হয়েছে।`},
+    maintenance:{fields:["time","text"],msg:a=>`🛠️ সিস্টেম মেইনটেন্যান্স: ${a.time?`সময়: ${a.time}। `:""}${a.text||"সাময়িকভাবে কিছু সেবা বন্ধ থাকতে পারে।"}`},
+    event:{fields:["event","date"],msg:a=>`📅 নতুন ইভেন্ট: ${a.event||"বিশেষ ইভেন্ট"}${a.date?` | তারিখ: ${a.date}`:""}।`},
+    campaign:{fields:["campaign"],msg:a=>`🔥 বিশেষ ক্যাম্পেইন: ${a.campaign||"নতুন ক্যাম্পেইন"}। অংশ নিতে এখনই অ্যাপে আসুন!`},
+    rules_update:{fields:["text"],msg:a=>`📣 নিয়ম/নীতিমালা আপডেট: ${a.text||"নতুন নিয়ম প্রকাশ করা হয়েছে।"}`},
+    special_notice:{fields:["text"],msg:a=>`🌟 বিশেষ নোটিশ: ${a.text||"আপনার জন্য একটি গুরুত্বপূর্ণ বার্তা রয়েছে।"}`}
+};
+
+const fieldLabels={amount:"Amount (৳)",reason:"কারণ",reward:"Reward",tournament:"Tournament Name",time:"সময়",entry:"Entry Fee (৳)",text:"বার্তা",name:"User Name",room:"Room ID",password:"Room Password",code:"Promo Code",event:"Event Name",date:"তারিখ",campaign:"Campaign Name"};
+function renderTemplateFields(){const key=templateSelect.value,cfg=templateConfig[key];templateFields.innerHTML="";if(!cfg){templateFields.classList.remove("show");return;}templateFields.classList.add("show");cfg.fields.forEach(f=>{const wrap=document.createElement("div");wrap.className="field";wrap.innerHTML=`<label>${fieldLabels[f]||f}</label><input type="text" data-field="${f}" placeholder="${fieldLabels[f]||f}">`;templateFields.appendChild(wrap);});updateTemplateMessage();}
+function updateTemplateMessage(){const key=templateSelect.value,cfg=templateConfig[key];if(!cfg)return;const a={};templateFields.querySelectorAll("[data-field]").forEach(i=>a[i.dataset.field]=i.value.trim());messageInput.value=cfg.msg(a);}
+templateSelect.addEventListener("change",renderTemplateFields);templateFields.addEventListener("input",updateTemplateMessage);
+
 
 
 /* ============================================================
@@ -915,68 +955,6 @@ clearUserBtn.addEventListener(
 
 
 /* ============================================================
-   MESSAGE TEMPLATES
-============================================================ */
-
-const messageTemplate =
-    document.getElementById("messageTemplate");
-
-const amountGroup =
-    document.getElementById("amountGroup");
-
-const amountInput =
-    document.getElementById("amount");
-
-const messageInput =
-    document.getElementById("message");
-
-const messageTemplates = {
-    deposit_approve: amount =>
-        `✅ আপনার ৳${amount} ডিপোজিট সফলভাবে অনুমোদন করা হয়েছে। ধন্যবাদ AURA ARMAN TOUR-এর সাথে থাকার জন্য।`,
-
-    deposit_reject: amount =>
-        `❌ আপনার ৳${amount} ডিপোজিটটি অনুমোদন করা যায়নি। অনুগ্রহ করে তথ্য যাচাই করে আবার চেষ্টা করুন।`,
-
-    withdraw_approve: amount =>
-        `✅ আপনার ৳${amount} উইথড্র সফলভাবে অনুমোদন করা হয়েছে। অনুগ্রহ করে আপনার পেমেন্ট অ্যাকাউন্ট চেক করুন।`,
-
-    withdraw_reject: amount =>
-        `❌ আপনার ৳${amount} উইথড্র অনুরোধটি অনুমোদন করা যায়নি। প্রয়োজনে সঠিক তথ্য দিয়ে আবার চেষ্টা করুন।`
-};
-
-function updateTemplateMessage() {
-    const type = messageTemplate.value;
-
-    if (!type) {
-        amountGroup.style.display = "none";
-        amountInput.value = "";
-        messageInput.value = "";
-        return;
-    }
-
-    amountGroup.style.display = "block";
-
-    const amount = amountInput.value.trim();
-
-    if (amount) {
-        messageInput.value = messageTemplates[type](amount);
-    } else {
-        messageInput.value = "";
-    }
-}
-
-messageTemplate.addEventListener(
-    "change",
-    updateTemplateMessage
-);
-
-amountInput.addEventListener(
-    "input",
-    updateTemplateMessage
-);
-
-
-/* ============================================================
    SEND NOTIFICATION
 ============================================================ */
 
@@ -1009,8 +987,7 @@ sendBtn.addEventListener(
                 .trim();
 
 
-        const title =
-            "AURA ARMAN TOUR";
+        const title = "AURA ARMAN TOUR";
 
 
         const message =
@@ -1018,9 +995,6 @@ sendBtn.addEventListener(
                 .getElementById("message")
                 .value
                 .trim();
-
-        const amount =
-            amountInput.value.trim();
 
 
         const icon =
@@ -1052,21 +1026,6 @@ sendBtn.addEventListener(
 
             showResult(
                 "Please enter notification title.",
-                false
-            );
-
-            return;
-
-        }
-
-
-        const selectedTemplate =
-            messageTemplate.value;
-
-        if (selectedTemplate && !amount) {
-
-            showResult(
-                "দয়া করে Amount লিখুন।",
                 false
             );
 
