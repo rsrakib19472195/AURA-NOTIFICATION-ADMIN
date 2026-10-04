@@ -17,15 +17,17 @@ const ONESIGNAL_APP_ID =
 const ONESIGNAL_REST_API_KEY =
   process.env.ONESIGNAL_REST_API_KEY;
 
-const ONESIGNAL_API = "https://api.onesignal.com";
+const ONESIGNAL_API =
+  "https://api.onesignal.com";
 
 const ADMIN_EMAIL =
   process.env.ADMIN_EMAIL ||
   "auraskill19@gmail.com";
 
-const ADMIN_EXTERNAL_ID = String(
-  process.env.ADMIN_ONESIGNAL_EXTERNAL_ID || ""
-).trim();
+const ADMIN_EXTERNAL_ID =
+  String(
+    process.env.ADMIN_ONESIGNAL_EXTERNAL_ID || ""
+  ).trim();
 
 const DEFAULT_ICON =
   "https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg";
@@ -35,24 +37,28 @@ let firestore = null;
 let firebaseAuth = null;
 
 
-// ============================================================
-// FIREBASE ADMIN
-// ============================================================
+/* =========================================================
+   FIREBASE ADMIN
+========================================================= */
 
 function initFirebaseAdmin() {
   if (firebaseReady) return true;
 
   try {
     if (!admin.apps.length) {
-
       if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
 
-        const serviceAccount = JSON.parse(
-          process.env.FIREBASE_SERVICE_ACCOUNT_JSON
-        );
+        const serviceAccount =
+          JSON.parse(
+            process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+          );
 
         admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
+          credential:
+            admin.credential.cert(
+              serviceAccount
+            ),
+
           projectId:
             process.env.FIREBASE_PROJECT_ID ||
             serviceAccount.project_id
@@ -65,15 +71,19 @@ function initFirebaseAdmin() {
       ) {
 
         admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey:
-              process.env.FIREBASE_PRIVATE_KEY.replace(
-                /\\n/g,
-                "\n"
-              )
-          })
+          credential:
+            admin.credential.cert({
+
+              projectId:
+                process.env.FIREBASE_PROJECT_ID,
+
+              clientEmail:
+                process.env.FIREBASE_CLIENT_EMAIL,
+
+              privateKey:
+                process.env.FIREBASE_PRIVATE_KEY
+                  .replace(/\\n/g, "\n")
+            })
         });
 
       } else {
@@ -86,12 +96,17 @@ function initFirebaseAdmin() {
       }
     }
 
-    firestore = admin.firestore();
-    firebaseAuth = admin.auth();
+    firestore =
+      admin.firestore();
+
+    firebaseAuth =
+      admin.auth();
 
     firebaseReady = true;
 
-    console.log("✅ Firebase Admin initialized.");
+    console.log(
+      "✅ Firebase Admin initialized."
+    );
 
     return true;
 
@@ -107,9 +122,9 @@ function initFirebaseAdmin() {
 }
 
 
-// ============================================================
-// ONESIGNAL REQUEST
-// ============================================================
+/* =========================================================
+   ONESIGNAL REQUEST
+========================================================= */
 
 async function oneSignalRequest(
   endpoint,
@@ -122,30 +137,34 @@ async function oneSignalRequest(
     );
   }
 
-  const response = await fetch(
-    ONESIGNAL_API + endpoint,
-    {
-      ...options,
+  const response =
+    await fetch(
+      ONESIGNAL_API + endpoint,
+      {
+        ...options,
 
-      headers: {
-        "Content-Type": "application/json",
+        headers: {
+          "Content-Type":
+            "application/json",
 
-        Authorization:
-          `Key ${ONESIGNAL_REST_API_KEY}`,
+          Authorization:
+            `Key ${ONESIGNAL_REST_API_KEY}`,
 
-        ...(options.headers || {})
+          ...(options.headers || {})
+        }
       }
-    }
-  );
+    );
 
-  const text = await response.text();
+  const text =
+    await response.text();
 
   let data = {};
 
   try {
-    data = text
-      ? JSON.parse(text)
-      : {};
+    data =
+      text
+        ? JSON.parse(text)
+        : {};
   } catch {
     data = {
       raw: text
@@ -160,9 +179,9 @@ async function oneSignalRequest(
 }
 
 
-// ============================================================
-// ADMIN EXTERNAL ID
-// ============================================================
+/* =========================================================
+   ADMIN EXTERNAL ID
+========================================================= */
 
 async function getAdminExternalId() {
 
@@ -171,7 +190,6 @@ async function getAdminExternalId() {
   }
 
   if (!initFirebaseAdmin()) {
-
     throw new Error(
       "Set ADMIN_ONESIGNAL_EXTERNAL_ID or Firebase Admin credentials."
     );
@@ -186,19 +204,26 @@ async function getAdminExternalId() {
 }
 
 
-// ============================================================
-// DATE / SCHEDULE
-// ============================================================
+/* =========================================================
+   SCHEDULE
+========================================================= */
 
-function normalizeScheduleDate(value) {
+function normalizeScheduleDate(
+  value
+) {
 
   if (!value) {
     return null;
   }
 
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     throw new Error(
       "Invalid scheduled date/time."
     );
@@ -208,21 +233,26 @@ function normalizeScheduleDate(value) {
 }
 
 
-function getScheduleInfo(value) {
+function getScheduleInfo(
+  value
+) {
 
   const date =
     normalizeScheduleDate(value);
 
   if (!date) {
+
     return {
       scheduled: false,
       date: null
     };
   }
 
-  const now = Date.now();
+  if (
+    date.getTime() <=
+    Date.now()
+  ) {
 
-  if (date.getTime() <= now) {
     throw new Error(
       "Scheduled time must be in the future."
     );
@@ -235,11 +265,13 @@ function getScheduleInfo(value) {
 }
 
 
-// ============================================================
-// FIRESTORE SCHEDULE HISTORY
-// ============================================================
+/* =========================================================
+   FIRESTORE HISTORY
+========================================================= */
 
-async function saveNotificationRecord(data) {
+async function saveNotificationRecord(
+  data
+) {
 
   if (!initFirebaseAdmin()) {
     return null;
@@ -249,14 +281,19 @@ async function saveNotificationRecord(data) {
 
     const ref =
       firestore
-        .collection("notificationHistory")
+        .collection(
+          "notificationHistory"
+        )
         .doc();
 
     await ref.set({
+
       ...data,
 
       createdAt:
-        admin.firestore.FieldValue.serverTimestamp(),
+        admin.firestore
+          .FieldValue
+          .serverTimestamp(),
 
       createdAtMs:
         Date.now()
@@ -276,9 +313,9 @@ async function saveNotificationRecord(data) {
 }
 
 
-// ============================================================
-// NOTIFICATION PAYLOAD
-// ============================================================
+/* =========================================================
+   NOTIFICATION PAYLOAD
+========================================================= */
 
 function makeManualNotificationPayload({
   target,
@@ -289,15 +326,8 @@ function makeManualNotificationPayload({
   image,
   url,
   scheduledAt,
-
-  // Native Android OneSignal sound name.
-  // Example: "notification"
   androidSound,
-
-  // Android OneSignal notification channel ID.
   androidChannelId,
-
-  // iOS sound file name.
   iosSound
 }) {
 
@@ -318,7 +348,6 @@ function makeManualNotificationPayload({
     },
 
     data: {
-
       targetUrl:
         url || "/notification.html",
 
@@ -326,14 +355,16 @@ function makeManualNotificationPayload({
         "aura-arman-manual",
 
       scheduledAt:
-        scheduledAt || null
+        scheduledAt
+          ? new Date(
+              scheduledAt
+            ).toISOString()
+          : null
     }
   };
 
 
-  // ----------------------------------------------------------
-  // TARGET
-  // ----------------------------------------------------------
+  /* TARGET */
 
   if (target === "all") {
 
@@ -341,7 +372,9 @@ function makeManualNotificationPayload({
       "Total Subscriptions"
     ];
 
-  } else if (target === "specific") {
+  } else if (
+    target === "specific"
+  ) {
 
     payload.include_aliases = {
       external_id: [
@@ -351,9 +384,7 @@ function makeManualNotificationPayload({
   }
 
 
-  // ----------------------------------------------------------
-  // ICON
-  // ----------------------------------------------------------
+  /* ICON */
 
   if (icon) {
 
@@ -365,9 +396,7 @@ function makeManualNotificationPayload({
   }
 
 
-  // ----------------------------------------------------------
-  // IMAGE
-  // ----------------------------------------------------------
+  /* IMAGE */
 
   if (image) {
 
@@ -380,45 +409,32 @@ function makeManualNotificationPayload({
   }
 
 
-  // ----------------------------------------------------------
-  // ANDROID SOUND
-  // ----------------------------------------------------------
-
-  /*
-   IMPORTANT:
-
-   This is NOT a URL.
-
-   Example:
-   androidSound = "notification"
-
-   The corresponding sound file must already exist
-   inside the Android APK/native OneSignal configuration.
-  */
+  /* ANDROID SOUND */
 
   if (androidSound) {
 
     payload.android_sound =
       String(androidSound)
-        .replace(/\.(mp3|wav|ogg)$/i, "")
+        .replace(
+          /\.(mp3|wav|ogg)$/i,
+          ""
+        )
         .trim();
   }
 
 
-  // ----------------------------------------------------------
-  // ANDROID CHANNEL
-  // ----------------------------------------------------------
+  /* ANDROID CHANNEL */
 
   if (androidChannelId) {
 
     payload.android_channel_id =
-      String(androidChannelId).trim();
+      String(
+        androidChannelId
+      ).trim();
   }
 
 
-  // ----------------------------------------------------------
-  // IOS SOUND
-  // ----------------------------------------------------------
+  /* IOS SOUND */
 
   if (iosSound) {
 
@@ -427,15 +443,14 @@ function makeManualNotificationPayload({
   }
 
 
-  // ----------------------------------------------------------
-  // SERVER SIDE SCHEDULE
-  // ----------------------------------------------------------
+  /* SERVER-SIDE SCHEDULE */
 
   if (scheduledAt) {
 
     payload.send_after =
-      new Date(scheduledAt)
-        .toISOString();
+      new Date(
+        scheduledAt
+      ).toISOString();
   }
 
 
@@ -443,9 +458,9 @@ function makeManualNotificationPayload({
 }
 
 
-// ============================================================
-// SEND ADMIN PUSH
-// ============================================================
+/* =========================================================
+   ADMIN PUSH
+========================================================= */
 
 async function sendAdminPush({
   type,
@@ -460,7 +475,9 @@ async function sendAdminPush({
     type === "deposit";
 
   const amount =
-    Number(data.amount || 0);
+    Number(
+      data.amount || 0
+    );
 
   const user =
     data.userName ||
@@ -500,7 +517,6 @@ async function sendAdminPush({
         : ""
     );
 
-
   const payload =
     makeManualNotificationPayload({
 
@@ -525,10 +541,13 @@ async function sendAdminPush({
     await oneSignalRequest(
       "/notifications",
       {
-        method: "POST",
+        method:
+          "POST",
 
         body:
-          JSON.stringify(payload)
+          JSON.stringify(
+            payload
+          )
       }
     );
 
@@ -537,16 +556,24 @@ async function sendAdminPush({
 
     throw new Error(
       `OneSignal failed (${result.status}): ` +
-      JSON.stringify(result.data)
+      JSON.stringify(
+        result.data
+      )
     );
   }
 
 
-  if (initFirebaseAdmin()) {
+  if (
+    initFirebaseAdmin()
+  ) {
 
     await firestore
-      .collection("adminNotifications")
-      .doc(`${type}_${requestId}`)
+      .collection(
+        "adminNotifications"
+      )
+      .doc(
+        `${type}_${requestId}`
+      )
       .set({
 
         type,
@@ -584,20 +611,20 @@ async function sendAdminPush({
       });
   }
 
-
   return result.data;
 }
 
 
-// ============================================================
-// PENDING HELPERS
-// ============================================================
+/* =========================================================
+   PENDING HELPERS
+========================================================= */
 
 function isPending(value) {
 
   return (
-    String(value ?? "pending")
-      .toLowerCase() ===
+    String(
+      value ?? "pending"
+    ).toLowerCase() ===
     "pending"
   );
 }
@@ -619,9 +646,9 @@ function looksLikeDeposit(data) {
 }
 
 
-// ============================================================
-// CLAIM + SEND
-// ============================================================
+/* =========================================================
+   CLAIM + SEND
+========================================================= */
 
 async function claimAndSend(
   type,
@@ -635,16 +662,22 @@ async function claimAndSend(
 
   const claimRef =
     firestore
-      .collection("adminPushSent")
-      .doc(`${type}_${requestId}`);
+      .collection(
+        "adminPushSent"
+      )
+      .doc(
+        `${type}_${requestId}`
+      );
 
 
   const claimed =
     await firestore.runTransaction(
-      async (tx) => {
+      async tx => {
 
         const snap =
-          await tx.get(claimRef);
+          await tx.get(
+            claimRef
+          );
 
         if (snap.exists) {
           return false;
@@ -679,7 +712,7 @@ async function claimAndSend(
 
   try {
 
-    const result =
+    const sendResult =
       await sendAdminPush({
         type,
         requestId,
@@ -697,19 +730,14 @@ async function claimAndSend(
           Date.now(),
 
         onesignalMessageId:
-          result?.id ||
-          result?.notification_id ||
+          sendResult?.id ||
+          sendResult?.notification_id ||
           null
 
       },
       {
         merge: true
       }
-    );
-
-
-    console.log(
-      `🔔 ${type} push sent: ${requestId}`
     );
 
 
@@ -743,9 +771,9 @@ async function claimAndSend(
 }
 
 
-// ============================================================
-// FIRESTORE WATCHERS
-// ============================================================
+/* =========================================================
+   FIRESTORE WATCHERS
+========================================================= */
 
 function startFirestoreWatchers() {
 
@@ -753,8 +781,11 @@ function startFirestoreWatchers() {
     return;
   }
 
-  let depositsReady = false;
-  let withdrawsReady = false;
+  let depositsReady =
+    false;
+
+  let withdrawsReady =
+    false;
 
 
   const handleDepositSnapshot =
@@ -776,7 +807,7 @@ function startFirestoreWatchers() {
 
 
       snapshot.docChanges()
-        .forEach((change) => {
+        .forEach(change => {
 
           if (
             change.type !== "added"
@@ -786,19 +817,25 @@ function startFirestoreWatchers() {
 
 
           const data =
-            change.doc.data() || {};
+            change.doc.data() ||
+            {};
 
 
           if (
-            !isPending(data.status)
+            !isPending(
+              data.status
+            )
           ) {
             return;
           }
 
 
           if (
-            sourceName === "transactions" &&
-            !looksLikeDeposit(data)
+            sourceName ===
+              "transactions" &&
+            !looksLikeDeposit(
+              data
+            )
           ) {
             return;
           }
@@ -808,21 +845,26 @@ function startFirestoreWatchers() {
             "deposit",
             change.doc.id,
             data
-          ).catch(console.error);
+          ).catch(
+            console.error
+          );
         });
     };
 
 
   firestore
-    .collection("deposits")
+    .collection(
+      "deposits"
+    )
     .onSnapshot(
-      (snapshot) =>
+
+      snapshot =>
         handleDepositSnapshot(
           snapshot,
           "deposits"
         ),
 
-      (error) =>
+      error =>
         console.error(
           "Deposits listener error:",
           error
@@ -831,15 +873,18 @@ function startFirestoreWatchers() {
 
 
   firestore
-    .collection("transactions")
+    .collection(
+      "transactions"
+    )
     .onSnapshot(
-      (snapshot) =>
+
+      snapshot =>
         handleDepositSnapshot(
           snapshot,
           "transactions"
         ),
 
-      (error) =>
+      error =>
         console.error(
           "Transactions listener error:",
           error
@@ -848,9 +893,12 @@ function startFirestoreWatchers() {
 
 
   firestore
-    .collection("withdraws")
+    .collection(
+      "withdraws"
+    )
     .onSnapshot(
-      (snapshot) => {
+
+      snapshot => {
 
         if (!withdrawsReady) {
 
@@ -865,7 +913,7 @@ function startFirestoreWatchers() {
 
 
         snapshot.docChanges()
-          .forEach((change) => {
+          .forEach(change => {
 
             if (
               change.type !== "added"
@@ -875,11 +923,14 @@ function startFirestoreWatchers() {
 
 
             const data =
-              change.doc.data() || {};
+              change.doc.data() ||
+              {};
 
 
             if (
-              !isPending(data.status)
+              !isPending(
+                data.status
+              )
             ) {
               return;
             }
@@ -889,11 +940,13 @@ function startFirestoreWatchers() {
               "withdraw",
               change.doc.id,
               data
-            ).catch(console.error);
+            ).catch(
+              console.error
+            );
           });
       },
 
-      (error) =>
+      error =>
         console.error(
           "Withdraw listener error:",
           error
@@ -902,9 +955,9 @@ function startFirestoreWatchers() {
 }
 
 
-// ============================================================
-// CATCH UP RECENT REQUESTS
-// ============================================================
+/* =========================================================
+   CATCH UP
+========================================================= */
 
 async function catchUpRecentRequests() {
 
@@ -918,11 +971,22 @@ async function catchUpRecentRequests() {
 
 
   for (
-    const [type, collectionName]
-    of [
-      ["deposit", "deposits"],
-      ["deposit", "transactions"],
-      ["withdraw", "withdraws"]
+    const [
+      type,
+      collectionName
+    ] of [
+      [
+        "deposit",
+        "deposits"
+      ],
+      [
+        "deposit",
+        "transactions"
+      ],
+      [
+        "withdraw",
+        "withdraws"
+      ]
     ]
   ) {
 
@@ -930,7 +994,9 @@ async function catchUpRecentRequests() {
 
       const snap =
         await firestore
-          .collection(collectionName)
+          .collection(
+            collectionName
+          )
           .where(
             "status",
             "==",
@@ -945,12 +1011,15 @@ async function catchUpRecentRequests() {
       ) {
 
         const data =
-          docSnap.data() || {};
+          docSnap.data() ||
+          {};
 
 
         if (
           type === "deposit" &&
-          !looksLikeDeposit(data)
+          !looksLikeDeposit(
+            data
+          )
         ) {
           continue;
         }
@@ -958,9 +1027,11 @@ async function catchUpRecentRequests() {
 
         const created =
           Number(
-            data.createdAt?.toMillis?.() ||
+            data.createdAt
+              ?.toMillis?.() ||
             data.createdAt ||
-            data.timestamp?.toMillis?.() ||
+            data.timestamp
+              ?.toMillis?.() ||
             data.timestamp ||
             0
           );
@@ -992,9 +1063,9 @@ async function catchUpRecentRequests() {
 }
 
 
-// ============================================================
-// PAGES
-// ============================================================
+/* =========================================================
+   PAGES
+========================================================= */
 
 app.get(
   "/",
@@ -1034,9 +1105,9 @@ app.get(
 );
 
 
-// ============================================================
-// CHECK USER
-// ============================================================
+/* =========================================================
+   CHECK USER
+========================================================= */
 
 app.post(
   "/api/notifications/check-user",
@@ -1046,7 +1117,8 @@ app.post(
 
       const externalId =
         String(
-          req.body.externalId || ""
+          req.body.externalId ||
+          ""
         ).trim();
 
 
@@ -1099,8 +1171,9 @@ app.post(
 
       const activeSubscriptions =
         subscriptions.filter(
-          (subscription) =>
-            subscription.enabled !== false
+          subscription =>
+            subscription.enabled !==
+            false
         );
 
 
@@ -1112,14 +1185,15 @@ app.post(
         externalId,
 
         subscribed:
-          activeSubscriptions.length > 0,
+          activeSubscriptions.length >
+          0,
 
         subscriptionCount:
           activeSubscriptions.length,
 
         subscriptions:
           activeSubscriptions.map(
-            (subscription) => ({
+            subscription => ({
 
               id:
                 subscription.id,
@@ -1129,10 +1203,10 @@ app.post(
 
               enabled:
                 subscription.enabled
+
             })
           )
       });
-
 
     } catch (error) {
 
@@ -1156,9 +1230,9 @@ app.post(
 );
 
 
-// ============================================================
-// FIND USER
-// ============================================================
+/* =========================================================
+   FIND USER
+========================================================= */
 
 app.get(
   "/api/notifications/find-user",
@@ -1168,7 +1242,8 @@ app.get(
 
       const externalId =
         String(
-          req.query.externalId || ""
+          req.query.externalId ||
+          ""
         ).trim();
 
 
@@ -1208,7 +1283,6 @@ app.get(
             result.data
         });
 
-
     } catch (error) {
 
       return res.status(500).json({
@@ -1224,9 +1298,9 @@ app.get(
 );
 
 
-// ============================================================
-// SEND / SCHEDULE NOTIFICATION
-// ============================================================
+/* =========================================================
+   SEND / SCHEDULE
+========================================================= */
 
 app.post(
   "/api/notifications/send",
@@ -1279,7 +1353,9 @@ app.post(
         String(message).trim();
 
       const cleanExternalId =
-        String(externalId).trim();
+        String(
+          externalId
+        ).trim();
 
       const cleanIcon =
         String(icon).trim();
@@ -1291,18 +1367,22 @@ app.post(
         String(url).trim();
 
       const cleanAndroidSound =
-        String(androidSound).trim();
+        String(
+          androidSound
+        ).trim();
 
       const cleanAndroidChannelId =
-        String(androidChannelId).trim();
+        String(
+          androidChannelId
+        ).trim();
 
       const cleanIosSound =
-        String(iosSound).trim();
+        String(
+          iosSound
+        ).trim();
 
 
-      // --------------------------------------------------------
-      // VALIDATION
-      // --------------------------------------------------------
+      /* VALIDATION */
 
       if (!cleanTitle) {
 
@@ -1362,9 +1442,7 @@ app.post(
       }
 
 
-      // --------------------------------------------------------
-      // SCHEDULE
-      // --------------------------------------------------------
+      /* SCHEDULE */
 
       const scheduleInfo =
         getScheduleInfo(
@@ -1372,9 +1450,7 @@ app.post(
         );
 
 
-      // --------------------------------------------------------
-      // CHECK SPECIFIC USER
-      // --------------------------------------------------------
+      /* SPECIFIC USER */
 
       if (
         target === "specific"
@@ -1405,9 +1481,7 @@ app.post(
       }
 
 
-      // --------------------------------------------------------
-      // PAYLOAD
-      // --------------------------------------------------------
+      /* PAYLOAD */
 
       const payload =
         makeManualNotificationPayload({
@@ -1446,9 +1520,7 @@ app.post(
         });
 
 
-      // --------------------------------------------------------
-      // SEND TO ONESIGNAL
-      // --------------------------------------------------------
+      /* ONESIGNAL */
 
       const result =
         await oneSignalRequest(
@@ -1484,9 +1556,7 @@ app.post(
       }
 
 
-      // --------------------------------------------------------
-      // SAVE HISTORY
-      // --------------------------------------------------------
+      /* HISTORY */
 
       const historyId =
         await saveNotificationRecord({
@@ -1494,7 +1564,8 @@ app.post(
           target,
 
           externalId:
-            cleanExternalId || null,
+            cleanExternalId ||
+            null,
 
           title:
             cleanTitle,
@@ -1503,10 +1574,12 @@ app.post(
             cleanMessage,
 
           icon:
-            cleanIcon || null,
+            cleanIcon ||
+            null,
 
           image:
-            cleanImage || null,
+            cleanImage ||
+            null,
 
           url:
             cleanUrl,
@@ -1520,13 +1593,16 @@ app.post(
               : null,
 
           androidSound:
-            cleanAndroidSound || null,
+            cleanAndroidSound ||
+            null,
 
           androidChannelId:
-            cleanAndroidChannelId || null,
+            cleanAndroidChannelId ||
+            null,
 
           iosSound:
-            cleanIosSound || null,
+            cleanIosSound ||
+            null,
 
           status:
             scheduleInfo.scheduled
@@ -1539,10 +1615,6 @@ app.post(
             null
         });
 
-
-      // --------------------------------------------------------
-      // RESPONSE
-      // --------------------------------------------------------
 
       return res.json({
 
@@ -1565,7 +1637,8 @@ app.post(
         target,
 
         externalId:
-          cleanExternalId || null,
+          cleanExternalId ||
+          null,
 
         historyId,
 
@@ -1596,9 +1669,9 @@ app.post(
 );
 
 
-// ============================================================
-// 404
-// ============================================================
+/* =========================================================
+   404
+========================================================= */
 
 app.use(
   (req, res) => {
@@ -1615,9 +1688,9 @@ app.use(
 );
 
 
-// ============================================================
-// START SERVER
-// ============================================================
+/* =========================================================
+   START
+========================================================= */
 
 app.listen(
   PORT,
@@ -1640,9 +1713,7 @@ app.listen(
 
     initFirebaseAdmin();
 
-
     await catchUpRecentRequests();
-
 
     startFirestoreWatchers();
   }
