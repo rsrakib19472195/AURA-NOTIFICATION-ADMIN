@@ -6,11 +6,15 @@
 <title>AURA ARMAN TOUR - Notification Center</title>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*{
+ box-sizing:border-box;
+ margin:0;
+ padding:0
+}
 
 :root{
  --bg:#020617;
- --card:rgba(15,23,42,.92);
+ --card:rgba(15,23,42,.9);
  --border:rgba(255,255,255,.09);
  --text:#f8fafc;
  --muted:#94a3b8;
@@ -18,80 +22,82 @@
  --purple:#7c3aed;
  --green:#22c55e;
  --red:#ef4444;
- --yellow:#f59e0b;
+ --yellow:#f59e0b
 }
 
-html{scroll-behavior:smooth}
+html{
+ scroll-behavior:smooth
+}
 
 body{
  font-family:Arial,sans-serif;
  background:radial-gradient(circle at top,#172554,#020617 55%);
  color:var(--text);
  min-height:100vh;
- padding:12px;
+ padding:15px
 }
 
 .container{
  max-width:850px;
- margin:auto;
+ margin:auto
 }
 
 .header{
  text-align:center;
- margin:8px 0 18px;
+ margin:8px 0 18px
 }
 
 .logo{
- width:70px;
- height:70px;
+ width:72px;
+ height:72px;
  border-radius:20px;
  object-fit:cover;
  border:2px solid rgba(255,255,255,.15);
- margin-bottom:9px;
+ margin-bottom:10px
 }
 
 .header h1{
- font-size:23px;
+ font-size:23px
 }
 
 .header p{
  font-size:12px;
  color:var(--muted);
- margin-top:5px;
+ margin-top:5px
 }
 
 .stats{
  display:grid;
  grid-template-columns:repeat(3,1fr);
  gap:8px;
- margin-bottom:12px;
+ margin-bottom:12px
 }
 
 .stat{
  background:rgba(15,23,42,.75);
  border:1px solid var(--border);
  border-radius:16px;
- padding:11px;
- text-align:center;
+ padding:12px;
+ text-align:center
 }
 
 .stat b{
  display:block;
- font-size:20px;
+ font-size:20px
 }
 
 .stat span{
  font-size:10px;
- color:var(--muted);
+ color:var(--muted)
 }
 
 .card{
  background:var(--card);
  border:1px solid var(--border);
- border-radius:20px;
- padding:16px;
- box-shadow:0 15px 45px rgba(0,0,0,.28);
- margin-bottom:12px;
+ border-radius:22px;
+ padding:18px;
+ box-shadow:0 20px 60px rgba(0,0,0,.35);
+ margin-bottom:13px
 }
 
 .section-title{
@@ -101,11 +107,11 @@ body{
  display:flex;
  align-items:center;
  justify-content:space-between;
- gap:10px;
+ gap:10px
 }
 
 .group{
- margin-bottom:15px;
+ margin-bottom:16px
 }
 
 label{
@@ -113,7 +119,7 @@ label{
  font-size:12px;
  font-weight:bold;
  color:#cbd5e1;
- margin-bottom:7px;
+ margin-bottom:7px
 }
 
 input,
@@ -123,141 +129,141 @@ select{
  border:1px solid #334155;
  background:#020617;
  color:white;
- border-radius:12px;
- padding:11px;
+ border-radius:13px;
+ padding:12px;
  outline:none;
  font-family:inherit;
- transition:.2s;
+ transition:.18s
 }
 
 input:focus,
 textarea:focus,
 select:focus{
  border-color:#3b82f6;
- box-shadow:0 0 0 2px rgba(59,130,246,.08);
+ box-shadow:0 0 0 2px rgba(59,130,246,.08)
 }
 
 textarea{
- min-height:105px;
- resize:vertical;
+ min-height:110px;
+ resize:vertical
 }
 
 input[readonly]{
- opacity:.85;
+ opacity:.85
 }
 
 .row{
  display:grid;
  grid-template-columns:1fr 1fr;
- gap:10px;
+ gap:10px
 }
 
 button{
  border:0;
- border-radius:12px;
- padding:11px;
+ border-radius:13px;
+ padding:12px;
  font-weight:bold;
  color:white;
  cursor:pointer;
  background:linear-gradient(135deg,var(--blue),var(--purple));
- transition:.18s;
+ transition:.18s
 }
 
 button:active{
- transform:scale(.97);
+ transform:scale(.98)
 }
 
 button:disabled{
  opacity:.55;
  cursor:not-allowed;
- transform:none;
+ transform:none
 }
 
 .btn-secondary{
- background:#334155;
+ background:#334155
 }
 
 .btn-green{
- background:linear-gradient(135deg,#16a34a,#059669);
+ background:linear-gradient(135deg,#16a34a,#059669)
 }
 
 .btn-red{
- background:linear-gradient(135deg,#dc2626,#991b1b);
+ background:linear-gradient(135deg,#dc2626,#991b1b)
 }
 
 .btn-yellow{
- background:linear-gradient(135deg,#d97706,#b45309);
+ background:linear-gradient(135deg,#d97706,#b45309)
 }
 
 .small-btn{
- padding:8px 10px;
- font-size:10px;
+ padding:9px 10px;
+ font-size:11px
 }
 
 .targets{
  display:grid;
  grid-template-columns:1fr 1fr;
- gap:8px;
+ gap:8px
 }
 
 .target{
  border:1px solid #334155;
  background:#020617;
- border-radius:13px;
- padding:11px;
- cursor:pointer;
+ border-radius:14px;
+ padding:12px;
+ cursor:pointer
 }
 
 .target input{
  width:auto;
- margin-right:6px;
+ margin-right:6px
 }
 
 .target span{
- font-size:12px;
+ font-size:12px
 }
 
 #specificBox{
  display:none;
- margin-top:10px;
+ margin-top:10px
 }
 
 .specific-actions{
  display:grid;
  grid-template-columns:1fr 1fr;
  gap:8px;
- margin-top:8px;
+ margin-top:8px
 }
 
 .template-top{
  display:grid;
  grid-template-columns:1fr auto;
  gap:8px;
- margin-bottom:8px;
+ margin-bottom:8px
 }
 
 .favorite-btn{
- width:44px;
+ width:45px;
  background:#334155;
  font-size:19px;
- padding:8px;
+ padding:8px
 }
 
 .favorite-btn.active{
  background:#92400e;
- color:#facc15;
+ color:#facc15
 }
 
 .template-fields{
- display:none;
+ display:none
 }
 
 .template-fields.show{
- display:block;
+ display:block
 }
 
 .field{
- margin-bottom:9px;
+ margin-bottom:9px
 }
 
 .message-tools{
@@ -266,16 +272,16 @@ button:disabled{
  align-items:center;
  margin-top:6px;
  font-size:10px;
- color:var(--muted);
+ color:var(--muted)
 }
 
 .preview{
  background:#000;
- border-radius:18px;
- padding:13px;
+ border-radius:20px;
+ padding:14px;
  max-width:390px;
  margin:auto;
- border:1px solid #1e293b;
+ border:1px solid #1e293b
 }
 
 .phone-head{
@@ -284,24 +290,24 @@ button:disabled{
  gap:8px;
  margin-bottom:10px;
  color:#94a3b8;
- font-size:10px;
+ font-size:10px
 }
 
 .phone-head img{
  width:20px;
  height:20px;
- border-radius:6px;
+ border-radius:6px
 }
 
 .notification-preview{
  background:#1e293b;
- border-radius:13px;
- padding:11px;
+ border-radius:14px;
+ padding:12px
 }
 
 .preview-top{
  display:flex;
- gap:9px;
+ gap:9px
 }
 
 .preview-icon{
@@ -309,18 +315,18 @@ button:disabled{
  height:38px;
  border-radius:10px;
  object-fit:cover;
- background:#334155;
+ background:#334155
 }
 
 .preview-title{
  font-size:13px;
- font-weight:bold;
+ font-weight:bold
 }
 
 .preview-time{
  font-size:9px;
  color:#94a3b8;
- margin-left:5px;
+ margin-left:5px
 }
 
 .preview-msg{
@@ -329,7 +335,7 @@ button:disabled{
  color:#cbd5e1;
  margin-top:5px;
  white-space:pre-wrap;
- word-break:break-word;
+ word-break:break-word
 }
 
 .preview-image{
@@ -338,55 +344,55 @@ button:disabled{
  object-fit:cover;
  border-radius:10px;
  margin-top:9px;
- display:none;
+ display:none
 }
 
 .status{
- padding:10px;
- border-radius:11px;
+ padding:11px;
+ border-radius:12px;
  font-size:12px;
  display:none;
- margin-top:9px;
+ margin-top:10px;
  white-space:pre-wrap;
- word-break:break-word;
+ word-break:break-word
 }
 
 .status.show{
- display:block;
+ display:block
 }
 
 .status.success{
  background:rgba(34,197,94,.12);
  color:#86efac;
- border:1px solid rgba(34,197,94,.3);
+ border:1px solid rgba(34,197,94,.3)
 }
 
 .status.error{
  background:rgba(239,68,68,.12);
  color:#fca5a5;
- border:1px solid rgba(239,68,68,.3);
+ border:1px solid rgba(239,68,68,.3)
 }
 
 .status.info{
  background:rgba(59,130,246,.12);
  color:#93c5fd;
- border:1px solid rgba(59,130,246,.3);
+ border:1px solid rgba(59,130,246,.3)
 }
 
 .progress{
  display:none;
- margin:11px 0;
+ margin:12px 0
 }
 
 .progress.show{
- display:block;
+ display:block
 }
 
 .progress-track{
- height:6px;
+ height:7px;
  background:#1e293b;
  border-radius:99px;
- overflow:hidden;
+ overflow:hidden
 }
 
 .progress-bar{
@@ -394,21 +400,21 @@ button:disabled{
  width:0%;
  border-radius:99px;
  background:linear-gradient(90deg,#2563eb,#7c3aed);
- transition:.3s;
+ transition:.3s
 }
 
 .progress-text{
- font-size:10px;
+ font-size:11px;
  color:#94a3b8;
- margin-top:5px;
- text-align:center;
+ margin-top:6px;
+ text-align:center
 }
 
 .send-mode{
  display:grid;
  grid-template-columns:1fr 1fr;
  gap:8px;
- margin-bottom:10px;
+ margin-bottom:10px
 }
 
 .mode{
@@ -418,44 +424,71 @@ button:disabled{
  border-radius:12px;
  text-align:center;
  cursor:pointer;
- font-size:12px;
+ font-size:12px
 }
 
 .mode.active{
  border-color:#3b82f6;
- background:rgba(37,99,235,.12);
+ background:rgba(37,99,235,.12)
 }
 
 .schedule-box{
  display:none;
- margin-top:10px;
+ margin-top:10px
 }
 
 .schedule-box.show{
- display:block;
+ display:block
 }
 
 .schedule-note{
  margin-top:8px;
- padding:9px;
+ padding:10px;
  border-radius:10px;
  background:rgba(37,99,235,.08);
  border:1px solid rgba(59,130,246,.18);
  color:#93c5fd;
  font-size:10px;
- line-height:1.5;
+ line-height:1.5
+}
+
+/* HISTORY */
+
+.history-toggle-wrap{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px
+}
+
+.history-count-badge{
+ min-width:20px;
+ height:20px;
+ padding:0 6px;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ border-radius:20px;
+ background:rgba(59,130,246,.15);
+ color:#93c5fd;
+ font-size:9px;
+ margin-left:4px
 }
 
 .history-panel{
  display:none;
- margin-top:12px;
+ margin-top:13px
+}
+
+.history-panel.show{
+ display:block
 }
 
 .history-tools{
  display:grid;
  grid-template-columns:1fr 1fr;
  gap:8px;
- margin-bottom:10px;
+ margin-bottom:10px
 }
 
 .history{
@@ -463,31 +496,31 @@ button:disabled{
  flex-direction:column;
  gap:8px;
  max-height:500px;
- overflow:auto;
+ overflow:auto
 }
 
 .history-item{
  background:#020617;
  border:1px solid #1e293b;
- border-radius:13px;
- padding:10px;
+ border-radius:14px;
+ padding:11px
 }
 
 .history-main{
  display:flex;
  justify-content:space-between;
- gap:8px;
+ gap:8px
 }
 
 .history-title{
  font-size:12px;
- font-weight:bold;
+ font-weight:bold
 }
 
 .history-meta{
  font-size:10px;
  color:#94a3b8;
- margin-top:4px;
+ margin-top:4px
 }
 
 .history-msg{
@@ -496,19 +529,19 @@ button:disabled{
  margin-top:7px;
  white-space:nowrap;
  overflow:hidden;
- text-overflow:ellipsis;
+ text-overflow:ellipsis
 }
 
 .history-actions{
  display:flex;
  gap:5px;
- margin-top:8px;
+ margin-top:8px
 }
 
 .history-actions button{
  flex:1;
- padding:7px;
- font-size:9px;
+ padding:8px;
+ font-size:10px
 }
 
 .badge{
@@ -516,29 +549,29 @@ button:disabled{
  padding:4px 7px;
  border-radius:20px;
  font-size:9px;
- white-space:nowrap;
+ white-space:nowrap
 }
 
 .badge.success{
  background:rgba(34,197,94,.13);
- color:#86efac;
+ color:#86efac
 }
 
 .badge.failed{
  background:rgba(239,68,68,.13);
- color:#fca5a5;
+ color:#fca5a5
 }
 
 .badge.scheduled{
  background:rgba(245,158,11,.13);
- color:#fcd34d;
+ color:#fcd34d
 }
 
 .empty{
  text-align:center;
  color:#64748b;
  font-size:12px;
- padding:25px;
+ padding:25px
 }
 
 .popup{
@@ -549,62 +582,58 @@ button:disabled{
  background:#0f172a;
  border:1px solid rgba(255,255,255,.12);
  box-shadow:0 15px 40px rgba(0,0,0,.5);
- border-radius:15px;
- padding:12px 16px;
- min-width:250px;
+ border-radius:16px;
+ padding:13px 17px;
+ min-width:260px;
  max-width:90%;
  text-align:center;
  font-size:12px;
  z-index:9999;
  opacity:0;
- transition:.3s;
+ transition:.3s
 }
 
 .popup.show{
  transform:translate(-50%,0);
- opacity:1;
+ opacity:1
 }
 
 .popup.success{
- border-color:rgba(34,197,94,.4);
+ border-color:rgba(34,197,94,.4)
 }
 
 .popup.error{
- border-color:rgba(239,68,68,.4);
+ border-color:rgba(239,68,68,.4)
 }
 
 .footer{
  text-align:center;
  color:#475569;
  font-size:10px;
- margin:12px;
+ margin:12px
 }
 
 @media(max-width:600px){
 
  body{
-  padding:9px;
+  padding:10px
  }
 
  .card{
-  padding:13px;
-  border-radius:17px;
+  padding:14px;
+  border-radius:18px
  }
 
  .row{
-  grid-template-columns:1fr;
+  grid-template-columns:1fr
  }
 
  .targets{
-  grid-template-columns:1fr;
+  grid-template-columns:1fr
  }
 
  .history-tools{
-  grid-template-columns:1fr;
- }
-
- .history-actions button{
-  font-size:9px;
+  grid-template-columns:1fr
  }
 }
 </style>
@@ -701,7 +730,6 @@ button:disabled{
  type="button"
  id="pasteUidBtn"
  class="btn-secondary"
- style="white-space:nowrap"
 >
 📋 PASTE
 </button>
@@ -728,7 +756,10 @@ CLEAR
 
 </div>
 
-<div id="userStatus" class="status"></div>
+<div
+ id="userStatus"
+ class="status"
+></div>
 
 </div>
 
@@ -800,7 +831,7 @@ RESET
  maxlength="150"
 >
 
-<div style="height:9px"></div>
+<div style="height:10px"></div>
 
 <textarea
  id="message"
@@ -1008,7 +1039,7 @@ now
 
 <div class="schedule-note">
 
-⏰ Schedule server-side হবে। Request backend-এ পাঠানো হবে এবং backend-এর persistent scheduling ব্যবহার হবে। তাই admin panel/browser বন্ধ থাকলেও notification নির্ধারিত সময়ে পাঠানো সম্ভব হবে।
+⏰ Schedule server-side হবে। Request backend-এ পাঠানো হবে এবং backend-কে OneSignal-এর persistent scheduling ব্যবহার করতে হবে। তাই admin/browser বন্ধ থাকলেও notification পাঠানো সম্ভব হবে।
 
 </div>
 
@@ -1054,15 +1085,18 @@ SEND NOTIFICATION
 
 <!-- HISTORY -->
 
-<div
- class="card"
- id="historyCard"
->
+<div class="card">
 
-<div class="section-title">
+<div class="section-title history-toggle-wrap">
 
 <span>
 📋 Notification History
+<span
+ id="historyToggleCount"
+ class="history-count-badge"
+>
+0
+</span>
 </span>
 
 <button
@@ -1107,6 +1141,20 @@ Scheduled
 </option>
 
 </select>
+
+</div>
+
+<div
+ style="display:flex;justify-content:flex-end;margin-bottom:8px"
+>
+
+<button
+ id="clearHistoryBtn"
+ class="btn-red small-btn"
+ type="button"
+>
+CLEAR HISTORY
+</button>
 
 </div>
 
@@ -1164,7 +1212,7 @@ const DRAFT_KEY =
 
 
 /* =========================================================
-   HELPER
+   ELEMENT HELPER
 ========================================================= */
 
 const $ = id =>
@@ -1238,6 +1286,9 @@ $("historyPanel");
 const historyToggleBtn =
 $("historyToggleBtn");
 
+const historyToggleCount =
+$("historyToggleCount");
+
 const targetInputs =
 document.querySelectorAll(
  'input[name="target"]'
@@ -1252,15 +1303,42 @@ let sendMode = "now";
 
 let currentTemplate = "";
 
-let historyData =
-JSON.parse(
- localStorage.getItem(HISTORY_KEY) || "[]"
-);
+let historyData;
 
-let favorites =
-JSON.parse(
- localStorage.getItem(FAVORITES_KEY) || "[]"
-);
+try{
+
+ historyData =
+  JSON.parse(
+   localStorage.getItem(HISTORY_KEY) || "[]"
+  );
+
+ if(!Array.isArray(historyData)){
+  historyData=[];
+ }
+
+}catch{
+
+ historyData=[];
+}
+
+
+let favorites;
+
+try{
+
+ favorites =
+  JSON.parse(
+   localStorage.getItem(FAVORITES_KEY) || "[]"
+  );
+
+ if(!Array.isArray(favorites)){
+  favorites=[];
+ }
+
+}catch{
+
+ favorites=[];
+}
 
 
 /* =========================================================
@@ -1519,11 +1597,12 @@ const labels={
 
 function money(value){
 
- const raw =
- String(value ?? "")
- .replace(/[^\d.]/g,"");
+ const raw=
+  String(value ?? "")
+   .replace(/[^\d.]/g,"");
 
- if(!raw) return "৳0";
+ if(!raw)
+  return "৳0";
 
  const n=Number(raw);
 
@@ -1537,27 +1616,24 @@ function money(value){
 function escapeHTML(value){
 
  return String(value ?? "")
- .replace(/&/g,"&amp;")
- .replace(/</g,"&lt;")
- .replace(/>/g,"&gt;")
- .replace(/"/g,"&quot;")
- .replace(/'/g,"&#039;");
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
 }
 
 
 function showStatus(el,text,type="info"){
 
  el.textContent=text;
-
- el.className=
-  "status show "+type;
+ el.className="status show "+type;
 }
 
 
 function clearStatus(el){
 
  el.textContent="";
-
  el.className="status";
 }
 
@@ -1567,9 +1643,7 @@ function popup(text,type="success"){
  const p=$("popup");
 
  p.textContent=text;
-
- p.className=
-  "popup show "+type;
+ p.className="popup show "+type;
 
  clearTimeout(p._timer);
 
@@ -1604,13 +1678,13 @@ function getFormData(){
  const fields={};
 
  templateFields
- .querySelectorAll("[data-field]")
- .forEach(input=>{
+  .querySelectorAll("[data-field]")
+  .forEach(input=>{
 
-  fields[input.dataset.field]=
-   input.value.trim();
+   fields[input.dataset.field]=
+    input.value.trim();
 
- });
+  });
 
  return fields;
 }
@@ -1630,47 +1704,48 @@ function wait(ms){
 
 function renderTemplateList(){
 
- const search =
+ const search=
   templateSearch.value
    .trim()
    .toLowerCase();
 
- const entries =
+ const entries=
   Object.entries(templates)
-  .filter(([key,cfg])=>{
+   .filter(([key,cfg])=>{
 
-   if(!search) return true;
+    if(!search)
+     return true;
 
-   return(
-    cfg.name
-     .toLowerCase()
-     .includes(search) ||
-    key
-     .toLowerCase()
-     .includes(search)
-   );
+    return(
+     cfg.name
+      .toLowerCase()
+      .includes(search) ||
+     key
+      .toLowerCase()
+      .includes(search)
+    );
 
-  })
-  .sort((a,b)=>{
+   })
+   .sort((a,b)=>{
 
-   const af=
-    favorites.includes(a[0])
-     ? 0
-     : 1;
+    const af=
+     favorites.includes(a[0])
+      ? 0
+      : 1;
 
-   const bf=
-    favorites.includes(b[0])
-     ? 0
-     : 1;
+    const bf=
+     favorites.includes(b[0])
+      ? 0
+      : 1;
 
-   return af-bf;
-  });
+    return af-bf;
+   });
 
  const selected=
   currentTemplate ||
   template.value;
 
- template.innerHTML =
+ template.innerHTML=
   `<option value="">
    Select a message template
   </option>`+
@@ -1687,6 +1762,7 @@ function renderTemplateList(){
    x=>x[0]===selected
   )
  ){
+
   template.value=selected;
  }
 
@@ -1751,8 +1827,9 @@ function renderTemplateFields(){
 
   if(
    ["amount","entry","prize"]
-   .includes(field)
+    .includes(field)
   ){
+
    input.inputMode="decimal";
   }
 
@@ -1775,10 +1852,13 @@ function updateTemplateMessage(){
  const cfg=
   templates[template.value];
 
- if(!cfg) return;
+ if(!cfg)
+  return;
 
  message.value=
-  cfg.msg(getFormData());
+  cfg.msg(
+   getFormData()
+  );
 
  $("charCount").textContent=
   message.value.length;
@@ -1799,7 +1879,9 @@ function updateFavoriteButton(){
   favorites.includes(key);
 
  favoriteBtn.textContent=
-  active ? "★" : "☆";
+  active
+   ? "★"
+   : "☆";
 
  favoriteBtn.classList.toggle(
   "active",
@@ -1821,7 +1903,6 @@ templateSearch.addEventListener(
  "input",
  renderTemplateList
 );
-
 
 favoriteBtn.addEventListener(
  "click",
@@ -1885,14 +1966,15 @@ templateFields.addEventListener(
    !e.target.matches(
     "[data-field]"
    )
-  ) return;
+  )
+   return;
 
   const field=
    e.target.dataset.field;
 
   if(
    ["amount","entry","prize"]
-   .includes(field)
+    .includes(field)
   ){
 
    e.target.value=
@@ -1985,51 +2067,57 @@ function updatePreview(){
 }
 
 
-[icon,image].forEach(el=>{
+[icon,image].forEach(
+ el=>{
 
- el.addEventListener(
-  "input",
-  ()=>{
-   updatePreview();
-   saveDraft();
-  }
- );
+  el.addEventListener(
+   "input",
+   ()=>{
 
-});
+    updatePreview();
+    saveDraft();
+
+   }
+  );
+
+ }
+);
 
 
 /* =========================================================
    TARGET
 ========================================================= */
 
-targetInputs.forEach(input=>{
+targetInputs.forEach(
+ input=>{
 
- input.addEventListener(
-  "change",
-  ()=>{
+  input.addEventListener(
+   "change",
+   ()=>{
 
-   const specific=
-    document.querySelector(
-     'input[name="target"][value="specific"]'
-    ).checked;
+    const specific=
+     document.querySelector(
+      'input[name="target"][value="specific"]'
+     ).checked;
 
-   specificBox.style.display=
-    specific
-     ? "block"
-     : "none";
+    specificBox.style.display=
+     specific
+      ? "block"
+      : "none";
 
-   if(!specific){
+    if(!specific){
 
-    clearStatus(
-     userStatus
-    );
+     clearStatus(
+      userStatus
+     );
+    }
+
+    saveDraft();
    }
+  );
 
-   saveDraft();
-  }
- );
-
-});
+ }
+);
 
 
 /* =========================================================
@@ -2070,7 +2158,7 @@ $("pasteUidBtn")
    }catch{
 
     popup(
-     "Clipboard access পাওয়া যায়নি.",
+     "Clipboard access পাওয়া যায়নি।",
      "error"
     );
    }
@@ -2117,10 +2205,12 @@ $("checkUserBtn")
       API_CHECK,
       {
        method:"POST",
+
        headers:{
         "Content-Type":
          "application/json"
        },
+
        body:
         JSON.stringify({
          externalId:id
@@ -2224,6 +2314,8 @@ $("clearUserBtn")
 
 /* =========================================================
    SEND MODE
+   IMPORTANT:
+   Existing Schedule logic kept unchanged.
 ========================================================= */
 
 document
@@ -2264,6 +2356,7 @@ document
 
 /* =========================================================
    DEFAULT SCHEDULE
+   UNCHANGED
 ========================================================= */
 
 function setDefaultSchedule(){
@@ -2300,6 +2393,8 @@ function setDefaultSchedule(){
 
 /* =========================================================
    BUILD PAYLOAD
+   Sound fields removed only.
+   Schedule logic unchanged.
 ========================================================= */
 
 function buildPayload(){
@@ -2380,6 +2475,7 @@ function buildPayload(){
 
 /* =========================================================
    SEND BUTTON
+   Schedule validation unchanged.
 ========================================================= */
 
 sendBtn.addEventListener(
@@ -2577,4 +2673,958 @@ async function sendNotification(
 
   const scheduled=
    Boolean(
-    data.scheduled
+    data.scheduled ||
+    data.status==="scheduled"
+   );
+
+  setProgress(
+   100,
+   scheduled
+    ? "Schedule সফল হয়েছে"
+    : "Notification sent"
+  );
+
+  const record={
+
+   id:
+    Date.now().toString(),
+
+   ...payload,
+
+   status:
+    scheduled
+     ? "scheduled"
+     : "success",
+
+   createdAt:
+    new Date().toISOString(),
+
+   serverScheduledAt:
+    data.scheduledAt ||
+    payload.scheduledAt ||
+    null,
+
+   response:
+    data.onesignal ||
+    data
+  };
+
+  historyData.unshift(
+   record
+  );
+
+  historyData=
+   historyData.slice(
+    0,
+    100
+   );
+
+  saveHistory();
+
+  renderHistory();
+
+  updateStats();
+
+  if(scheduled){
+
+   const serverTime=
+    data.scheduledAt ||
+    payload.scheduledAt;
+
+   showStatus(
+    result,
+    "⏰ Notification successfully scheduled!\n\n"+
+    "Scheduled time: "+
+    new Date(
+     serverTime
+    ).toLocaleString()+
+    "\n\nAdmin panel/browser বন্ধ থাকলেও server-side schedule অনুযায়ী পাঠানো হবে.",
+    "success"
+   );
+
+   popup(
+    "⏰ Notification scheduled!",
+    "success"
+   );
+
+  }else{
+
+   showStatus(
+    result,
+    "✅ Notification sent successfully!\n\n"+
+    formatSendResult(data),
+    "success"
+   );
+
+   popup(
+    "🔔 Notification successfully sent!",
+    "success"
+   );
+  }
+
+ }catch(err){
+
+  setProgress(
+   100,
+   "Failed"
+  );
+
+  historyData.unshift({
+
+   id:
+    Date.now().toString(),
+
+   ...payload,
+
+   status:"failed",
+
+   createdAt:
+    new Date().toISOString(),
+
+   error:
+    err.message ||
+    "Something went wrong."
+  });
+
+  historyData=
+   historyData.slice(
+    0,
+    100
+   );
+
+  saveHistory();
+
+  renderHistory();
+
+  updateStats();
+
+  showStatus(
+   result,
+   "❌ Notification failed\n\n"+
+   (
+    err.message ||
+    "Something went wrong."
+   ),
+   "error"
+  );
+
+  popup(
+   "Notification failed.",
+   "error"
+  );
+
+ }finally{
+
+  setTimeout(()=>{
+   progress.classList.remove(
+    "show"
+   );
+  },1000);
+
+  sendBtn.disabled=false;
+
+  sendBtn.textContent=
+   "SEND NOTIFICATION";
+ }
+}
+
+
+/* =========================================================
+   RESULT FORMAT
+========================================================= */
+
+function formatSendResult(data){
+
+ const o=
+  data.onesignal ||
+  data;
+
+ const parts=[];
+
+ if(o.recipients!=null)
+  parts.push(
+   "Recipients: "+
+   o.recipients
+  );
+
+ if(o.successful!=null)
+  parts.push(
+   "Successful: "+
+   o.successful
+  );
+
+ if(o.failed!=null)
+  parts.push(
+   "Failed: "+
+   o.failed
+  );
+
+ if(o.notSubscribed!=null)
+  parts.push(
+   "Not subscribed: "+
+   o.notSubscribed
+  );
+
+ return parts.length
+  ? parts.join("\n")
+  : JSON.stringify(
+     o,
+     null,
+     2
+    );
+}
+
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+function setProgress(
+ percent,
+ text
+){
+
+ progressBar.style.width=
+  percent+"%";
+
+ progressText.textContent=
+  text;
+}
+
+
+/* =========================================================
+   HISTORY TOGGLE
+========================================================= */
+
+historyToggleBtn.addEventListener(
+ "click",
+ ()=>{
+
+  const opened=
+   historyPanel.classList.toggle(
+    "show"
+   );
+
+  if(opened){
+
+   historyToggleBtn.textContent=
+    "✕ CLOSE HISTORY";
+
+   renderHistory();
+
+  }else{
+
+   historyToggleBtn.textContent=
+    "📋 VIEW HISTORY";
+  }
+ }
+);
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+function renderHistory(){
+
+ const search=
+  historySearch.value
+   .trim()
+   .toLowerCase();
+
+ const filter=
+  historyFilter.value;
+
+ const list=
+  historyData.filter(
+   item=>{
+
+    const text=
+     JSON.stringify(
+      item
+     ).toLowerCase();
+
+    const matchSearch=
+     !search ||
+     text.includes(search);
+
+    const matchFilter=
+     filter==="all" ||
+     item.status===filter;
+
+    return(
+     matchSearch &&
+     matchFilter
+    );
+   }
+  );
+
+ if(!list.length){
+
+  historyBox.innerHTML=
+   `<div class="empty">
+    📭 No notification history found.
+   </div>`;
+
+  return;
+ }
+
+ historyBox.innerHTML=
+  list.map(
+   item=>{
+
+    const cfg=
+     templates[item.template];
+
+    const statusClass=
+     item.status==="success"
+      ? "success"
+      : item.status==="failed"
+      ? "failed"
+      : "scheduled";
+
+    const statusText=
+     item.status==="success"
+      ? "SUCCESS"
+      : item.status==="failed"
+      ? "FAILED"
+      : "SCHEDULED";
+
+    const targetText=
+     item.target==="specific"
+      ? `Specific: ${escapeHTML(item.externalId || "UID")}`
+      : "All Users";
+
+    const rawTime=
+     item.serverScheduledAt ||
+     item.scheduledAt ||
+     item.createdAt;
+
+    const time=
+     rawTime
+      ? new Date(
+         rawTime
+        ).toLocaleString()
+      : "Unknown";
+
+    return `
+
+<div class="history-item">
+
+<div class="history-main">
+
+<div>
+
+<div class="history-title">
+${escapeHTML(
+ cfg?.name ||
+ "Custom Notification"
+)}
+</div>
+
+<div class="history-meta">
+${targetText} • ${escapeHTML(time)}
+</div>
+
+</div>
+
+<span class="badge ${statusClass}">
+${statusText}
+</span>
+
+</div>
+
+<div class="history-msg">
+${escapeHTML(
+ item.message
+)}
+</div>
+
+<div class="history-actions">
+
+<button
+ class="btn-secondary"
+ data-action="resend"
+ data-id="${escapeHTML(item.id)}"
+ type="button"
+>
+🔁 RESEND
+</button>
+
+<button
+ class="btn-secondary"
+ data-action="copy"
+ data-id="${escapeHTML(item.id)}"
+ type="button"
+>
+📋 COPY
+</button>
+
+<button
+ class="btn-red"
+ data-action="delete"
+ data-id="${escapeHTML(item.id)}"
+ type="button"
+>
+🗑️
+</button>
+
+</div>
+
+</div>
+
+`;
+   }
+  ).join("");
+}
+
+
+/* =========================================================
+   HISTORY ACTIONS
+========================================================= */
+
+historyBox.addEventListener(
+ "click",
+ async e=>{
+
+  const btn=
+   e.target.closest(
+    "button[data-action]"
+   );
+
+  if(!btn)
+   return;
+
+  const id=
+   btn.dataset.id;
+
+  const item=
+   historyData.find(
+    x=>
+     String(x.id)===
+     String(id)
+   );
+
+  if(!item)
+   return;
+
+  const action=
+   btn.dataset.action;
+
+  if(action==="delete"){
+
+   historyData=
+    historyData.filter(
+     x=>
+      String(x.id)!==
+      String(id)
+    );
+
+   saveHistory();
+
+   renderHistory();
+
+   updateStats();
+
+   return;
+  }
+
+  if(action==="copy"){
+
+   try{
+
+    await navigator.clipboard
+     .writeText(
+      item.message || ""
+     );
+
+    popup(
+     "📋 Message copied.",
+     "success"
+    );
+
+   }catch{
+
+    popup(
+     "Copy করা যায়নি.",
+     "error"
+    );
+   }
+
+   return;
+  }
+
+  if(action==="resend"){
+
+   restoreHistory(
+    item
+   );
+  }
+ });
+
+
+/* =========================================================
+   RESTORE HISTORY
+========================================================= */
+
+function restoreHistory(
+ item
+){
+
+ if(
+  item.template &&
+  templates[item.template]
+ ){
+
+  template.value=
+   item.template;
+
+  renderTemplateFields();
+
+  Object.entries(
+   item.templateFields || {}
+  ).forEach(
+   ([key,value])=>{
+
+    const field=
+     Array.from(
+      templateFields
+       .querySelectorAll(
+        "[data-field]"
+       )
+     ).find(
+      el=>
+       el.dataset.field===
+       key
+     );
+
+    if(field)
+     field.value=
+      value;
+   }
+  );
+ }
+
+ externalId.value=
+  item.externalId || "";
+
+ message.value=
+  item.message || "";
+
+ icon.value=
+  item.icon ||
+  DEFAULT_ICON;
+
+ image.value=
+  item.image || "";
+
+ url.value=
+  item.url ||
+  DEFAULT_URL;
+
+ const radio=
+  document.querySelector(
+   `input[name="target"][value="${item.target || "all"}"]`
+  );
+
+ if(radio){
+
+  radio.checked=true;
+
+  radio.dispatchEvent(
+   new Event("change")
+  );
+ }
+
+ $("charCount").textContent=
+  message.value.length;
+
+ updatePreview();
+
+ saveDraft();
+
+ window.scrollTo({
+  top:0,
+  behavior:"smooth"
+ });
+
+ popup(
+  "🔁 Notification form restore হয়েছে.",
+  "success"
+ );
+}
+
+
+/* =========================================================
+   HISTORY CONTROLS
+========================================================= */
+
+historySearch.addEventListener(
+ "input",
+ renderHistory
+);
+
+historyFilter.addEventListener(
+ "change",
+ renderHistory
+);
+
+$("clearHistoryBtn")
+ .addEventListener(
+  "click",
+  ()=>{
+
+   if(!historyData.length)
+    return;
+
+   if(
+    confirm(
+     "সব notification history clear করবেন?"
+    )
+   ){
+
+    historyData=[];
+
+    saveHistory();
+
+    renderHistory();
+
+    updateStats();
+
+    popup(
+     "History cleared.",
+     "success"
+    );
+   }
+  }
+);
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+function updateStats(){
+
+ const today=
+  new Date().toDateString();
+
+ const sentToday=
+  historyData.filter(
+   item=>
+    item.status==="success" &&
+    new Date(
+     item.createdAt
+    ).toDateString()===
+    today
+  ).length;
+
+ const scheduled=
+  historyData.filter(
+   item=>
+    item.status==="scheduled"
+  ).length;
+
+ $("todaySent").textContent=
+  sentToday;
+
+ $("scheduledCount").textContent=
+  scheduled;
+
+ $("historyCount").textContent=
+  historyData.length;
+
+ historyToggleCount.textContent=
+  historyData.length;
+}
+
+
+/* =========================================================
+   DRAFT
+========================================================= */
+
+function saveDraft(){
+
+ const draft={
+
+  target:
+   document.querySelector(
+    'input[name="target"]:checked'
+   )?.value ||
+   "all",
+
+  externalId:
+   externalId.value,
+
+  template:
+   template.value,
+
+  message:
+   message.value,
+
+  icon:
+   icon.value,
+
+  image:
+   image.value,
+
+  url:
+   url.value
+ };
+
+ localStorage.setItem(
+  DRAFT_KEY,
+  JSON.stringify(draft)
+ );
+}
+
+
+function loadDraft(){
+
+ try{
+
+  const draft=
+   JSON.parse(
+    localStorage.getItem(
+     DRAFT_KEY
+    ) || "null"
+   );
+
+  if(!draft)
+   return;
+
+  if(draft.target){
+
+   const radio=
+    document.querySelector(
+     `input[name="target"][value="${draft.target}"]`
+    );
+
+   if(radio){
+
+    radio.checked=true;
+
+    radio.dispatchEvent(
+     new Event("change")
+    );
+   }
+  }
+
+  externalId.value=
+   draft.externalId || "";
+
+  if(
+   draft.template &&
+   templates[draft.template]
+  ){
+
+   currentTemplate=
+    draft.template;
+
+   template.value=
+    draft.template;
+
+   renderTemplateFields();
+  }
+
+  /*
+   Draft message-কে template-generated message
+   দিয়ে overwrite না করার জন্য শেষে restore করছি।
+  */
+
+  message.value=
+   draft.message || "";
+
+  icon.value=
+   draft.icon ||
+   DEFAULT_ICON;
+
+  image.value=
+   draft.image || "";
+
+  url.value=
+   draft.url ||
+   DEFAULT_URL;
+
+  $("charCount").textContent=
+   message.value.length;
+
+  updatePreview();
+
+ }catch(err){
+
+  console.warn(
+   "Draft load failed:",
+   err
+  );
+ }
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+$("resetBtn")
+ .addEventListener(
+  "click",
+  ()=>{
+
+   if(
+    !confirm(
+     "Form reset করবেন?"
+    )
+   ){
+
+    return;
+   }
+
+   externalId.value="";
+
+   template.value="";
+
+   currentTemplate="";
+
+   templateFields.innerHTML="";
+
+   templateFields
+    .classList
+    .remove("show");
+
+   message.value="";
+
+   icon.value=
+    DEFAULT_ICON;
+
+   image.value="";
+
+   url.value=
+    DEFAULT_URL;
+
+   document.querySelector(
+    'input[name="target"][value="all"]'
+   ).checked=true;
+
+   specificBox.style.display=
+    "none";
+
+   sendMode="now";
+
+   document
+    .querySelectorAll(".mode")
+    .forEach(x=>{
+
+     x.classList.toggle(
+      "active",
+      x.dataset.mode==="now"
+     );
+
+    });
+
+   $("scheduleBox")
+    .classList
+    .remove("show");
+
+   $("charCount").textContent=
+    "0";
+
+   clearStatus(
+    userStatus
+   );
+
+   clearStatus(
+    result
+   );
+
+   setDefaultSchedule();
+
+   updatePreview();
+
+   localStorage.removeItem(
+    DRAFT_KEY
+   );
+
+   popup(
+    "🧹 Form reset হয়েছে.",
+    "success"
+   );
+  }
+);
+
+
+/* =========================================================
+   AUTO DRAFT
+========================================================= */
+
+[
+ externalId,
+ icon,
+ image,
+ url
+].forEach(
+ el=>{
+
+  el.addEventListener(
+   "input",
+   saveDraft
+  );
+
+ }
+);
+
+
+/* =========================================================
+   ENTER UID
+========================================================= */
+
+externalId.addEventListener(
+ "keydown",
+ e=>{
+
+  if(e.key==="Enter"){
+
+   e.preventDefault();
+
+   $("checkUserBtn").click();
+  }
+ });
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+setDefaultSchedule();
+
+renderTemplateList();
+
+loadDraft();
+
+/*
+ History intentionally hidden on page load.
+ It only opens after clicking VIEW HISTORY.
+*/
+
+historyPanel.classList.remove(
+ "show"
+);
+
+historyToggleBtn.textContent=
+ "📋 VIEW HISTORY";
+
+updateStats();
+
+updatePreview();
+
+$("charCount").textContent=
+ message.value.length;
+
+window.addEventListener(
+ "beforeunload",
+ saveDraft
+);
+
+</script>
+
+</body>
+</html>
