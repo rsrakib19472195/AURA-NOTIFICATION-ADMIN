@@ -478,8 +478,54 @@
             <input
                 id="title"
                 type="text"
-                placeholder="Enter notification title"
+                value="AURA ARMAN TOUR"
+                readonly
                 maxlength="150"
+                aria-readonly="true"
+            >
+
+        </div>
+
+
+        <div class="group">
+
+            <label>
+                Message Template
+            </label>
+
+            <select id="messageTemplate" style="
+                width:100%;
+                border:1px solid #334155;
+                background:#020617;
+                color:white;
+                border-radius:14px;
+                padding:13px;
+                outline:none;
+                font-size:14px;
+            ">
+                <option value="">— মেসেজ নির্বাচন করুন —</option>
+                <option value="deposit_approve">ডিপোজিট অনুমোদন</option>
+                <option value="deposit_reject">ডিপোজিট বাতিল</option>
+                <option value="withdraw_approve">উইথড্র অনুমোদন</option>
+                <option value="withdraw_reject">উইথড্র বাতিল</option>
+            </select>
+
+        </div>
+
+
+        <div class="group" id="amountGroup" style="display:none;">
+
+            <label>
+                Amount (৳)
+            </label>
+
+            <input
+                id="amount"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="যেমন: 500"
+                inputmode="decimal"
             >
 
         </div>
@@ -869,6 +915,68 @@ clearUserBtn.addEventListener(
 
 
 /* ============================================================
+   MESSAGE TEMPLATES
+============================================================ */
+
+const messageTemplate =
+    document.getElementById("messageTemplate");
+
+const amountGroup =
+    document.getElementById("amountGroup");
+
+const amountInput =
+    document.getElementById("amount");
+
+const messageInput =
+    document.getElementById("message");
+
+const messageTemplates = {
+    deposit_approve: amount =>
+        `✅ আপনার ৳${amount} ডিপোজিট সফলভাবে অনুমোদন করা হয়েছে। ধন্যবাদ AURA ARMAN TOUR-এর সাথে থাকার জন্য।`,
+
+    deposit_reject: amount =>
+        `❌ আপনার ৳${amount} ডিপোজিটটি অনুমোদন করা যায়নি। অনুগ্রহ করে তথ্য যাচাই করে আবার চেষ্টা করুন।`,
+
+    withdraw_approve: amount =>
+        `✅ আপনার ৳${amount} উইথড্র সফলভাবে অনুমোদন করা হয়েছে। অনুগ্রহ করে আপনার পেমেন্ট অ্যাকাউন্ট চেক করুন।`,
+
+    withdraw_reject: amount =>
+        `❌ আপনার ৳${amount} উইথড্র অনুরোধটি অনুমোদন করা যায়নি। প্রয়োজনে সঠিক তথ্য দিয়ে আবার চেষ্টা করুন।`
+};
+
+function updateTemplateMessage() {
+    const type = messageTemplate.value;
+
+    if (!type) {
+        amountGroup.style.display = "none";
+        amountInput.value = "";
+        messageInput.value = "";
+        return;
+    }
+
+    amountGroup.style.display = "block";
+
+    const amount = amountInput.value.trim();
+
+    if (amount) {
+        messageInput.value = messageTemplates[type](amount);
+    } else {
+        messageInput.value = "";
+    }
+}
+
+messageTemplate.addEventListener(
+    "change",
+    updateTemplateMessage
+);
+
+amountInput.addEventListener(
+    "input",
+    updateTemplateMessage
+);
+
+
+/* ============================================================
    SEND NOTIFICATION
 ============================================================ */
 
@@ -902,10 +1010,7 @@ sendBtn.addEventListener(
 
 
         const title =
-            document
-                .getElementById("title")
-                .value
-                .trim();
+            "AURA ARMAN TOUR";
 
 
         const message =
@@ -913,6 +1018,9 @@ sendBtn.addEventListener(
                 .getElementById("message")
                 .value
                 .trim();
+
+        const amount =
+            amountInput.value.trim();
 
 
         const icon =
@@ -944,6 +1052,21 @@ sendBtn.addEventListener(
 
             showResult(
                 "Please enter notification title.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        const selectedTemplate =
+            messageTemplate.value;
+
+        if (selectedTemplate && !amount) {
+
+            showResult(
+                "দয়া করে Amount লিখুন।",
                 false
             );
 
