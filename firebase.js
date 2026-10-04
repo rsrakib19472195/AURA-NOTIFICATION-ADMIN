@@ -55,7 +55,7 @@ export const DEFAULT_PROFILE_PHOTO =
 // ============================================================
 
 export const ADMIN_EMAIL =
-    "teamgamechangerofficial@gmail.com";
+    "auraskill19@gmail.com";
 
 
 // ============================================================
