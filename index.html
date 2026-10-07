@@ -667,34 +667,19 @@
             // Completed tournaments are removed from the Admin panel immediately.
             // The Firestore tournament document is kept until deleteAfter so the user-facing
             // Complete section can still show it for 1 hour. My Matches history is permanent.
-            const adminVisibleTournaments = allTournaments
-                .filter(t => String(t.status || '').toLowerCase() !== 'completed')
-                .sort((a, b) => {
-                    const aTime = Number(a.startTime || 0) || (a.time ? Date.parse(a.time) : 0);
-                    const bTime = Number(b.startTime || 0) || (b.time ? Date.parse(b.time) : 0);
-                    if (aTime && bTime) return aTime - bTime;
-                    if (aTime) return -1;
-                    if (bTime) return 1;
-                    return 0;
-                });
+            const adminVisibleTournaments = allTournaments.filter(t => String(t.status || '').toLowerCase() !== 'completed');
             if(adminVisibleTournaments.length === 0) {
                 list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো active tournament নেই।</p>`;
                 return;
             }
-            adminVisibleTournaments.forEach((t, index) => {
+            adminVisibleTournaments.forEach(t => {
                 const parentGroup = allGroups.find(g => g.id === t.groupId);
-                const tournamentTime = Number(t.startTime || 0) || (t.time ? Date.parse(t.time) : 0);
-                const timeText = tournamentTime ? new Date(tournamentTime).toLocaleString('en-BD', { dateStyle: 'medium', timeStyle: 'short' }) : (t.time || 'সময় সেট করা হয়নি');
                 list.innerHTML += `
                     <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
                         <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="bg-blue-600/20 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-lg text-[10px] font-black">#${index + 1}</span>
-                                <h4 class="font-bold text-white text-sm">${t.name}</h4>
-                            </div>
-                            <span class="text-[10px] text-emerald-400 block"><i class="fa-regular fa-clock mr-1"></i>Time: <b>${timeText}</b></span>
+                            <h4 class="font-bold text-white text-sm">${t.name}</h4>
                             <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Status: <b>${t.status || 'upcoming'}</b></span>
-                            <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Slot: <b>${t.slotSize || 1}</b> | Map: ${t.map || 'Bermuda'} | Fee: ৳${t.entryFee || 0}</span>
+                            <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Players/Slot Size: <b>${t.slotSize || 1}</b> | Map: ${t.map || 'Bermuda'} | Fee: ৳${t.entryFee || 0}</span>
                         </div>
                         <div class="flex space-x-2 items-center flex-wrap gap-y-1">
                             <button onclick="openRegistrationsModal('${t.id}', '${t.name}')" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="View Registrations"><i class="fa-solid fa-users mr-1"></i> Regs</button>
@@ -1417,9 +1402,11 @@
                     const status = String(r.status || 'pending').toLowerCase();
                     if(status !== 'pending') throw new Error(`এই request ইতিমধ্যে ${r.status || 'processed'} হয়েছে।`);
                     const now = Date.now();
-                    transaction.update(ref,{status:'approved',reviewedAt:now,approvedAt:now});
+                    const historyRef = doc(db,'withdrawHistory',id);
+                    transaction.set(historyRef,{...r,status:'approved',reviewedAt:now,approvedAt:now,historyAt:now,originalWithdrawId:id});
+                    transaction.delete(ref);
                 });
-                showToast('Withdraw approved হয়েছে।');
+                showToast('Withdraw approved হয়েছে এবং history-তে চলে গেছে।');
                 await loadAllAdminData();
                 renderWithdrawsList();
             }catch(e){showToast(e.message||'Approve failed','error');}
@@ -1446,9 +1433,11 @@
                     const currentBalance = Number(userSnap.data().balance || 0);
                     transaction.update(userRef,{balance:currentBalance+amount});
                     const now = Date.now();
-                    transaction.update(ref,{status:'rejected',reviewedAt:now,rejectedAt:now,reason,reviewReason:reason});
+                    const historyRef = doc(db,'withdrawHistory',id);
+                    transaction.set(historyRef,{...r,status:'rejected',reviewedAt:now,rejectedAt:now,reason,reviewReason:reason,historyAt:now,originalWithdrawId:id});
+                    transaction.delete(ref);
                 });
-                showToast('Withdraw reject হয়েছে এবং refund করা হয়েছে।');
+                showToast('Withdraw reject হয়েছে, refund করা হয়েছে এবং history-তে চলে গেছে।');
                 await loadAllAdminData();
                 renderWithdrawsList();
             }catch(e){showToast(e.message||'Reject failed','error');}
@@ -1478,12 +1467,19 @@
                         });
                     }
                 } else {
-                    if(allWithdraws.length === 0) html = '<p class="text-center text-slate-400 py-4">কোনো উইথড্র হিস্টরি নেই।</p>';
+                    const historySnap = await getDocs(collection(db,'withdrawHistory'));
+                    const historyRows = [];
+                    historySnap.forEach(d => historyRows.push({id:d.id,...d.data()}));
+                    historyRows.sort((a,b)=>Number(b.historyAt||b.reviewedAt||b.timestamp||b.createdAt||0)-Number(a.historyAt||a.reviewedAt||a.timestamp||a.createdAt||0));
+                    if(historyRows.length === 0) html = '<p class="text-center text-slate-400 py-4">কোনো উইথড্র হিস্টরি নেই।</p>';
                     else {
-                        allWithdraws.forEach(w => {
+                        historyRows.forEach(w => {
+                            const status=String(w.status||'processed').toLowerCase();
+                            const statusClass=status==='approved'?'text-emerald-400':'text-rose-400';
                             html += `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
-                                <div class="flex justify-between font-bold text-white"><span>${w.userEmail || w.userId || 'User'} (${w.method || 'bKash'})</span><span class="text-amber-400">৳${w.amount}</span></div>
-                                <div class="text-[10px] text-slate-400 mt-1">Number: ${w.number || 'N/A'} | Status: <b>${w.status || 'Pending'}</b></div>
+                                <div class="flex justify-between font-bold text-white"><span>${w.userEmail || w.userId || 'User'} (${w.method || 'bKash'})</span><span class="text-amber-400">৳${w.amount||0}</span></div>
+                                <div class="text-[10px] text-slate-400 mt-1">Number: ${w.number || 'N/A'} | Status: <b class="${statusClass}">${w.status || 'Processed'}</b></div>
+                                <div class="text-[10px] text-slate-500 mt-1">${w.historyAt ? new Date(w.historyAt).toLocaleString() : ''}${w.reason ? ' | Reason: '+w.reason : ''}</div>
                             </div>`;
                         });
                     }
@@ -1843,7 +1839,7 @@
      reason: string
 ========================================================= -->
 <style>
-#siteMaintenanceAdminControl{position:fixed;right:14px;bottom:14px;z-index:999998;width:min(390px,calc(100vw - 28px));font-family:Arial,sans-serif}
+#siteMaintenanceAdminControl{display:none!important;position:fixed;right:14px;bottom:14px;z-index:999998;width:min(390px,calc(100vw - 28px));font-family:Arial,sans-serif}
 #siteMaintenanceAdminControl .sm-card{background:rgba(8,13,24,.97);border:1px solid rgba(59,130,246,.35);border-radius:18px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);backdrop-filter:blur(14px)}
 #siteMaintenanceAdminControl .sm-title{font-size:13px;font-weight:900;color:#fff;margin-bottom:5px}
 #siteMaintenanceAdminControl .sm-status{font-size:11px;font-weight:800;margin-bottom:10px}
@@ -1853,7 +1849,7 @@
 #siteMaintenanceAdminControl button{flex:1;border:0;border-radius:11px;padding:10px;font-size:11px;font-weight:900;cursor:pointer}
 #smOnBtn{background:#dc2626;color:#fff} #smOffBtn{background:#16a34a;color:#fff}
 #smReloadBtn{background:#1e293b;color:#cbd5e1}
-#smMaintenanceLock{display:none;position:fixed;inset:0;z-index:999997;background:rgba(2,6,23,.94);align-items:center;justify-content:center;padding:20px;text-align:center;color:#fff}
+#smMaintenanceLock{display:none!important;position:fixed;inset:0;z-index:999997;background:rgba(2,6,23,.94);align-items:center;justify-content:center;padding:20px;text-align:center;color:#fff}
 #smMaintenanceLock .sm-lock-card{max-width:380px;background:#0f172a;border:1px solid rgba(245,158,11,.35);border-radius:22px;padding:28px;box-shadow:0 25px 80px rgba(0,0,0,.6)}
 </style>
 <div id="siteMaintenanceAdminControl">
@@ -1921,12 +1917,15 @@ document.getElementById('smReloadBtn').addEventListener('click',smLoad);
 </script>
 
 
-<script id="maintenance-modal-controller">
+<script type="module" id="maintenance-modal-controller">
+import { db } from "./firebase.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 (function(){
   const modal = document.getElementById("maintenanceModal");
   const openBtn = document.getElementById("openMaintenanceBtn");
   const closeBtn = document.getElementById("closeMaintenanceBtn");
-  const reasonInput = document.getElementById("maintenanceReasonInput");
+  const reasonInput = document.getElementById("maintenanceMessageInput");
   const onBtn = document.getElementById("maintenanceOnBtn");
   const offBtn = document.getElementById("maintenanceOffBtn");
   const statusEl = document.getElementById("maintenanceStatus");
@@ -1934,34 +1933,21 @@ document.getElementById('smReloadBtn').addEventListener('click',smLoad);
   if(!modal || !openBtn) return;
 
   function openModal(){
-    modal.classList.add("show");
+    modal.style.display = "flex";
     modal.setAttribute("aria-hidden","false");
+    getMaintenance();
   }
   function closeModal(){
-    modal.classList.remove("show");
+    modal.style.display = "none";
     modal.setAttribute("aria-hidden","true");
   }
 
-  openBtn.addEventListener("click", openModal);
-  closeBtn?.addEventListener("click", closeModal);
-  modal.addEventListener("click", e => {
-    if(e.target === modal) closeModal();
-  });
-  document.addEventListener("keydown", e => {
-    if(e.key === "Escape") closeModal();
-  });
-
-  // Works with the existing Firebase db variable used by the admin file.
   async function getMaintenance(){
     try{
-      if(typeof db === "undefined"){
-        statusEl.textContent = "Firebase database পাওয়া যায়নি।";
-        return;
-      }
       const snap = await getDoc(doc(db, "settings", "siteMaintenance"));
       const data = snap.exists() ? (snap.data() || {}) : {};
+      reasonInput.value = data.reason || "";
       if(data.enabled === true){
-        reasonInput.value = data.reason || "";
         statusEl.innerHTML = '<span style="color:#fbbf24;font-weight:800">● MAINTENANCE ON</span>';
       }else{
         statusEl.innerHTML = '<span style="color:#34d399;font-weight:800">● MAINTENANCE OFF</span>';
@@ -1972,20 +1958,18 @@ document.getElementById('smReloadBtn').addEventListener('click',smLoad);
     }
   }
 
+  openBtn.addEventListener("click", openModal);
+  closeBtn?.addEventListener("click", closeModal);
+  modal.addEventListener("click", e => { if(e.target === modal) closeModal(); });
+  document.addEventListener("keydown", e => { if(e.key === "Escape") closeModal(); });
+
   onBtn?.addEventListener("click", async ()=>{
-    const reason = reasonInput.value.trim();
-    if(!reason){
-      alert("Maintenance reason দিন।");
-      reasonInput.focus();
-      return;
-    }
+    const reason = reasonInput.value.trim() || "সাইটটি বর্তমানে maintenance-এর মধ্যে আছে।";
     try{
       onBtn.disabled = true;
       onBtn.textContent = "TURNING ON...";
       await setDoc(doc(db, "settings", "siteMaintenance"), {
-        enabled:true,
-        reason:reason,
-        updatedAt:Date.now()
+        enabled:true, reason, updatedAt:Date.now()
       }, {merge:true});
       statusEl.innerHTML = '<span style="color:#fbbf24;font-weight:800">● MAINTENANCE ON</span>';
       alert("Maintenance Mode ON হয়েছে।");
@@ -1995,7 +1979,7 @@ document.getElementById('smReloadBtn').addEventListener('click',smLoad);
       alert("Maintenance ON failed: " + e.message);
     }finally{
       onBtn.disabled = false;
-      onBtn.textContent = "TURN ON";
+      onBtn.textContent = "MAINTENANCE ON";
     }
   });
 
@@ -2004,9 +1988,7 @@ document.getElementById('smReloadBtn').addEventListener('click',smLoad);
       offBtn.disabled = true;
       offBtn.textContent = "TURNING OFF...";
       await setDoc(doc(db, "settings", "siteMaintenance"), {
-        enabled:false,
-        reason:"",
-        updatedAt:Date.now()
+        enabled:false, reason:"", updatedAt:Date.now()
       }, {merge:true});
       statusEl.innerHTML = '<span style="color:#34d399;font-weight:800">● MAINTENANCE OFF</span>';
       alert("Maintenance Mode OFF হয়েছে।");
@@ -2016,14 +1998,10 @@ document.getElementById('smReloadBtn').addEventListener('click',smLoad);
       alert("Maintenance OFF failed: " + e.message);
     }finally{
       offBtn.disabled = false;
-      offBtn.textContent = "TURN OFF";
+      offBtn.textContent = "OFF";
     }
   });
-
-  // Initial status check only when modal is opened.
-  openBtn.addEventListener("click", getMaintenance);
 })();
-
-    </script>
+</script>
 </body>
 </html>
