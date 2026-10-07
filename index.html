@@ -273,6 +273,7 @@
         let allBanners = [];
         let allDeposits = [];
         let allWithdraws = [];
+        let allWithdrawHistory = [];
         let currentDepGateway = 'bkash';
         let currentWdGateway = 'bkash';
         let activeRuleCategory = 'br_headshot';
@@ -297,14 +298,15 @@
         window.loadAllAdminData = async function() {
             try {
                 await cleanupExpiredCompletedTournaments();
-                const [secSnap, groupSnap, tourSnap, bannerSnap, depSnap, depositRequestSnap, wdSnap] = await Promise.all([
+                const [secSnap, groupSnap, tourSnap, bannerSnap, depSnap, depositRequestSnap, wdSnap, wdHistorySnap] = await Promise.all([
                     getDocs(collection(db, "sections")),
                     getDocs(collection(db, "groups")),
                     getDocs(collection(db, "tournaments")),
                     getDocs(collection(db, "banners")),
                     getDocs(collection(db, "transactions")),
                     getDocs(collection(db, "deposits")),
-                    getDocs(collection(db, "withdraws"))
+                    getDocs(collection(db, "withdraws")),
+                    getDocs(collection(db, "withdrawHistory"))
                 ]);
 
                 allSections = [];
@@ -355,12 +357,18 @@
                 allWithdraws = [];
                 let pendingWdCount = 0;
                 wdSnap.forEach(d => {
-                    const data = d.data();
+                    const data = d.data() || {};
                     allWithdraws.push({ id: d.id, ...data });
                     if(String(data.status || 'pending').toLowerCase() === 'pending') {
                         pendingWdCount++;
                     }
                 });
+
+                allWithdrawHistory = [];
+                wdHistorySnap.forEach(d => {
+                    allWithdrawHistory.push({ id: d.id, ...d.data() });
+                });
+                allWithdrawHistory.sort((a,b) => Number(b.reviewedAt || b.createdAt || b.timestamp || 0) - Number(a.reviewedAt || a.createdAt || a.timestamp || 0));
 
                 document.getElementById('live-pending-deposits').innerText = pendingDepCount;
                 document.getElementById('live-pending-withdraws').innerText = pendingWdCount;
@@ -1392,7 +1400,7 @@
         };
 
         window.adminApproveWithdraw = async function(id){
-            if(!confirm('এই withdraw request-টি approved হিসেবে mark করবেন?')) return;
+            if(!confirm('এই withdraw request-টি approve করে history-তে পাঠাবেন?')) return;
             try{
                 const ref = doc(db,'withdraws',id);
                 await runTransaction(db, async (transaction) => {
@@ -1402,11 +1410,19 @@
                     const status = String(r.status || 'pending').toLowerCase();
                     if(status !== 'pending') throw new Error(`এই request ইতিমধ্যে ${r.status || 'processed'} হয়েছে।`);
                     const now = Date.now();
-                    const historyRef = doc(db,'withdrawHistory',id);
-                    transaction.set(historyRef,{...r,status:'approved',reviewedAt:now,approvedAt:now,historyAt:now,originalWithdrawId:id});
+                    const historyRef = doc(db,'withdrawHistory',`${id}_approved_${now}`);
+                    transaction.set(historyRef,{
+                        ...r,
+                        originalWithdrawId:id,
+                        status:'approved',
+                        reviewedAt:now,
+                        approvedAt:now,
+                        historyType:'withdraw',
+                        historyCreatedAt:now
+                    });
                     transaction.delete(ref);
                 });
-                showToast('Withdraw approved হয়েছে এবং history-তে চলে গেছে।');
+                showToast('Withdraw approved এবং history-তে চলে গেছে।');
                 await loadAllAdminData();
                 renderWithdrawsList();
             }catch(e){showToast(e.message||'Approve failed','error');}
@@ -1431,13 +1447,24 @@
                     const userSnap = await transaction.get(userRef);
                     if(!userSnap.exists()) throw new Error('User পাওয়া যায়নি।');
                     const currentBalance = Number(userSnap.data().balance || 0);
-                    transaction.update(userRef,{balance:currentBalance+amount});
                     const now = Date.now();
-                    const historyRef = doc(db,'withdrawHistory',id);
-                    transaction.set(historyRef,{...r,status:'rejected',reviewedAt:now,rejectedAt:now,reason,reviewReason:reason,historyAt:now,originalWithdrawId:id});
+                    const historyRef = doc(db,'withdrawHistory',`${id}_rejected_${now}`);
+                    transaction.update(userRef,{balance:currentBalance+amount});
+                    transaction.set(historyRef,{
+                        ...r,
+                        originalWithdrawId:id,
+                        status:'rejected',
+                        reviewedAt:now,
+                        rejectedAt:now,
+                        reason,
+                        reviewReason:reason,
+                        historyType:'withdraw',
+                        historyCreatedAt:now,
+                        refundedAmount:amount
+                    });
                     transaction.delete(ref);
                 });
-                showToast('Withdraw reject হয়েছে, refund করা হয়েছে এবং history-তে চলে গেছে।');
+                showToast('Withdraw reject, refund এবং history save হয়েছে।');
                 await loadAllAdminData();
                 renderWithdrawsList();
             }catch(e){showToast(e.message||'Reject failed','error');}
@@ -1467,19 +1494,18 @@
                         });
                     }
                 } else {
-                    const historySnap = await getDocs(collection(db,'withdrawHistory'));
-                    const historyRows = [];
-                    historySnap.forEach(d => historyRows.push({id:d.id,...d.data()}));
-                    historyRows.sort((a,b)=>Number(b.historyAt||b.reviewedAt||b.timestamp||b.createdAt||0)-Number(a.historyAt||a.reviewedAt||a.timestamp||a.createdAt||0));
+                    const historyRows = Array.isArray(allWithdrawHistory) ? allWithdrawHistory : [];
                     if(historyRows.length === 0) html = '<p class="text-center text-slate-400 py-4">কোনো উইথড্র হিস্টরি নেই।</p>';
                     else {
                         historyRows.forEach(w => {
-                            const status=String(w.status||'processed').toLowerCase();
-                            const statusClass=status==='approved'?'text-emerald-400':'text-rose-400';
+                            const status = String(w.status || 'processed').toLowerCase();
+                            const statusClass = status === 'approved' ? 'text-emerald-400' : 'text-rose-400';
+                            const when = w.reviewedAt || w.historyCreatedAt || w.createdAt || w.timestamp;
                             html += `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
-                                <div class="flex justify-between font-bold text-white"><span>${w.userEmail || w.userId || 'User'} (${w.method || 'bKash'})</span><span class="text-amber-400">৳${w.amount||0}</span></div>
-                                <div class="text-[10px] text-slate-400 mt-1">Number: ${w.number || 'N/A'} | Status: <b class="${statusClass}">${w.status || 'Processed'}</b></div>
-                                <div class="text-[10px] text-slate-500 mt-1">${w.historyAt ? new Date(w.historyAt).toLocaleString() : ''}${w.reason ? ' | Reason: '+w.reason : ''}</div>
+                                <div class="flex justify-between font-bold text-white gap-2"><span>${w.userEmail || w.email || w.username || w.userId || w.uid || 'User'} (${w.method || 'bKash'})</span><span class="text-amber-400">৳${Number(w.amount || 0)}</span></div>
+                                <div class="text-[10px] text-slate-400 mt-1">Number: ${w.number || w.accountNumber || 'N/A'} | Status: <b class="${statusClass}">${status.toUpperCase()}</b></div>
+                                ${w.reason ? `<div class="text-[10px] text-rose-300 mt-1">Reason: ${w.reason}</div>` : ''}
+                                <div class="text-[10px] text-slate-500 mt-1">${when ? new Date(Number(when)).toLocaleString() : 'Time unavailable'}</div>
                             </div>`;
                         });
                     }
