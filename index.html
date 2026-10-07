@@ -27,18 +27,6 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
     </style>
-
-    <style id="maintenance-fullscreen-style">
-      #maintenanceModal{display:none;position:fixed;inset:0;z-index:99999;width:100vw;height:100vh;min-height:100dvh;align-items:stretch;justify-content:stretch;background:rgba(2,6,23,.96);backdrop-filter:blur(14px);padding:0;}
-      #maintenanceModal.maintenance-open{display:flex;}
-      #maintenanceModal .maintenance-fullscreen-card{width:100%;height:100%;min-height:100dvh;border:0;border-radius:0;background:linear-gradient(180deg,#0b1220 0%,#050811 100%);display:flex;flex-direction:column;overflow:hidden;box-shadow:none;}
-      #maintenanceModal .maintenance-head{padding:18px 20px;border-bottom:1px solid rgba(245,158,11,.18);display:flex;align-items:center;justify-content:space-between;gap:12px;}
-      #maintenanceModal .maintenance-content{width:min(680px,calc(100% - 32px));margin:auto;padding:24px 0 40px;}
-      #maintenanceModal .maintenance-close{width:42px;height:42px;border-radius:12px;background:#111827;border:1px solid #273449;color:#94a3b8;font-size:24px;line-height:1;cursor:pointer;}
-      #maintenanceModal .maintenance-close:hover{color:#fff;background:#1e293b;}
-      #maintenanceModal textarea{min-height:180px;resize:vertical;}
-      @media(max-width:640px){#maintenanceModal .maintenance-content{width:calc(100% - 24px);padding-top:18px;}#maintenanceModal .maintenance-head{padding:14px 12px;}}
-    </style>
 </head>
 <body class="min-h-screen flex flex-col pb-20">
 
@@ -209,39 +197,16 @@
 
     </main>
 
-    <div id="maintenanceModal" aria-hidden="true">
-      <div class="maintenance-fullscreen-card">
-        <div class="maintenance-head">
-          <div>
-            <div class="text-[11px] font-black tracking-[0.18em] text-amber-400 uppercase">Site Control</div>
-            <h3 class="font-black text-white text-lg mt-1">Maintenance Mode</h3>
-          </div>
-          <button id="closeMaintenanceBtn" type="button" class="maintenance-close" aria-label="Close">×</button>
-        </div>
-        <div class="maintenance-content">
-          <div class="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 mb-4">
-            <div class="flex items-center gap-3">
-              <div class="w-11 h-11 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
-                <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
-              </div>
-              <div>
-                <p class="text-white font-bold">Maintenance Control</p>
-                <p class="text-[11px] text-slate-400">শুধু Maintenance button-এ click করলে এই full-screen control খুলবে।</p>
-              </div>
-            </div>
-          </div>
-          <label class="text-xs text-slate-400 block mb-2 font-bold">Maintenance Message</label>
-          <textarea id="maintenanceMessageInput" class="w-full bg-[#050811] border border-slate-800 rounded-2xl p-4 text-sm text-white outline-none focus:border-amber-500/50" rows="6" placeholder="Maintenance message..."></textarea>
-          <div id="maintenanceStatus" class="mt-3 text-xs text-slate-400">Status checking...</div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
-            <button id="maintenanceOnBtn" type="button" class="bg-amber-500 hover:bg-amber-400 text-black font-black py-3 rounded-xl transition">MAINTENANCE ON</button>
-            <button id="maintenanceOffBtn" type="button" class="bg-red-600 hover:bg-red-500 text-white font-black py-3 rounded-xl transition">OFF</button>
-          </div>
-        </div>
+    <div id="maintenanceModal" class="fixed inset-0 z-[99999] items-center justify-center bg-black/80 backdrop-blur-sm px-4" style="display:none;">
+      <div class="bg-[#0f172a] border border-amber-500/30 rounded-2xl p-5 max-w-md w-full shadow-2xl">
+        <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white">Maintenance Mode</h3><button id="closeMaintenanceBtn" class="text-slate-400 text-xl">×</button></div>
+        <textarea id="maintenanceMessageInput" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-xs text-white" rows="4" placeholder="Maintenance message..."></textarea>
+        <div id="maintenanceStatus" class="mt-3 text-xs text-slate-400">Status checking...</div>
+        <div class="flex gap-2 mt-3"><button id="maintenanceOnBtn" class="flex-1 bg-amber-500 text-black font-bold py-2.5 rounded-xl">MAINTENANCE ON</button><button id="maintenanceOffBtn" class="flex-1 bg-red-600 text-white font-bold py-2.5 rounded-xl">OFF</button></div>
       </div>
     </div>
 
-<div id="appUpdateModal" class="fixed inset-0 z-[99999] items-center justify-center bg-black/80 backdrop-blur-sm px-4" style="display:none;">
+    <div id="appUpdateModal" class="fixed inset-0 z-[99999] items-center justify-center bg-black/80 backdrop-blur-sm px-4" style="display:none;">
       <div class="bg-[#0f172a] border border-blue-500/30 rounded-2xl p-5 max-w-md w-full shadow-2xl">
         <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white">App Update</h3><button id="closeAppUpdateBtn" class="text-slate-400 text-xl">×</button></div>
         <textarea id="appUpdateMessageInput" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-3 text-xs text-white" rows="3" placeholder="Update message..."></textarea>
@@ -328,92 +293,6 @@
             container.appendChild(toast);
             setTimeout(() => { toast.remove(); }, 3000);
         }
-
-        // --- FULL-SCREEN MAINTENANCE CONTROL ---
-        (() => {
-            const modal = document.getElementById('maintenanceModal');
-            const openBtn = document.getElementById('openMaintenanceBtn');
-            const closeBtn = document.getElementById('closeMaintenanceBtn');
-            const messageInput = document.getElementById('maintenanceMessageInput');
-            const statusEl = document.getElementById('maintenanceStatus');
-            const onBtn = document.getElementById('maintenanceOnBtn');
-            const offBtn = document.getElementById('maintenanceOffBtn');
-
-            if (!modal || !openBtn) return;
-
-            const openModal = async () => {
-                modal.classList.add('maintenance-open');
-                modal.setAttribute('aria-hidden', 'false');
-                document.body.style.overflow = 'hidden';
-                await loadMaintenanceStatus();
-            };
-
-            const closeModal = () => {
-                modal.classList.remove('maintenance-open');
-                modal.setAttribute('aria-hidden', 'true');
-                document.body.style.overflow = '';
-            };
-
-            const loadMaintenanceStatus = async () => {
-                try {
-                    const snap = await getDoc(doc(db, 'settings', 'siteMaintenance'));
-                    const data = snap.exists() ? (snap.data() || {}) : {};
-                    messageInput.value = data.reason || '';
-                    statusEl.innerHTML = data.enabled === true
-                        ? '<span class="text-amber-400 font-bold">● MAINTENANCE ON</span>'
-                        : '<span class="text-emerald-400 font-bold">● MAINTENANCE OFF</span>';
-                } catch (e) {
-                    console.error('Maintenance status error:', e);
-                    statusEl.innerHTML = '<span class="text-rose-400">Status check failed</span>';
-                }
-            };
-
-            openBtn.addEventListener('click', openModal);
-            closeBtn?.addEventListener('click', closeModal);
-            modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-            document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('maintenance-open')) closeModal(); });
-
-            onBtn?.addEventListener('click', async () => {
-                const reason = String(messageInput.value || '').trim() || 'সাইটটি বর্তমানে maintenance-এর মধ্যে আছে।';
-                try {
-                    onBtn.disabled = true;
-                    onBtn.textContent = 'TURNING ON...';
-                    await setDoc(doc(db, 'settings', 'siteMaintenance'), {
-                        enabled: true,
-                        reason,
-                        updatedAt: Date.now()
-                    }, { merge: true });
-                    statusEl.innerHTML = '<span class="text-amber-400 font-bold">● MAINTENANCE ON</span>';
-                    showToast('Maintenance Mode ON হয়েছে!');
-                } catch (e) {
-                    console.error(e);
-                    showToast('Maintenance ON failed: ' + (e.message || e), 'error');
-                } finally {
-                    onBtn.disabled = false;
-                    onBtn.textContent = 'MAINTENANCE ON';
-                }
-            });
-
-            offBtn?.addEventListener('click', async () => {
-                try {
-                    offBtn.disabled = true;
-                    offBtn.textContent = 'TURNING OFF...';
-                    await setDoc(doc(db, 'settings', 'siteMaintenance'), {
-                        enabled: false,
-                        reason: '',
-                        updatedAt: Date.now()
-                    }, { merge: true });
-                    statusEl.innerHTML = '<span class="text-emerald-400 font-bold">● MAINTENANCE OFF</span>';
-                    showToast('Maintenance Mode OFF হয়েছে!');
-                } catch (e) {
-                    console.error(e);
-                    showToast('Maintenance OFF failed: ' + (e.message || e), 'error');
-                } finally {
-                    offBtn.disabled = false;
-                    offBtn.textContent = 'OFF';
-                }
-            });
-        })();
 
         window.loadAllAdminData = async function() {
             try {
@@ -788,19 +667,34 @@
             // Completed tournaments are removed from the Admin panel immediately.
             // The Firestore tournament document is kept until deleteAfter so the user-facing
             // Complete section can still show it for 1 hour. My Matches history is permanent.
-            const adminVisibleTournaments = allTournaments.filter(t => String(t.status || '').toLowerCase() !== 'completed');
+            const adminVisibleTournaments = allTournaments
+                .filter(t => String(t.status || '').toLowerCase() !== 'completed')
+                .sort((a, b) => {
+                    const aTime = Number(a.startTime || 0) || (a.time ? Date.parse(a.time) : 0);
+                    const bTime = Number(b.startTime || 0) || (b.time ? Date.parse(b.time) : 0);
+                    if (aTime && bTime) return aTime - bTime;
+                    if (aTime) return -1;
+                    if (bTime) return 1;
+                    return 0;
+                });
             if(adminVisibleTournaments.length === 0) {
                 list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো active tournament নেই।</p>`;
                 return;
             }
-            adminVisibleTournaments.forEach(t => {
+            adminVisibleTournaments.forEach((t, index) => {
                 const parentGroup = allGroups.find(g => g.id === t.groupId);
+                const tournamentTime = Number(t.startTime || 0) || (t.time ? Date.parse(t.time) : 0);
+                const timeText = tournamentTime ? new Date(tournamentTime).toLocaleString('en-BD', { dateStyle: 'medium', timeStyle: 'short' }) : (t.time || 'সময় সেট করা হয়নি');
                 list.innerHTML += `
                     <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
                         <div>
-                            <h4 class="font-bold text-white text-sm">${t.name}</h4>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-blue-600/20 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-lg text-[10px] font-black">#${index + 1}</span>
+                                <h4 class="font-bold text-white text-sm">${t.name}</h4>
+                            </div>
+                            <span class="text-[10px] text-emerald-400 block"><i class="fa-regular fa-clock mr-1"></i>Time: <b>${timeText}</b></span>
                             <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Status: <b>${t.status || 'upcoming'}</b></span>
-                            <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Players/Slot Size: <b>${t.slotSize || 1}</b> | Map: ${t.map || 'Bermuda'} | Fee: ৳${t.entryFee || 0}</span>
+                            <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Slot: <b>${t.slotSize || 1}</b> | Map: ${t.map || 'Bermuda'} | Fee: ৳${t.entryFee || 0}</span>
                         </div>
                         <div class="flex space-x-2 items-center flex-wrap gap-y-1">
                             <button onclick="openRegistrationsModal('${t.id}', '${t.name}')" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="View Registrations"><i class="fa-solid fa-users mr-1"></i> Regs</button>
@@ -1846,7 +1740,7 @@
                 const ref=doc(db,'giftCodes',code);
                 const old=await getDoc(ref);
                 if(old.exists())return alert('এই gift code আগে থেকেই আছে। অন্য code দিন।');
-                await setDoc(ref,{code,amount,maxUses,usedCount:0,claimedUsers:[],active:true,createdAt:Date.now(),createdBy:auth?.currentUser?.email||'admin'});
+                await setDoc(ref,{code,amount,maxUses,usedCount:0,active:true,createdAt:Date.now(),createdBy:auth?.currentUser?.email||'admin'});
                 alert(`Gift code ${code} তৈরি হয়েছে। সর্বোচ্চ ${maxUses} জন নিতে পারবে।`);
                 auraGiftsSupport();
             }catch(e){alert('Gift code create failed: '+(e.message||e));}
@@ -1948,6 +1842,188 @@
      enabled: boolean
      reason: string
 ========================================================= -->
+<style>
+#siteMaintenanceAdminControl{position:fixed;right:14px;bottom:14px;z-index:999998;width:min(390px,calc(100vw - 28px));font-family:Arial,sans-serif}
+#siteMaintenanceAdminControl .sm-card{background:rgba(8,13,24,.97);border:1px solid rgba(59,130,246,.35);border-radius:18px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);backdrop-filter:blur(14px)}
+#siteMaintenanceAdminControl .sm-title{font-size:13px;font-weight:900;color:#fff;margin-bottom:5px}
+#siteMaintenanceAdminControl .sm-status{font-size:11px;font-weight:800;margin-bottom:10px}
+#siteMaintenanceAdminControl textarea{width:100%;min-height:70px;resize:vertical;box-sizing:border-box;background:#0b1220;color:#fff;border:1px solid #26344d;border-radius:12px;padding:10px;outline:none;font-size:12px}
+#siteMaintenanceAdminControl textarea:focus{border-color:#3b82f6}
+#siteMaintenanceAdminControl .sm-row{display:flex;gap:8px;margin-top:9px}
+#siteMaintenanceAdminControl button{flex:1;border:0;border-radius:11px;padding:10px;font-size:11px;font-weight:900;cursor:pointer}
+#smOnBtn{background:#dc2626;color:#fff} #smOffBtn{background:#16a34a;color:#fff}
+#smReloadBtn{background:#1e293b;color:#cbd5e1}
+#smMaintenanceLock{display:none;position:fixed;inset:0;z-index:999997;background:rgba(2,6,23,.94);align-items:center;justify-content:center;padding:20px;text-align:center;color:#fff}
+#smMaintenanceLock .sm-lock-card{max-width:380px;background:#0f172a;border:1px solid rgba(245,158,11,.35);border-radius:22px;padding:28px;box-shadow:0 25px 80px rgba(0,0,0,.6)}
+</style>
+<div id="siteMaintenanceAdminControl">
+  <div class="sm-card">
+    <div class="sm-title">🛠 SITE MAINTENANCE</div>
+    <div id="smStatus" class="sm-status">Checking...</div>
+    <textarea id="smReason" placeholder="Maintenance reason লিখুন..."></textarea>
+    <div class="sm-row">
+      <button id="smOnBtn" type="button">MAINTENANCE ON</button>
+      <button id="smOffBtn" type="button">SITE OFF</button>
+      <button id="smReloadBtn" type="button">REFRESH</button>
+    </div>
+    <div style="font-size:9px;color:#64748b;margin-top:8px;line-height:1.45">ON করলে user login/index বন্ধ হবে। Maintenance ON থাকা অবস্থায় এই admin panel-এর normal কাজও locked থাকবে। OFF Firebase থেকে <b>settings/siteMaintenance.enabled=false</b> করে করতে পারবেন।</div>
+  </div>
+</div>
+<div id="smMaintenanceLock">
+  <div class="sm-lock-card">
+    <div style="font-size:40px;margin-bottom:12px">🛠️</div>
+    <h2 style="font-size:20px;font-weight:900;margin-bottom:8px">SITE MAINTENANCE ACTIVE</h2>
+    <p id="smLockReason" style="color:#94a3b8;font-size:13px;line-height:1.6"></p>
+    <p style="color:#fbbf24;font-size:11px;margin-top:15px">Admin actions are locked. Turn maintenance OFF from Firebase.</p>
+  </div>
+</div>
+<script type="module" id="site-maintenance-control-v1">
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+const SMDB=getFirestore();
+const smRef=doc(SMDB,'settings','siteMaintenance');
+const smStatus=document.getElementById('smStatus');
+const smReason=document.getElementById('smReason');
+const smLock=document.getElementById('smMaintenanceLock');
+const smLockReason=document.getElementById('smLockReason');
+const smPanel=document.getElementById('siteMaintenanceAdminControl');
+let smActive=false;
+function smApply(data={}){
+  smActive=data.enabled===true;
+  smStatus.textContent=smActive?'🔴 MAINTENANCE ON':'🟢 SITE ONLINE';
+  smStatus.style.color=smActive?'#f87171':'#34d399';
+  if(document.activeElement!==smReason) smReason.value=data.reason||'';
+  if(smActive){
+    smLockReason.textContent=data.reason||'সাইটটি বর্তমানে maintenance-এর মধ্যে আছে।';
+    smLock.style.display='flex';
+    // Lock the admin UI visually while maintenance is active.
+    document.documentElement.style.overflow='hidden';
+    smPanel.style.pointerEvents='none';
+    smPanel.style.opacity='.35';
+  }else{
+    smLock.style.display='none';
+    document.documentElement.style.overflow='';
+    smPanel.style.pointerEvents='auto';
+    smPanel.style.opacity='1';
+  }
+}
+async function smLoad(){try{const s=await getDoc(smRef);smApply(s.exists()?s.data():{});}catch(e){console.error('Maintenance admin load failed',e);smStatus.textContent='Permission / load error';smStatus.style.color='#f87171';}}
+smLoad();
+onSnapshot(smRef,s=>smApply(s.exists()?s.data():{}),e=>{console.error(e);smStatus.textContent='Permission denied';smStatus.style.color='#f87171';});
+document.getElementById('smOnBtn').addEventListener('click',async()=>{
+  if(smActive)return;
+  const reason=String(smReason.value||'').trim()||'সাইটটি বর্তমানে maintenance-এর মধ্যে আছে।';
+  try{await setDoc(smRef,{enabled:true,reason,updatedAt:Date.now()},{merge:true});}catch(e){alert('Maintenance ON failed: '+e.message);}
+});
+document.getElementById('smOffBtn').addEventListener('click',()=>{
+  alert('Maintenance ON থাকা অবস্থায় admin panel থেকে OFF করা যাবে না। Firebase Console → Firestore → settings/siteMaintenance → enabled = false করুন।');
+});
+document.getElementById('smReloadBtn').addEventListener('click',smLoad);
+</script>
 
+
+<script id="maintenance-modal-controller">
+(function(){
+  const modal = document.getElementById("maintenanceModal");
+  const openBtn = document.getElementById("openMaintenanceBtn");
+  const closeBtn = document.getElementById("closeMaintenanceBtn");
+  const reasonInput = document.getElementById("maintenanceReasonInput");
+  const onBtn = document.getElementById("maintenanceOnBtn");
+  const offBtn = document.getElementById("maintenanceOffBtn");
+  const statusEl = document.getElementById("maintenanceStatus");
+
+  if(!modal || !openBtn) return;
+
+  function openModal(){
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden","false");
+  }
+  function closeModal(){
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden","true");
+  }
+
+  openBtn.addEventListener("click", openModal);
+  closeBtn?.addEventListener("click", closeModal);
+  modal.addEventListener("click", e => {
+    if(e.target === modal) closeModal();
+  });
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape") closeModal();
+  });
+
+  // Works with the existing Firebase db variable used by the admin file.
+  async function getMaintenance(){
+    try{
+      if(typeof db === "undefined"){
+        statusEl.textContent = "Firebase database পাওয়া যায়নি।";
+        return;
+      }
+      const snap = await getDoc(doc(db, "settings", "siteMaintenance"));
+      const data = snap.exists() ? (snap.data() || {}) : {};
+      if(data.enabled === true){
+        reasonInput.value = data.reason || "";
+        statusEl.innerHTML = '<span style="color:#fbbf24;font-weight:800">● MAINTENANCE ON</span>';
+      }else{
+        statusEl.innerHTML = '<span style="color:#34d399;font-weight:800">● MAINTENANCE OFF</span>';
+      }
+    }catch(e){
+      console.error("Maintenance status error:", e);
+      statusEl.textContent = "Status check failed: " + e.message;
+    }
+  }
+
+  onBtn?.addEventListener("click", async ()=>{
+    const reason = reasonInput.value.trim();
+    if(!reason){
+      alert("Maintenance reason দিন।");
+      reasonInput.focus();
+      return;
+    }
+    try{
+      onBtn.disabled = true;
+      onBtn.textContent = "TURNING ON...";
+      await setDoc(doc(db, "settings", "siteMaintenance"), {
+        enabled:true,
+        reason:reason,
+        updatedAt:Date.now()
+      }, {merge:true});
+      statusEl.innerHTML = '<span style="color:#fbbf24;font-weight:800">● MAINTENANCE ON</span>';
+      alert("Maintenance Mode ON হয়েছে।");
+      closeModal();
+    }catch(e){
+      console.error(e);
+      alert("Maintenance ON failed: " + e.message);
+    }finally{
+      onBtn.disabled = false;
+      onBtn.textContent = "TURN ON";
+    }
+  });
+
+  offBtn?.addEventListener("click", async ()=>{
+    try{
+      offBtn.disabled = true;
+      offBtn.textContent = "TURNING OFF...";
+      await setDoc(doc(db, "settings", "siteMaintenance"), {
+        enabled:false,
+        reason:"",
+        updatedAt:Date.now()
+      }, {merge:true});
+      statusEl.innerHTML = '<span style="color:#34d399;font-weight:800">● MAINTENANCE OFF</span>';
+      alert("Maintenance Mode OFF হয়েছে।");
+      closeModal();
+    }catch(e){
+      console.error(e);
+      alert("Maintenance OFF failed: " + e.message);
+    }finally{
+      offBtn.disabled = false;
+      offBtn.textContent = "TURN OFF";
+    }
+  });
+
+  // Initial status check only when modal is opened.
+  openBtn.addEventListener("click", getMaintenance);
+})();
+
+    </script>
 </body>
 </html>
