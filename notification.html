@@ -1079,7 +1079,28 @@ SEND NOTIFICATION
  id="result"
  class="status"
 ></div>
+<div class="card">
+  <div class="section-title">
+    🔔 Automatic Transaction Notifications
+  </div>
 
+  <p style="font-size:12px;color:#94a3b8;line-height:1.7">
+    Firestore transactions collection-এ নতুন transaction তৈরি
+    হলে backend সংশ্লিষ্ট userId-তে amount, gateway এবং status
+    সহ push notification পাঠানোর চেষ্টা করবে।
+  </p>
+
+  <button
+    id="checkTransactionStatusBtn"
+    type="button"
+    class="btn-secondary"
+    style="width:100%;margin-top:12px"
+  >
+    CHECK AUTOMATION STATUS
+  </button>
+
+  <div id="transactionStatus" class="status"></div>
+</div>
 </div>
 
 
@@ -1188,6 +1209,8 @@ AURA ARMAN TOUR • Notification Management Center
 /* =========================================================
    CONFIG
 ========================================================= */
+const API_TRANSACTION_STATUS =
+  "/api/transactions/notification-status";
 
 const DEFAULT_ICON =
 "https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg";
@@ -3588,7 +3611,55 @@ externalId.addEventListener(
    $("checkUserBtn").click();
   }
  });
+/* =========================================================
+   TRANSACTION AUTOMATION STATUS
+========================================================= */
 
+const transactionStatusBtn =
+  $("checkTransactionStatusBtn");
+
+if (transactionStatusBtn) {
+  transactionStatusBtn.addEventListener("click", async () => {
+    const statusElement = $("transactionStatus");
+
+    transactionStatusBtn.disabled = true;
+    transactionStatusBtn.textContent = "CHECKING...";
+
+    try {
+      const response = await fetch(API_TRANSACTION_STATUS, {
+        method: "GET",
+        headers: {
+          Accept: "application/json"
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.error || "Automation status পাওয়া যায়নি।"
+        );
+      }
+
+      showStatus(
+        statusElement,
+        "✅ Backend response:\n" +
+          JSON.stringify(data, null, 2),
+        "success"
+      );
+    } catch (error) {
+      showStatus(
+        statusElement,
+        "❌ " + (error.message || "Request failed."),
+        "error"
+      );
+    } finally {
+      transactionStatusBtn.disabled = false;
+      transactionStatusBtn.textContent =
+        "CHECK AUTOMATION STATUS";
+    }
+  });
+}
 
 /* =========================================================
    INITIALIZE
