@@ -334,6 +334,9 @@
                     allTournaments.push(tData);
                 });
 
+                // Sort Tournaments by startTime (Upcoming / Live first according to time)
+                allTournaments.sort((a, b) => Number(a.startTime || 0) - Number(b.startTime || 0));
+
                 allBanners = [];
                 bannerSnap.forEach(d => allBanners.push({ id: d.id, ...d.data() }));
 
@@ -353,6 +356,9 @@
                         if(String(data.status || 'pending').toLowerCase() === 'pending') pendingDepCount++;
                     }
                 });
+
+                // Sort Deposits history by timestamp descending
+                allDeposits.sort((a, b) => Number(b.timestamp || b.createdAt || b.reviewedAt || 0) - Number(a.timestamp || a.createdAt || a.reviewedAt || 0));
 
                 allWithdraws = [];
                 let pendingWdCount = 0;
@@ -672,9 +678,6 @@
                 list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো টুর্নামেন্ট নেই।</p>`;
                 return;
             }
-            // Completed tournaments are removed from the Admin panel immediately.
-            // The Firestore tournament document is kept until deleteAfter so the user-facing
-            // Complete section can still show it for 1 hour. My Matches history is permanent.
             const adminVisibleTournaments = allTournaments.filter(t => String(t.status || '').toLowerCase() !== 'completed');
             if(adminVisibleTournaments.length === 0) {
                 list.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">কোনো active tournament নেই।</p>`;
@@ -682,12 +685,14 @@
             }
             adminVisibleTournaments.forEach(t => {
                 const parentGroup = allGroups.find(g => g.id === t.groupId);
+                const displayTime = t.time || (t.startTime ? new Date(Number(t.startTime)).toLocaleString() : 'Scheduled');
                 list.innerHTML += `
                     <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
                         <div>
                             <h4 class="font-bold text-white text-sm">${t.name}</h4>
                             <span class="text-[10px] text-amber-400 block">Group: ${parentGroup ? parentGroup.name : 'Unknown'} | Status: <b>${t.status || 'upcoming'}</b></span>
-                            <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Players/Slot Size: <b>${t.slotSize || 1}</b> | Map: ${t.map || 'Bermuda'} | Fee: ৳${t.entryFee || 0}</span>
+                            <span class="text-[10px] text-blue-400 block">Type: ${t.matchType || t.type || 'Solo'} | Fee: ৳${t.entryFee || 0} | Map: ${t.map || 'Bermuda'}</span>
+                            <span class="text-[10px] text-emerald-400 block mt-0.5"><i class="fa-regular fa-clock mr-1"></i> Start Time: <b>${displayTime}</b></span>
                         </div>
                         <div class="flex space-x-2 items-center flex-wrap gap-y-1">
                             <button onclick="openRegistrationsModal('${t.id}', '${t.name}')" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-[11px] font-bold" title="View Registrations"><i class="fa-solid fa-users mr-1"></i> Regs</button>
@@ -702,7 +707,6 @@
             });
         }
 
-        // --- TOURNAMENT COMPLETE ACTION ---
         window.completeTournamentAction = async function(tournamentId) {
             if(!confirm('এই টুর্নামেন্টটি কি কমপ্লিট করে দিতে চান? Complete হলে 1 ঘণ্টা পর tournament document auto delete হবে, কিন্তু My Matches history থেকে যাবে।')) return;
             try {
@@ -1069,10 +1073,8 @@
                         
                         let payout = 0;
                         if(r.winner) {
-                            // Duo/Squad er khetre prize * slotCount + (kills * perKill)
                             payout = (r.prize * r.slotCount) + (r.kills * perKill);
                         } else if(r.killOnly) {
-                            // Sudu kill er prize
                             payout = r.kills * perKill;
                         }
 
@@ -1084,7 +1086,7 @@
 
                         await runTransaction(db, async(tx) => {
                             const payoutSnap = await tx.get(payoutRef);
-                            if(payoutSnap.exists()) return; // ekbar e payout jeno hoy
+                            if(payoutSnap.exists()) return;
                             const userSnap = await tx.get(userRef);
                             if(!userSnap.exists()) throw new Error(`User পাওয়া যায়নি: ${r.userName || r.userId}`);
                             const bal = Number(userSnap.data().balance || 0);
@@ -1321,8 +1323,6 @@
                 });
 
                 showToast('ডিপোজিট অ্যাপ্রুভ হয়েছে এবং টাকা যোগ হয়েছে!');
-                // Load referral rewards only after the admin panel itself has initialized.
-                // This prevents a missing referral.js file from breaking every admin button.
                 try {
                     const approvedUid = userId || (sourceSnap.data() || {}).userId || (sourceSnap.data() || {}).uid || '';
                     if (approvedUid) {
@@ -1487,9 +1487,22 @@
                     if(allDeposits.length === 0) html = '<p class="text-center text-slate-400 py-4">কোনো ডিপোজিট হিস্টরি নেই।</p>';
                     else {
                         allDeposits.forEach(d => {
-                            html += `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs">
-                                <div class="flex justify-between font-bold text-white"><span>${d.userName || d.userEmail || 'User'} (${d.gateway || 'bKash'})</span><span class="text-emerald-400">৳${d.amount}</span></div>
-                                <div class="text-[10px] text-slate-400 mt-1">TrxID: ${d.trxId || d.transactionId || 'N/A'} | Status: <b>${d.status || 'Pending'}</b></div>
+                            const trxId = d.trxId || d.transactionId || 'N/A';
+                            const timestamp = Number(d.timestamp || d.createdAt || d.reviewedAt || 0);
+                            const timeStr = timestamp ? new Date(timestamp).toLocaleString() : 'Time unavailable';
+                            const status = String(d.status || 'pending').toLowerCase();
+                            const statusClass = status === 'approved' ? 'text-emerald-400' : (status === 'rejected' ? 'text-rose-400' : 'text-amber-400');
+
+                            html += `<div class="bg-[#0b0f1a] p-3 rounded-xl border border-slate-800 text-xs space-y-1">
+                                <div class="flex justify-between font-bold text-white">
+                                    <span>${d.userName || d.userEmail || 'User'} (${d.gateway || d.method || 'bKash'})</span>
+                                    <span class="text-emerald-400">৳${d.amount}</span>
+                                </div>
+                                <div class="text-[11px] text-blue-300 font-mono">Invoice ID / TrxID: <b>${trxId}</b></div>
+                                <div class="flex justify-between text-[10px] text-slate-400">
+                                    <span>Time: ${timeStr}</span>
+                                    <span>Status: <b class="${statusClass}">${status.toUpperCase()}</b></span>
+                                </div>
                             </div>`;
                         });
                     }
@@ -1917,7 +1930,6 @@ function smApply(data={}){
   if(smActive){
     smLockReason.textContent=data.reason||'সাইটটি বর্তমানে maintenance-এর মধ্যে আছে।';
     smLock.style.display='flex';
-    // Lock the admin UI visually while maintenance is active.
     document.documentElement.style.overflow='hidden';
     smPanel.style.pointerEvents='none';
     smPanel.style.opacity='.35';
@@ -1941,7 +1953,6 @@ document.getElementById('smOffBtn').addEventListener('click',()=>{
 });
 document.getElementById('smReloadBtn').addEventListener('click',smLoad);
 </script>
-
 
 <script type="module" id="maintenance-modal-controller">
 import { db } from "./firebase.js";
