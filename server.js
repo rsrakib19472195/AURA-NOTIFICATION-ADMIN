@@ -17,17 +17,13 @@ const ONESIGNAL_APP_ID =
 const ONESIGNAL_REST_API_KEY =
   process.env.ONESIGNAL_REST_API_KEY;
 
-const ONESIGNAL_API =
-  "https://api.onesignal.com";
+const ONESIGNAL_API = "https://api.onesignal.com";
 
 const ADMIN_EMAIL =
-  process.env.ADMIN_EMAIL ||
-  "auraskill19@gmail.com";
+  process.env.ADMIN_EMAIL || "auraskill19@gmail.com";
 
 const ADMIN_EXTERNAL_ID =
-  String(
-    process.env.ADMIN_ONESIGNAL_EXTERNAL_ID || ""
-  ).trim();
+  String(process.env.ADMIN_ONESIGNAL_EXTERNAL_ID || "").trim();
 
 const DEFAULT_ICON =
   "https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg";
@@ -65,46 +61,31 @@ function initFirebaseAdmin() {
       ) {
         admin.initializeApp({
           credential: admin.credential.cert({
-            projectId:
-              process.env.FIREBASE_PROJECT_ID,
-
-            clientEmail:
-              process.env.FIREBASE_CLIENT_EMAIL,
-
-            privateKey:
-              process.env.FIREBASE_PRIVATE_KEY.replace(
-                /\\n/g,
-                "\n"
-              )
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(
+              /\\n/g,
+              "\n"
+            )
           })
         });
 
       } else {
-        console.warn(
-          "⚠️ Firebase Admin credentials missing."
-        );
-
+        console.warn("⚠️ Firebase Admin credentials missing.");
         return false;
       }
     }
 
     firestore = admin.firestore();
     firebaseAuth = admin.auth();
-
     firebaseReady = true;
 
-    console.log(
-      "✅ Firebase Admin initialized."
-    );
+    console.log("✅ Firebase Admin initialized.");
 
     return true;
 
   } catch (error) {
-    console.error(
-      "❌ Firebase Admin init failed:",
-      error.message
-    );
-
+    console.error("❌ Firebase Admin init failed:", error.message);
     return false;
   }
 }
@@ -114,44 +95,30 @@ function initFirebaseAdmin() {
    ONESIGNAL REQUEST
 ========================================================= */
 
-async function oneSignalRequest(
-  endpoint,
-  options = {}
-) {
+async function oneSignalRequest(endpoint, options = {}) {
   if (!ONESIGNAL_REST_API_KEY) {
     throw new Error(
       "ONESIGNAL_REST_API_KEY environment variable is missing."
     );
   }
 
-  const response = await fetch(
-    ONESIGNAL_API + endpoint,
-    {
-      ...options,
-
-      headers: {
-        "Content-Type": "application/json",
-
-        Authorization:
-          `Key ${ONESIGNAL_REST_API_KEY}`,
-
-        ...(options.headers || {})
-      }
+  const response = await fetch(ONESIGNAL_API + endpoint, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
+      ...(options.headers || {})
     }
-  );
+  });
 
   const text = await response.text();
 
   let data = {};
 
   try {
-    data = text
-      ? JSON.parse(text)
-      : {};
+    data = text ? JSON.parse(text) : {};
   } catch {
-    data = {
-      raw: text
-    };
+    data = { raw: text };
   }
 
   return {
@@ -177,10 +144,7 @@ async function getAdminExternalId() {
     );
   }
 
-  const user =
-    await firebaseAuth.getUserByEmail(
-      ADMIN_EMAIL
-    );
+  const user = await firebaseAuth.getUserByEmail(ADMIN_EMAIL);
 
   return user.uid;
 }
@@ -191,25 +155,19 @@ async function getAdminExternalId() {
 ========================================================= */
 
 function normalizeScheduleDate(value) {
-  if (!value) {
-    return null;
-  }
+  if (!value) return null;
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    throw new Error(
-      "Invalid scheduled date/time."
-    );
+    throw new Error("Invalid scheduled date/time.");
   }
 
   return date;
 }
 
-
 function getScheduleInfo(value) {
-  const date =
-    normalizeScheduleDate(value);
+  const date = normalizeScheduleDate(value);
 
   if (!date) {
     return {
@@ -219,9 +177,7 @@ function getScheduleInfo(value) {
   }
 
   if (date.getTime() <= Date.now()) {
-    throw new Error(
-      "Scheduled time must be in the future."
-    );
+    throw new Error("Scheduled time must be in the future.");
   }
 
   return {
@@ -236,26 +192,15 @@ function getScheduleInfo(value) {
 ========================================================= */
 
 async function saveNotificationRecord(data) {
-  if (!initFirebaseAdmin()) {
-    return null;
-  }
+  if (!initFirebaseAdmin()) return null;
 
   try {
-    const ref =
-      firestore
-        .collection("notificationHistory")
-        .doc();
+    const ref = firestore.collection("notificationHistory").doc();
 
     await ref.set({
       ...data,
-
-      createdAt:
-        admin.firestore
-          .FieldValue
-          .serverTimestamp(),
-
-      createdAtMs:
-        Date.now()
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAtMs: Date.now()
     });
 
     return ref.id;
@@ -286,11 +231,8 @@ function makeManualNotificationPayload({
   scheduledAt
 }) {
   const payload = {
-    app_id:
-      ONESIGNAL_APP_ID,
-
-    target_channel:
-      "push",
+    app_id: ONESIGNAL_APP_ID,
+    target_channel: "push",
 
     headings: {
       en: title
@@ -301,67 +243,36 @@ function makeManualNotificationPayload({
     },
 
     data: {
-      targetUrl:
-        url || "/notification.html",
-
-      source:
-        "aura-arman-manual",
-
-      scheduledAt:
-        scheduledAt
-          ? new Date(
-              scheduledAt
-            ).toISOString()
-          : null
+      targetUrl: url || "/notification.html",
+      source: "aura-arman-manual",
+      scheduledAt: scheduledAt
+        ? new Date(scheduledAt).toISOString()
+        : null
     }
   };
 
-
-  /* TARGET */
-
   if (target === "all") {
-    payload.included_segments = [
-      "Total Subscriptions"
-    ];
+    payload.included_segments = ["Total Subscriptions"];
 
   } else if (target === "specific") {
     payload.include_aliases = {
-      external_id: [
-        externalId
-      ]
+      external_id: [externalId]
     };
   }
-
-
-  /* ICON */
 
   if (icon) {
     payload.small_icon = icon;
-
     payload.chrome_web_icon = icon;
   }
 
-
-  /* IMAGE */
-
   if (image) {
     payload.big_picture = image;
-
-    payload.ios_attachments = {
-      image
-    };
+    payload.ios_attachments = { image };
   }
-
-
-  /* SERVER-SIDE SCHEDULE */
 
   if (scheduledAt) {
-    payload.send_after =
-      new Date(
-        scheduledAt
-      ).toISOString();
+    payload.send_after = new Date(scheduledAt).toISOString();
   }
-
 
   return payload;
 }
@@ -371,21 +282,11 @@ function makeManualNotificationPayload({
    ADMIN PUSH
 ========================================================= */
 
-async function sendAdminPush({
-  type,
-  requestId,
-  data
-}) {
-  const externalId =
-    await getAdminExternalId();
+async function sendAdminPush({ type, requestId, data }) {
+  const externalId = await getAdminExternalId();
 
-  const isDeposit =
-    type === "deposit";
-
-  const amount =
-    Number(
-      data.amount || 0
-    );
+  const isDeposit = type === "deposit";
+  const amount = Number(data.amount || 0);
 
   const user =
     data.userName ||
@@ -396,120 +297,60 @@ async function sendAdminPush({
     data.uid ||
     "User";
 
-  const method =
-    data.gateway ||
-    data.method ||
-    "";
+  const method = data.gateway || data.method || "";
 
-  const title =
-    isDeposit
-      ? "নতুন Deposit Request"
-      : "নতুন Withdraw Request";
+  const title = isDeposit
+    ? "নতুন Deposit Request"
+    : "নতুন Withdraw Request";
 
   const message =
-    `${user} ${
-      isDeposit
-        ? "ডিপোজিট"
-        : "উইথড্র"
-    } রিকোয়েস্ট করেছে` +
-    (
-      amount
-        ? ` — ৳${amount}`
-        : ""
-    ) +
-    (
-      method
-        ? ` (${method})`
-        : ""
-    );
+    `${user} ${isDeposit ? "ডিপোজিট" : "উইথড্র"} রিকোয়েস্ট করেছে` +
+    (amount ? ` — ৳${amount}` : "") +
+    (method ? ` (${method})` : "");
 
-  const payload =
-    makeManualNotificationPayload({
-      target:
-        "specific",
+  const payload = makeManualNotificationPayload({
+    target: "specific",
+    externalId,
+    title,
+    message,
+    icon: DEFAULT_ICON,
+    url: "/notification.html"
+  });
 
-      externalId,
-
-      title,
-
-      message,
-
-      icon:
-        DEFAULT_ICON,
-
-      url:
-        "/notification.html"
-    });
-
-
-  const result =
-    await oneSignalRequest(
-      "/notifications",
-      {
-        method: "POST",
-
-        body:
-          JSON.stringify(
-            payload
-          )
-      }
-    );
-
+  const result = await oneSignalRequest("/notifications", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
 
   if (!result.ok) {
     throw new Error(
       `OneSignal failed (${result.status}): ` +
-      JSON.stringify(
-        result.data
-      )
+      JSON.stringify(result.data)
     );
   }
 
-
   if (initFirebaseAdmin()) {
     await firestore
-      .collection(
-        "adminNotifications"
-      )
-      .doc(
-        `${type}_${requestId}`
-      )
-      .set(
-        {
-          type,
-
-          title,
-
-          message,
-
-          requestId:
-            String(requestId),
-
-          userName:
-            user,
-
-          amount,
-
-          method,
-
-          status:
-            "unread",
-
-          createdAt:
-            Date.now(),
-
-          pushSent:
-            true,
-
-          onesignalMessageId:
-            result.data?.id ||
-            result.data?.notification_id ||
-            null
-        },
-        {
-          merge: true
-        }
-      );
+      .collection("adminNotifications")
+      .doc(`${type}_${requestId}`)
+      .set({
+        type,
+        title,
+        message,
+        requestId: String(requestId),
+        userName: user,
+        amount,
+        method,
+        status: "unread",
+        createdAt: Date.now(),
+        pushSent: true,
+        onesignalMessageId:
+          result.data?.id ||
+          result.data?.notification_id ||
+          null
+      }, {
+        merge: true
+      });
   }
 
   return result.data;
@@ -521,21 +362,13 @@ async function sendAdminPush({
 ========================================================= */
 
 function isPending(value) {
-  return (
-    String(
-      value ?? "pending"
-    ).toLowerCase() ===
-    "pending"
-  );
+  return String(value ?? "pending").toLowerCase() === "pending";
 }
-
 
 function looksLikeDeposit(data) {
   return (
     data?.type === "Deposit" ||
-
     !!data?.gateway ||
-
     (
       data?.amount != null &&
       !data?.method &&
@@ -546,90 +379,50 @@ function looksLikeDeposit(data) {
 
 
 /* =========================================================
-   CLAIM + SEND
+   ADMIN CLAIM + SEND
 ========================================================= */
 
-async function claimAndSend(
-  type,
-  requestId,
-  data
-) {
-  if (!initFirebaseAdmin()) {
-    return;
-  }
+async function claimAndSend(type, requestId, data) {
+  if (!initFirebaseAdmin()) return;
 
-  const claimRef =
-    firestore
-      .collection("adminPushSent")
-      .doc(
-        `${type}_${requestId}`
-      );
+  const claimRef = firestore
+    .collection("adminPushSent")
+    .doc(`${type}_${requestId}`);
 
+  const claimed = await firestore.runTransaction(async tx => {
+    const snap = await tx.get(claimRef);
 
-  const claimed =
-    await firestore.runTransaction(
-      async tx => {
-        const snap =
-          await tx.get(
-            claimRef
-          );
+    if (snap.exists) return false;
 
-        if (snap.exists) {
-          return false;
-        }
+    tx.set(claimRef, {
+      type,
+      requestId: String(requestId),
+      createdAt: Date.now(),
+      status: "sending"
+    });
 
-        tx.set(
-          claimRef,
-          {
-            type,
+    return true;
+  });
 
-            requestId:
-              String(requestId),
-
-            createdAt:
-              Date.now(),
-
-            status:
-              "sending"
-          }
-        );
-
-        return true;
-      }
-    );
-
-
-  if (!claimed) {
-    return;
-  }
-
+  if (!claimed) return;
 
   try {
-    const sendResult =
-      await sendAdminPush({
-        type,
-        requestId,
-        data
-      });
+    const sendResult = await sendAdminPush({
+      type,
+      requestId,
+      data
+    });
 
-
-    await claimRef.set(
-      {
-        status:
-          "sent",
-
-        sentAt:
-          Date.now(),
-
-        onesignalMessageId:
-          sendResult?.id ||
-          sendResult?.notification_id ||
-          null
-      },
-      {
-        merge: true
-      }
-    );
+    await claimRef.set({
+      status: "sent",
+      sentAt: Date.now(),
+      onesignalMessageId:
+        sendResult?.id ||
+        sendResult?.notification_id ||
+        null
+    }, {
+      merge: true
+    });
 
   } catch (error) {
     console.error(
@@ -638,289 +431,398 @@ async function claimAndSend(
       error.message
     );
 
-    await claimRef.set(
-      {
-        status:
-          "failed",
-
-        error:
-          error.message,
-
-        failedAt:
-          Date.now()
-      },
-      {
-        merge: true
-      }
-    );
+    await claimRef.set({
+      status: "failed",
+      error: error.message,
+      failedAt: Date.now()
+    }, {
+      merge: true
+    });
   }
 }
 
 
 /* =========================================================
-   FIRESTORE WATCHERS
+   NEW: SEND TRANSACTION DETAILS TO THAT USER
 ========================================================= */
 
-function startFirestoreWatchers() {
+/*
+  Firestore document example:
+
+  transactions/{transactionId}
+  {
+    userId: "FIREBASE_UID",
+    amount: 500,
+    gateway: "Bkash",
+    status: "success"
+  }
+
+  IMPORTANT:
+  userId must match the user's OneSignal External ID.
+*/
+
+async function sendTransactionUserPush(transactionId, data) {
   if (!initFirebaseAdmin()) {
+    throw new Error("Firebase Admin is not initialized.");
+  }
+
+  const userId = String(data.userId || data.uid || "").trim();
+
+  if (!userId) {
+    console.warn(
+      `⚠️ Transaction ${transactionId} skipped: userId is missing.`
+    );
     return;
   }
 
-  let depositsReady = false;
-  let withdrawsReady = false;
+  if (!ONESIGNAL_REST_API_KEY) {
+    throw new Error("ONESIGNAL_REST_API_KEY is missing.");
+  }
 
+  /*
+    A separate claim per transaction prevents duplicate pushes
+    if listeners run more than once or Render restarts.
+  */
 
-  const handleDepositSnapshot =
-    (
-      snapshot,
-      sourceName
-    ) => {
+  const claimRef = firestore
+    .collection("transactionUserPushSent")
+    .doc(String(transactionId));
 
-      if (!depositsReady) {
-        depositsReady = true;
+  const claimed = await firestore.runTransaction(async tx => {
+    const snap = await tx.get(claimRef);
 
-        console.log(
-          `✅ Deposit listener ready (${sourceName}).`
-        );
+    if (snap.exists) {
+      const previousStatus = snap.data()?.status;
 
-        return;
+      // Do not resend a completed push or one currently in progress.
+      if (
+        previousStatus === "sent" ||
+        previousStatus === "sending"
+      ) {
+        return false;
       }
+    }
 
+    tx.set(claimRef, {
+      transactionId: String(transactionId),
+      userId,
+      status: "sending",
+      updatedAt: Date.now()
+    }, {
+      merge: true
+    });
 
-      snapshot.docChanges()
-        .forEach(change => {
+    return true;
+  });
 
-          if (
-            change.type !== "added"
-          ) {
-            return;
-          }
+  if (!claimed) {
+    console.log(
+      `ℹ️ Transaction push already claimed: ${transactionId}`
+    );
+    return;
+  }
 
-          const data =
-            change.doc.data() ||
-            {};
+  const amount = data.amount ?? "N/A";
+  const gateway = String(data.gateway ?? data.method ?? "N/A");
+  const status = String(data.status ?? "pending");
 
+  const title = "আপনার Transaction Update";
 
-          if (
-            !isPending(
-              data.status
-            )
-          ) {
-            return;
-          }
+  const message =
+    `Amount: ৳${amount} | Gateway: ${gateway} | Status: ${status}`;
 
+  const payload = {
+    app_id: ONESIGNAL_APP_ID,
+    target_channel: "push",
 
-          if (
-            sourceName ===
-              "transactions" &&
-            !looksLikeDeposit(
-              data
-            )
-          ) {
-            return;
-          }
+    include_aliases: {
+      external_id: [userId]
+    },
 
+    headings: {
+      en: title
+    },
 
-          claimAndSend(
-            "deposit",
-            change.doc.id,
-            data
-          ).catch(
-            console.error
-          );
-        });
-    };
+    contents: {
+      en: message
+    },
 
+    data: {
+      source: "firestore-transactions",
+      transactionId: String(transactionId),
+      userId,
+      amount,
+      gateway,
+      status,
+      targetUrl: "/notification.html"
+    },
 
-  firestore
-    .collection("deposits")
-    .onSnapshot(
-      snapshot =>
-        handleDepositSnapshot(
-          snapshot,
-          "deposits"
-        ),
+    small_icon: DEFAULT_ICON,
+    chrome_web_icon: DEFAULT_ICON
+  };
 
-      error =>
-        console.error(
-          "Deposits listener error:",
-          error
-        )
+  try {
+    const result = await oneSignalRequest("/notifications", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    if (!result.ok) {
+      throw new Error(
+        `OneSignal failed (${result.status}): ` +
+        JSON.stringify(result.data)
+      );
+    }
+
+    await claimRef.set({
+      status: "sent",
+      sentAt: Date.now(),
+      onesignalMessageId:
+        result.data?.id ||
+        result.data?.notification_id ||
+        null,
+      error: admin.firestore.FieldValue.delete()
+    }, {
+      merge: true
+    });
+
+    await saveNotificationRecord({
+      target: "specific",
+      externalId: userId,
+      title,
+      message,
+      url: "/notification.html",
+      status: "sent",
+      source: "firestore-transactions",
+      transactionId: String(transactionId),
+      amount,
+      gateway,
+      transactionStatus: status,
+      onesignalMessageId:
+        result.data?.id ||
+        result.data?.notification_id ||
+        null
+    });
+
+    console.log(
+      `✅ Transaction push sent: transaction=${transactionId}, user=${userId}`
     );
 
+  } catch (error) {
+    await claimRef.set({
+      status: "failed",
+      error: error.message,
+      failedAt: Date.now()
+    }, {
+      merge: true
+    });
+
+    console.error(
+      `❌ Transaction push failed (${transactionId}):`,
+      error.message
+    );
+
+    throw error;
+  }
+}
+
+
+/* =========================================================
+   NEW: WATCH NEW TRANSACTIONS FOR THE TRANSACTION OWNER
+========================================================= */
+
+function startTransactionUserWatcher() {
+  if (!initFirebaseAdmin()) return;
+
+  let initialSnapshotReceived = false;
 
   firestore
     .collection("transactions")
     .onSnapshot(
-      snapshot =>
-        handleDepositSnapshot(
-          snapshot,
-          "transactions"
-        ),
-
-      error =>
-        console.error(
-          "Transactions listener error:",
-          error
-        )
-    );
-
-
-  firestore
-    .collection("withdraws")
-    .onSnapshot(
       snapshot => {
+        /*
+          Ignore the first snapshot. It contains existing documents,
+          not just newly created transactions.
+        */
 
-        if (!withdrawsReady) {
-          withdrawsReady = true;
+        if (!initialSnapshotReceived) {
+          initialSnapshotReceived = true;
 
           console.log(
-            "✅ Withdraw listener ready."
+            "✅ Transaction user notification listener ready."
           );
 
           return;
         }
 
+        snapshot.docChanges().forEach(change => {
+          // Only process newly created documents.
+          if (change.type !== "added") return;
 
-        snapshot.docChanges()
-          .forEach(change => {
+          const data = change.doc.data() || {};
+          const transactionId = change.doc.id;
 
-            if (
-              change.type !== "added"
-            ) {
-              return;
-            }
-
-
-            const data =
-              change.doc.data() ||
-              {};
-
-
-            if (
-              !isPending(
-                data.status
-              )
-            ) {
-              return;
-            }
-
-
-            claimAndSend(
-              "withdraw",
-              change.doc.id,
-              data
-            ).catch(
-              console.error
-            );
-          });
+          sendTransactionUserPush(transactionId, data)
+            .catch(error => {
+              console.error(
+                `Transaction notification error (${transactionId}):`,
+                error.message
+              );
+            });
+        });
       },
 
-      error =>
+      error => {
         console.error(
-          "Withdraw listener error:",
+          "❌ Transaction user listener error:",
           error
-        )
+        );
+      }
     );
 }
 
 
 /* =========================================================
-   CATCH UP
+   EXISTING FIRESTORE WATCHERS: ADMIN NOTIFICATIONS
+========================================================= */
+
+function startFirestoreWatchers() {
+  if (!initFirebaseAdmin()) return;
+
+  /*
+    Use a separate initial-snapshot flag for each collection.
+    This prevents one listener's initial snapshot from making
+    another collection appear ready too early.
+  */
+
+  const sourceReady = {
+    deposits: false,
+    transactions: false,
+    withdraws: false
+  };
+
+  function handleDepositSnapshot(snapshot, sourceName) {
+    if (!sourceReady[sourceName]) {
+      sourceReady[sourceName] = true;
+
+      console.log(
+        `✅ Deposit listener ready (${sourceName}).`
+      );
+
+      return;
+    }
+
+    snapshot.docChanges().forEach(change => {
+      if (change.type !== "added") return;
+
+      const data = change.doc.data() || {};
+
+      if (!isPending(data.status)) return;
+
+      if (
+        sourceName === "transactions" &&
+        !looksLikeDeposit(data)
+      ) {
+        return;
+      }
+
+      claimAndSend(
+        "deposit",
+        change.doc.id,
+        data
+      ).catch(console.error);
+    });
+  }
+
+  firestore
+    .collection("deposits")
+    .onSnapshot(
+      snapshot => handleDepositSnapshot(snapshot, "deposits"),
+      error => console.error("Deposits listener error:", error)
+    );
+
+  firestore
+    .collection("transactions")
+    .onSnapshot(
+      snapshot => handleDepositSnapshot(snapshot, "transactions"),
+      error => console.error("Transactions listener error:", error)
+    );
+
+  firestore
+    .collection("withdraws")
+    .onSnapshot(
+      snapshot => {
+        if (!sourceReady.withdraws) {
+          sourceReady.withdraws = true;
+
+          console.log("✅ Withdraw listener ready.");
+
+          return;
+        }
+
+        snapshot.docChanges().forEach(change => {
+          if (change.type !== "added") return;
+
+          const data = change.doc.data() || {};
+
+          if (!isPending(data.status)) return;
+
+          claimAndSend(
+            "withdraw",
+            change.doc.id,
+            data
+          ).catch(console.error);
+        });
+      },
+
+      error => console.error("Withdraw listener error:", error)
+    );
+}
+
+
+/* =========================================================
+   CATCH UP RECENT ADMIN REQUESTS
 ========================================================= */
 
 async function catchUpRecentRequests() {
-  if (!initFirebaseAdmin()) {
-    return;
-  }
+  if (!initFirebaseAdmin()) return;
 
-  const cutoff =
-    Date.now() -
-    15 * 60 * 1000;
-
+  const cutoff = Date.now() - 15 * 60 * 1000;
 
   const sources = [
-    [
-      "deposit",
-      "deposits"
-    ],
-    [
-      "deposit",
-      "transactions"
-    ],
-    [
-      "withdraw",
-      "withdraws"
-    ]
+    ["deposit", "deposits"],
+    ["deposit", "transactions"],
+    ["withdraw", "withdraws"]
   ];
 
-
-  for (
-    const [
-      type,
-      collectionName
-    ] of sources
-  ) {
-
+  for (const [type, collectionName] of sources) {
     try {
-      const snap =
-        await firestore
-          .collection(
-            collectionName
-          )
-          .where(
-            "status",
-            "==",
-            "pending"
-          )
-          .get();
+      const snap = await firestore
+        .collection(collectionName)
+        .where("status", "==", "pending")
+        .get();
 
-
-      for (
-        const docSnap
-        of snap.docs
-      ) {
-
-        const data =
-          docSnap.data() ||
-          {};
-
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data() || {};
 
         if (
           type === "deposit" &&
-          !looksLikeDeposit(
-            data
-          )
+          !looksLikeDeposit(data)
         ) {
           continue;
         }
 
-
-        const created =
-          Number(
-            data.createdAt
-              ?.toMillis?.() ||
-            data.createdAt ||
-            data.timestamp
-              ?.toMillis?.() ||
-            data.timestamp ||
-            0
-          );
-
-
-        if (
-          created &&
-          created < cutoff
-        ) {
-          continue;
-        }
-
-
-        await claimAndSend(
-          type,
-          docSnap.id,
-          data
+        const created = Number(
+          data.createdAt?.toMillis?.() ||
+          data.createdAt ||
+          data.timestamp?.toMillis?.() ||
+          data.timestamp ||
+          0
         );
+
+        if (created && created < cutoff) continue;
+
+        await claimAndSend(type, docSnap.id, data);
       }
 
     } catch (error) {
@@ -937,572 +839,284 @@ async function catchUpRecentRequests() {
    PAGES
 ========================================================= */
 
-app.get(
-  "/",
-  (req, res) => {
-    res.sendFile(
-      path.join(
-        __dirname,
-        "index.html"
-      )
-    );
-  }
-);
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
 
 /* =========================================================
    HEALTH
 ========================================================= */
 
-app.get(
-  "/health",
-  (req, res) => {
-    res.json({
-      success:
-        true,
-
-      firebaseAdmin:
-        firebaseReady,
-
-      onesignalConfigured:
-        Boolean(
-          ONESIGNAL_REST_API_KEY
-        ),
-
-      message:
-        "AURA ARMAN TOUR Notification Server is running."
-    });
-  }
-);
+app.get("/health", (req, res) => {
+  res.json({
+    success: true,
+    firebaseAdmin: firebaseReady,
+    onesignalConfigured: Boolean(ONESIGNAL_REST_API_KEY),
+    message: "AURA ARMAN TOUR Notification Server is running."
+  });
+});
 
 
 /* =========================================================
    CHECK USER
 ========================================================= */
 
-app.post(
-  "/api/notifications/check-user",
-  async (req, res) => {
+app.post("/api/notifications/check-user", async (req, res) => {
+  try {
+    const externalId = String(req.body.externalId || "").trim();
 
-    try {
-      const externalId =
-        String(
-          req.body.externalId ||
-          ""
-        ).trim();
-
-
-      if (!externalId) {
-        return res.status(400).json({
-          success:
-            false,
-
-          error:
-            "Firebase UID / External ID is required."
-        });
-      }
-
-
-      const result =
-        await oneSignalRequest(
-          `/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${encodeURIComponent(
-            externalId
-          )}`
-        );
-
-
-      if (!result.ok) {
-        return res.status(
-          result.status || 404
-        ).json({
-          success:
-            false,
-
-          error:
-            "User not found in OneSignal.",
-
-          onesignal:
-            result.data
-        });
-      }
-
-
-      const subscriptions =
-        Array.isArray(
-          result.data?.subscriptions
-        )
-          ? result.data.subscriptions
-          : [];
-
-
-      const activeSubscriptions =
-        subscriptions.filter(
-          subscription =>
-            subscription.enabled !==
-            false
-        );
-
-
-      return res.json({
-        success:
-          true,
-
-        externalId,
-
-        subscribed:
-          activeSubscriptions.length >
-          0,
-
-        subscriptionCount:
-          activeSubscriptions.length,
-
-        subscriptions:
-          activeSubscriptions.map(
-            subscription => ({
-              id:
-                subscription.id,
-
-              type:
-                subscription.type,
-
-              enabled:
-                subscription.enabled
-            })
-          )
-      });
-
-    } catch (error) {
-      console.error(
-        "CHECK USER ERROR:",
-        error
-      );
-
-
-      return res.status(500).json({
-        success:
-          false,
-
-        error:
-          error.message ||
-          "User check failed."
+    if (!externalId) {
+      return res.status(400).json({
+        success: false,
+        error: "Firebase UID / External ID is required."
       });
     }
+
+    const result = await oneSignalRequest(
+      `/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${encodeURIComponent(externalId)}`
+    );
+
+    if (!result.ok) {
+      return res.status(result.status || 404).json({
+        success: false,
+        error: "User not found in OneSignal.",
+        onesignal: result.data
+      });
+    }
+
+    const subscriptions = Array.isArray(result.data?.subscriptions)
+      ? result.data.subscriptions
+      : [];
+
+    const activeSubscriptions = subscriptions.filter(
+      subscription => subscription.enabled !== false
+    );
+
+    return res.json({
+      success: true,
+      externalId,
+      subscribed: activeSubscriptions.length > 0,
+      subscriptionCount: activeSubscriptions.length,
+      subscriptions: activeSubscriptions.map(subscription => ({
+        id: subscription.id,
+        type: subscription.type,
+        enabled: subscription.enabled
+      }))
+    });
+
+  } catch (error) {
+    console.error("CHECK USER ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: error.message || "User check failed."
+    });
   }
-);
+});
 
 
 /* =========================================================
    FIND USER
 ========================================================= */
 
-app.get(
-  "/api/notifications/find-user",
-  async (req, res) => {
+app.get("/api/notifications/find-user", async (req, res) => {
+  try {
+    const externalId = String(req.query.externalId || "").trim();
 
-    try {
-      const externalId =
-        String(
-          req.query.externalId ||
-          ""
-        ).trim();
-
-
-      if (!externalId) {
-        return res.status(400).json({
-          success:
-            false,
-
-          error:
-            "External ID is required."
-        });
-      }
-
-
-      const result =
-        await oneSignalRequest(
-          `/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${encodeURIComponent(
-            externalId
-          )}`
-        );
-
-
-      return res
-        .status(
-          result.ok
-            ? 200
-            : result.status
-        )
-        .json({
-          success:
-            result.ok,
-
-          onesignal:
-            result.data
-        });
-
-    } catch (error) {
-      return res.status(500).json({
-        success:
-          false,
-
-        error:
-          error.message
+    if (!externalId) {
+      return res.status(400).json({
+        success: false,
+        error: "External ID is required."
       });
     }
+
+    const result = await oneSignalRequest(
+      `/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${encodeURIComponent(externalId)}`
+    );
+
+    return res.status(result.ok ? 200 : result.status).json({
+      success: result.ok,
+      onesignal: result.data
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
-);
+});
 
 
 /* =========================================================
    SEND / SCHEDULE
 ========================================================= */
 
-app.post(
-  "/api/notifications/send",
-  async (req, res) => {
-
-    try {
-
-      const {
-        target =
-          "all",
-
-        externalId =
-          "",
-
-        title =
-          "",
-
-        message =
-          "",
-
-        icon =
-          "",
-
-        image =
-          "",
-
-        url =
-          "/notification.html",
-
-        scheduledAt =
-          null
-      } = req.body;
-
-
-      const cleanTitle =
-        String(title).trim();
-
-      const cleanMessage =
-        String(message).trim();
-
-      const cleanExternalId =
-        String(
-          externalId
-        ).trim();
-
-      const cleanIcon =
-        String(icon
-        ).trim();
-
-      const cleanImage =
-        String(image
-        ).trim();
-
-      const cleanUrl =
-        String(url
-        ).trim();
-
-
-      /* VALIDATION */
-
-      if (!cleanTitle) {
-        return res.status(400).json({
-          success:
-            false,
-
-          error:
-            "Notification title is required."
-        });
-      }
-
-
-      if (!cleanMessage) {
-        return res.status(400).json({
-          success:
-            false,
-
-          error:
-            "Notification message is required."
-        });
-      }
-
-
-      if (
-        target !== "all" &&
-        target !== "specific"
-      ) {
-        return res.status(400).json({
-          success:
-            false,
-
-          error:
-            "Invalid notification target."
-        });
-      }
-
-
-      if (
-        target === "specific" &&
-        !cleanExternalId
-      ) {
-        return res.status(400).json({
-          success:
-            false,
-
-          error:
-            "Firebase UID / External ID is required."
-        });
-      }
-
-
-      /* SCHEDULE */
-
-      const scheduleInfo =
-        getScheduleInfo(
-          scheduledAt
-        );
-
-
-      /* SPECIFIC USER */
-
-      if (
-        target === "specific"
-      ) {
-
-        const userResult =
-          await oneSignalRequest(
-            `/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${encodeURIComponent(
-              cleanExternalId
-            )}`
-          );
-
-
-        if (!userResult.ok) {
-          return res.status(404).json({
-            success:
-              false,
-
-            error:
-              "User not found in OneSignal.",
-
-            onesignal:
-              userResult.data
-          });
-        }
-      }
-
-
-      /* PAYLOAD */
-
-      const payload =
-        makeManualNotificationPayload({
-          target,
-
-          externalId:
-            cleanExternalId,
-
-          title:
-            cleanTitle,
-
-          message:
-            cleanMessage,
-
-          icon:
-            cleanIcon,
-
-          image:
-            cleanImage,
-
-          url:
-            cleanUrl,
-
-          scheduledAt:
-            scheduleInfo.date
-        });
-
-
-      /* ONESIGNAL */
-
-      const result =
-        await oneSignalRequest(
-          "/notifications",
-          {
-            method:
-              "POST",
-
-            body:
-              JSON.stringify(
-                payload
-              )
-          }
-        );
-
-
-      if (!result.ok) {
-        return res.status(
-          result.status || 500
-        ).json({
-          success:
-            false,
-
-          error:
-            "OneSignal notification failed.",
-
-          onesignal:
-            result.data
-        });
-      }
-
-
-      /* HISTORY */
-
-      const historyId =
-        await saveNotificationRecord({
-          target,
-
-          externalId:
-            cleanExternalId ||
-            null,
-
-          title:
-            cleanTitle,
-
-          message:
-            cleanMessage,
-
-          icon:
-            cleanIcon ||
-            null,
-
-          image:
-            cleanImage ||
-            null,
-
-          url:
-            cleanUrl,
-
-          scheduled:
-            scheduleInfo.scheduled,
-
-          scheduledAt:
-            scheduleInfo.date
-              ? scheduleInfo.date.getTime()
-              : null,
-
-          status:
-            scheduleInfo.scheduled
-              ? "scheduled"
-              : "sent",
-
-          onesignalMessageId:
-            result.data?.id ||
-            result.data?.notification_id ||
-            null
-        });
-
-
-      return res.json({
-        success:
-          true,
-
-        message:
-          scheduleInfo.scheduled
-            ? "Notification scheduled successfully."
-            : "Notification sent successfully.",
-
-        scheduled:
-          scheduleInfo.scheduled,
-
-        scheduledAt:
-          scheduleInfo.date
-            ? scheduleInfo.date.toISOString()
-            : null,
-
-        target,
-
-        externalId:
-          cleanExternalId ||
-          null,
-
-        historyId,
-
-        onesignal:
-          result.data
-      });
-
-    } catch (error) {
-
-      console.error(
-        "SEND NOTIFICATION ERROR:",
-        error
-      );
-
-
-      return res.status(500).json({
-        success:
-          false,
-
-        error:
-          error.message ||
-          "Notification sending failed."
+app.post("/api/notifications/send", async (req, res) => {
+  try {
+    const {
+      target = "all",
+      externalId = "",
+      title = "",
+      message = "",
+      icon = "",
+      image = "",
+      url = "/notification.html",
+      scheduledAt = null
+    } = req.body;
+
+    const cleanTitle = String(title).trim();
+    const cleanMessage = String(message).trim();
+    const cleanExternalId = String(externalId).trim();
+    const cleanIcon = String(icon).trim();
+    const cleanImage = String(image).trim();
+    const cleanUrl = String(url).trim();
+
+    if (!cleanTitle) {
+      return res.status(400).json({
+        success: false,
+        error: "Notification title is required."
       });
     }
+
+    if (!cleanMessage) {
+      return res.status(400).json({
+        success: false,
+        error: "Notification message is required."
+      });
+    }
+
+    if (target !== "all" && target !== "specific") {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid notification target."
+      });
+    }
+
+    if (target === "specific" && !cleanExternalId) {
+      return res.status(400).json({
+        success: false,
+        error: "Firebase UID / External ID is required."
+      });
+    }
+
+    const scheduleInfo = getScheduleInfo(scheduledAt);
+
+    if (target === "specific") {
+      const userResult = await oneSignalRequest(
+        `/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${encodeURIComponent(cleanExternalId)}`
+      );
+
+      if (!userResult.ok) {
+        return res.status(404).json({
+          success: false,
+          error: "User not found in OneSignal.",
+          onesignal: userResult.data
+        });
+      }
+    }
+
+    const payload = makeManualNotificationPayload({
+      target,
+      externalId: cleanExternalId,
+      title: cleanTitle,
+      message: cleanMessage,
+      icon: cleanIcon,
+      image: cleanImage,
+      url: cleanUrl,
+      scheduledAt: scheduleInfo.date
+    });
+
+    const result = await oneSignalRequest("/notifications", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    if (!result.ok) {
+      return res.status(result.status || 500).json({
+        success: false,
+        error: "OneSignal notification failed.",
+        onesignal: result.data
+      });
+    }
+
+    const historyId = await saveNotificationRecord({
+      target,
+      externalId: cleanExternalId || null,
+      title: cleanTitle,
+      message: cleanMessage,
+      icon: cleanIcon || null,
+      image: cleanImage || null,
+      url: cleanUrl,
+      scheduled: scheduleInfo.scheduled,
+      scheduledAt: scheduleInfo.date
+        ? scheduleInfo.date.getTime()
+        : null,
+      status: scheduleInfo.scheduled ? "scheduled" : "sent",
+      onesignalMessageId:
+        result.data?.id ||
+        result.data?.notification_id ||
+        null
+    });
+
+    return res.json({
+      success: true,
+      message: scheduleInfo.scheduled
+        ? "Notification scheduled successfully."
+        : "Notification sent successfully.",
+      scheduled: scheduleInfo.scheduled,
+      scheduledAt: scheduleInfo.date
+        ? scheduleInfo.date.toISOString()
+        : null,
+      target,
+      externalId: cleanExternalId || null,
+      historyId,
+      onesignal: result.data
+    });
+
+  } catch (error) {
+    console.error("SEND NOTIFICATION ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Notification sending failed."
+    });
   }
-);
+});
 
 
 /* =========================================================
    404
 ========================================================= */
 
-app.use(
-  (req, res) => {
-    res.status(404).json({
-      success:
-        false,
-
-      error:
-        "Route not found."
-    });
-  }
-);
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: "Route not found."
+  });
+});
 
 
 /* =========================================================
    START
 ========================================================= */
 
-app.listen(
-  PORT,
-  async () => {
+app.listen(PORT, async () => {
+  console.log(
+    `AURA ARMAN TOUR Notification Server running on port ${PORT}`
+  );
 
-    console.log(
-      `AURA ARMAN TOUR Notification Server running on port ${PORT}`
-    );
-
-
-    if (!ONESIGNAL_REST_API_KEY) {
-      console.warn(
-        "⚠️ ONESIGNAL_REST_API_KEY is missing."
-      );
-    }
-
-
-    initFirebaseAdmin();
-
-    await catchUpRecentRequests();
-
-    startFirestoreWatchers();
+  if (!ONESIGNAL_REST_API_KEY) {
+    console.warn("⚠️ ONESIGNAL_REST_API_KEY is missing.");
   }
-);
+
+  initFirebaseAdmin();
+
+  await catchUpRecentRequests();
+
+  startFirestoreWatchers();
+
+  // New listener: send amount, gateway and status to the transaction owner.
+  startTransactionUserWatcher();
+});
