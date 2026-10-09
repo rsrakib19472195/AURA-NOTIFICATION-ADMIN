@@ -857,7 +857,15 @@ app.get("/health", (req, res) => {
   });
 });
 
-
+app.get("/api/transactions/notification-status", (req, res) => {
+  res.json({
+    success: true,
+    firebaseAdmin: firebaseReady,
+    onesignalConfigured: Boolean(ONESIGNAL_REST_API_KEY),
+    watcherConfigured: firebaseReady,
+    message: "Transaction notification status endpoint is running."
+  });
+});
 /* =========================================================
    CHECK USER
 ========================================================= */
