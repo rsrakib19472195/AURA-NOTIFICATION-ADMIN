@@ -3,55 +3,494 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
 <title>AURA ARMAN • Admin Login</title>
+
 <style>
+:root{
+  --green:#07833d;
+  --green-dark:#05632f;
+  --green-light:#e9f9ef;
+  --yellow:#f5d90a;
+  --text:#14251d;
+  --muted:#718078;
+  --border:#dce8df;
+  --white:#fff;
+  --danger:#dc3545;
+}
+
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-font-family:Arial,sans-serif;background:#070b14;color:#fff;padding:20px}
-.card{width:100%;max-width:390px;background:#101827;border:1px solid #26334a;
-border-radius:22px;padding:26px;box-shadow:0 18px 60px #0008}
-h1{margin:0 0 7px;font-size:24px}
-.sub{color:#94a3b8;font-size:13px;margin-bottom:24px}
-label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px}
-input{width:100%;padding:14px;border-radius:12px;border:1px solid #334155;
-background:#0b1220;color:#fff;outline:none;font-size:15px}
-input:focus{border-color:#38bdf8}
-button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:12px;
-background:#2563eb;color:#fff;font-weight:800;font-size:15px;cursor:pointer}
-button:disabled{opacity:.6}
-#msg{min-height:20px;margin-top:14px;font-size:13px;line-height:1.45}
-.ok{color:#4ade80}.err{color:#fb7185}.info{color:#fbbf24}
-.back{display:block;text-align:center;margin-top:18px;color:#94a3b8;text-decoration:none;font-size:13px}
+
+body{
+  margin:0;
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px 16px;
+  font-family:Inter,"Segoe UI",Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(ellipse at 5% 5%,#d8f7df 0,transparent 35%),
+    radial-gradient(ellipse at 100% 95%,#fff5a8 0,transparent 32%),
+    #f8fbf8;
+  overflow-x:hidden;
+}
+
+body:before,
+body:after{
+  content:"";
+  position:fixed;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:-1;
+}
+body:before{
+  top:-150px;
+  left:-110px;
+  background:linear-gradient(135deg,#07833d,#a3e635);
+  filter:blur(1px);
+}
+body:after{
+  bottom:-170px;
+  right:-100px;
+  background:linear-gradient(135deg,#f5d90a,#b9e94c);
+  filter:blur(1px);
+}
+
+.page{
+  width:100%;
+  max-width:440px;
+}
+
+.top-brand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:22px;
+}
+
+.logo{
+  width:54px;
+  height:54px;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+  border-radius:17px;
+  color:#fff;
+  font-size:25px;
+  font-weight:900;
+  background:linear-gradient(145deg,#07833d,#13b85b);
+  box-shadow:0 8px 20px #07833d30;
+  border:2px solid #fff;
+  outline:2px solid #c9efd4;
+}
+
+.brand-name{
+  font-size:20px;
+  font-weight:900;
+  letter-spacing:.5px;
+}
+
+.brand-name span{color:var(--green)}
+
+.brand-sub{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.4px;
+}
+
+.card{
+  position:relative;
+  overflow:hidden;
+  background:rgba(255,255,255,.96);
+  border:1px solid #e0eae2;
+  border-radius:27px;
+  padding:32px 27px 25px;
+  box-shadow:
+    0 25px 70px #173d2512,
+    0 5px 18px #173d2508;
+}
+
+.card:before{
+  content:"";
+  position:absolute;
+  height:5px;
+  top:0;
+  left:0;
+  right:0;
+  background:linear-gradient(90deg,#087a38,#20b85b,#f5d90a);
+}
+
+.badge{
+  display:table;
+  margin:0 auto 19px;
+  padding:8px 14px;
+  border-radius:30px;
+  background:var(--green-light);
+  color:var(--green-dark);
+  border:1px solid #ccefd6;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1px;
+}
+
+.badge-dot{
+  display:inline-block;
+  width:7px;
+  height:7px;
+  margin-right:6px;
+  border-radius:50%;
+  background:#16a34a;
+  box-shadow:0 0 0 3px #16a34a18;
+}
+
+h1{
+  margin:0;
+  text-align:center;
+  font-size:29px;
+  line-height:1.3;
+  font-weight:900;
+  letter-spacing:-.8px;
+}
+
+.subtitle{
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.7;
+  margin:9px 0 27px;
+}
+
+.accent-line{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:9px;
+  margin:13px auto 0;
+}
+
+.accent-line span{
+  width:34px;
+  height:3px;
+  border-radius:9px;
+  background:var(--yellow);
+}
+
+.accent-line i{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--green);
+}
+
+label{
+  display:block;
+  font-size:12px;
+  font-weight:800;
+  margin:17px 0 8px;
+  color:#263a2e;
+}
+
+.field{
+  position:relative;
+}
+
+.field-icon{
+  position:absolute;
+  top:50%;
+  left:15px;
+  transform:translateY(-50%);
+  width:20px;
+  height:20px;
+  color:var(--green);
+  pointer-events:none;
+}
+
+input{
+  display:block;
+  width:100%;
+  height:54px;
+  padding:0 46px;
+  border:1.5px solid var(--border);
+  border-radius:13px;
+  background:#fbfdfb;
+  color:var(--text);
+  outline:none;
+  font-size:14px;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+
+input::placeholder{color:#a0aaa3}
+
+input:focus{
+  border-color:var(--green);
+  background:#fff;
+  box-shadow:0 0 0 4px #07833d12;
+}
+
+input:disabled{opacity:.7}
+
+.toggle-password{
+  position:absolute;
+  top:50%;
+  right:9px;
+  transform:translateY(-50%);
+  width:35px;
+  height:35px;
+  margin:0;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border:0;
+  background:transparent;
+  color:#718078;
+  cursor:pointer;
+  border-radius:9px;
+}
+
+.toggle-password:hover{background:#eaf6ed;color:var(--green)}
+
+.toggle-password svg{width:19px;height:19px}
+
+.login-btn{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  width:100%;
+  min-height:54px;
+  margin-top:25px;
+  padding:14px;
+  border:0;
+  border-radius:14px;
+  background:linear-gradient(105deg,#087b38 0%,#10a94d 68%,#c7d900 100%);
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:1.1px;
+  cursor:pointer;
+  box-shadow:0 9px 22px #07833d26;
+  transition:transform .2s,box-shadow .2s,opacity .2s;
+}
+
+.login-btn:hover:not(:disabled){
+  transform:translateY(-2px);
+  box-shadow:0 13px 27px #07833d35;
+}
+
+.login-btn:active:not(:disabled){transform:scale(.985)}
+.login-btn:disabled{opacity:.7;cursor:wait}
+
+.spinner{
+  display:none;
+  width:17px;
+  height:17px;
+  border:2px solid #ffffff70;
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+
+.login-btn.loading .spinner{display:block}
+.login-btn.loading .btn-arrow{display:none}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#msg{
+  display:none;
+  margin-top:16px;
+  padding:11px 12px;
+  border-radius:11px;
+  font-size:12px;
+  line-height:1.65;
+  overflow-wrap:anywhere;
+}
+
+#msg.show{display:block}
+#msg.ok{color:#08743a;background:#eaf9ef;border:1px solid #c7efd3}
+#msg.err{color:#b42335;background:#fff0f1;border:1px solid #ffd2d7}
+#msg.info{color:#805d00;background:#fff9db;border:1px solid #f5e8a2}
+
+.security-note{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  margin-top:22px;
+  color:#718078;
+  font-size:11px;
+  text-align:center;
+}
+
+.security-note svg{
+  width:15px;
+  height:15px;
+  color:var(--green);
+  flex-shrink:0;
+}
+
+.back{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  margin-top:23px;
+  color:#42634d;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:800;
+  transition:color .2s;
+}
+
+.back:hover{color:var(--green)}
+
+.footer{
+  margin-top:22px;
+  text-align:center;
+  color:#829187;
+  font-size:10px;
+  letter-spacing:.6px;
+}
+
+@media(max-width:420px){
+  body{padding:19px 13px}
+  .card{padding:29px 20px 23px;border-radius:23px}
+  h1{font-size:27px}
+  .brand-name{font-size:18px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
 </style>
 </head>
+
 <body>
-<div class="card">
-<h1>Admin Login</h1>
-<div class="sub">AURA ARMAN TOUR • Secure Admin Panel</div>
+<main class="page">
 
-<form id="loginForm" novalidate>
-<label for="email">Admin Gmail</label>
-<input id="email" type="email" autocomplete="username"
-placeholder="teamgamechangerofficial@gmail.com" required>
+  <header class="top-brand">
+    <div class="logo" aria-hidden="true">A</div>
+    <div>
+      <div class="brand-name">AURA <span>ARMAN</span></div>
+      <div class="brand-sub">TOUR • ADMINISTRATION</div>
+    </div>
+  </header>
 
-<label for="password">Password</label>
-<input id="password" type="password" autocomplete="current-password"
-placeholder="Enter admin password" required>
+  <section class="card">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      SECURE ADMIN ACCESS
+    </div>
 
-<button id="loginBtn" type="submit">LOGIN</button>
-<div id="msg"></div>
-</form>
+    <h1>Admin Login</h1>
+    <div class="accent-line" aria-hidden="true">
+      <span></span><i></i><span></span>
+    </div>
 
-<a class="back" href="./index.html">Back</a>
-</div>
+    <p class="subtitle">
+      AURA ARMAN TOUR<br>
+      Sign in to manage your dashboard
+    </p>
+
+    <form id="loginForm" novalidate>
+      <label for="email">Admin / Staff Gmail</label>
+      <div class="field">
+        <svg class="field-icon" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="14" rx="3"/>
+          <path d="m4 7 8 6 8-6"/>
+        </svg>
+        <input id="email" type="email" autocomplete="username"
+          placeholder="Enter your Gmail" required maxlength="254">
+      </div>
+
+      <label for="password">Password</label>
+      <div class="field">
+        <svg class="field-icon" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <rect x="4" y="10" width="16" height="11" rx="2.5"/>
+          <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+          <circle cx="12" cy="15" r="1"/>
+          <path d="M12 16v2"/>
+        </svg>
+
+        <input id="password" type="password"
+          autocomplete="current-password"
+          placeholder="Enter your password"
+          required maxlength="256">
+
+        <button class="toggle-password" id="togglePassword"
+          type="button" aria-label="Show password"
+          aria-pressed="false">
+          <svg id="eyeIcon" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round"
+            aria-hidden="true">
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+
+      <button id="loginBtn" class="login-btn" type="submit">
+        <span class="spinner" aria-hidden="true"></span>
+        <svg class="btn-arrow" width="19" height="19"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2.2" stroke-linecap="round"
+          stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+        <span id="btnText">LOGIN TO DASHBOARD</span>
+      </button>
+
+      <div id="msg" role="status" aria-live="polite"></div>
+    </form>
+
+    <div class="security-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true">
+        <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+      Protected login • Authorized staff only
+    </div>
+  </section>
+
+  <a class="back" href="./index.html">
+    <span aria-hidden="true">←</span> Back to Home
+  </a>
+
+  <div class="footer">© AURA ARMAN TOUR • SECURE ADMIN PANEL</div>
+</main>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
 import {
   getAuth,
   signInWithEmailAndPassword,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA2wYMZAMx6p2GRC21KGgsHgiCoVz--81A",
@@ -63,76 +502,314 @@ const firebaseConfig = {
   appId: "1:502326798792:web:2afd27cb9cd44da48cb8fd"
 };
 
-const ADMIN_EMAIL = "auraskill19@gmail.com";
+const ADMIN_EMAIL = "auraskill19@gmail.com".toLowerCase();
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 const form = document.getElementById("loginForm");
-const email = document.getElementById("email");
-const password = document.getElementById("password");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
 const btn = document.getElementById("loginBtn");
+const btnText = document.getElementById("btnText");
 const msg = document.getElementById("msg");
+const togglePassword = document.getElementById("togglePassword");
+const eyeIcon = document.getElementById("eyeIcon");
 
-function show(text, cls="info"){
-  msg.className = cls;
-  msg.textContent = text || "";
+let submitting = false;
+let redirecting = false;
+let checking = false;
+let authReady = false;
+let authGeneration = 0;
+let sessionUser = null;
+
+function show(message, cls = "info") {
+  msg.className = cls + " show";
+  msg.textContent = message;
 }
 
-function firebaseMessage(e){
-  const code = String(e?.code || "");
-  if(code === "auth/invalid-credential" || code === "auth/wrong-password")
-    return "Email অথবা password সঠিক নয়।";
-  if(code === "auth/user-not-found") return "এই Admin Gmail Firebase Auth-এ পাওয়া যায়নি।";
-  if(code === "auth/too-many-requests") return "অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।";
-  if(code === "auth/operation-not-allowed") return "Firebase Authentication-এ Email/Password Sign-in চালু নেই।";
-  if(code === "auth/invalid-email") return "সঠিক Gmail দিন।";
-  if(code === "auth/network-request-failed") return "Internet/Firebase connection সমস্যা হয়েছে।";
-  if(code === "auth/user-disabled") return "এই Admin account disabled করা আছে।";
-  return "Login failed: " + (e?.message || "Unknown error");
+function clearMessage() {
+  msg.className = "";
+  msg.textContent = "";
 }
 
-onAuthStateChanged(auth, user => {
-  if(user && String(user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase()){
-    const next = new URLSearchParams(location.search).get("next");
-    location.replace(next === "index.html" ? "./index.html" : "./index.html");
+function setLoading(loading) {
+  btn.disabled = loading;
+  btn.classList.toggle("loading", loading);
+  btnText.textContent = loading ? "VERIFYING..." : "LOGIN TO DASHBOARD";
+  emailInput.disabled = loading;
+  passwordInput.disabled = loading;
+  togglePassword.disabled = loading;
+}
+
+function normalizeRole(role) {
+  return String(role || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+}
+
+function firebaseMessage(error) {
+  const code = String(error?.code || "");
+
+  if ([
+    "auth/invalid-credential",
+    "auth/wrong-password",
+    "auth/invalid-login-credentials"
+  ].includes(code)) return "Gmail অথবা password সঠিক নয়।";
+
+  if (code === "auth/user-not-found")
+    return "Firebase Authentication-এ এই Gmail নেই।";
+
+  if (code === "auth/too-many-requests")
+    return "অনেকবার চেষ্টা হয়েছে। পরে আবার চেষ্টা করুন।";
+
+  if (code === "auth/operation-not-allowed")
+    return "Firebase Email/Password Sign-in চালু করুন।";
+
+  if (code === "auth/invalid-email")
+    return "সঠিক Gmail address দিন।";
+
+  if (code === "auth/network-request-failed")
+    return "Internet connection পরীক্ষা করুন।";
+
+  if ([
+    "permission-denied",
+    "firestore/permission-denied"
+  ].includes(code)) {
+    return "Firestore Rules staffAdmins পড়তে বাধা দিচ্ছে।";
   }
-});
 
-form.addEventListener("submit", async e => {
-  e.preventDefault();
-  e.stopPropagation();
+  return "Login ব্যর্থ হয়েছে। Firebase settings পরীক্ষা করুন।";
+}
 
-  const em = email.value.trim().toLowerCase();
-  const pw = password.value;
+function isCurrentUser(user, generation) {
+  return authGeneration === generation &&
+    auth.currentUser?.uid === user?.uid;
+}
 
-  if(!em){ show("Admin Gmail দিন।","err"); email.focus(); return; }
-  if(!pw){ show("Password দিন।","err"); password.focus(); return; }
-  if(em !== ADMIN_EMAIL.toLowerCase()){
-    show("এই Gmail-এর Admin access নেই।","err");
+async function verifyUser(user, generation = authGeneration) {
+  if (!user || !isCurrentUser(user, generation)) return;
+
+  const email = String(user.email || "").trim().toLowerCase();
+
+  // Main Admin
+  if (email === ADMIN_EMAIL) {
+    if (!isCurrentUser(user, generation)) return;
+
+    redirecting = true;
+    show("Admin login successful. Panel খুলছে...", "ok");
+    location.replace("./index.html");
     return;
   }
 
-  btn.disabled = true;
-  btn.textContent = "LOGGING IN...";
-  show("Firebase যাচাই করছে...","info");
+  show("Staff permission যাচাই হচ্ছে...", "info");
 
-  try{
-    const cred = await signInWithEmailAndPassword(auth, em, pw);
+  // Staff document ID = normalized email
+  const staffSnap = await getDoc(doc(db, "staffAdmins", email));
 
-    if(String(cred.user.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
-      await auth.signOut();
-      throw new Error("Admin access denied.");
+  if (!isCurrentUser(user, generation)) return;
+
+  if (!staffSnap.exists()) {
+    await rejectUser(user, generation);
+    show("এই Gmail staffAdmins-এ পাওয়া যায়নি।", "err");
+    return;
+  }
+
+  const staff = staffSnap.data();
+  const savedEmail = String(staff.email || "")
+    .trim().toLowerCase();
+  const savedUid = String(staff.uid || staff.userId || "").trim();
+
+  if (savedEmail !== email || savedUid !== user.uid) {
+    await rejectUser(user, generation);
+    show("Staff Gmail অথবা UID মিলছে না।", "err");
+    return;
+  }
+
+  if (staff.enabled !== true) {
+    await rejectUser(user, generation);
+    show("আপনার Staff account disabled।", "err");
+    return;
+  }
+
+  const role = normalizeRole(staff.role);
+
+  const allowedRoles = [
+    "deposit_admin",
+    "withdraw_admin",
+    "tournament_admin",
+    "main_admin",
+    "custom_admin",
+    "admin"
+  ];
+
+  if (!allowedRoles.includes(role)) {
+    await rejectUser(user, generation);
+    show("আপনার Staff role অনুমোদিত নয়।", "err");
+    return;
+  }
+
+  if (!isCurrentUser(user, generation)) return;
+
+  try {
+    sessionStorage.setItem("auraStaffRole", role);
+    sessionStorage.setItem(
+      "auraStaffPermissions",
+      JSON.stringify(
+        Array.isArray(staff.permissions) ? staff.permissions : []
+      )
+    );
+  } catch (error) {
+    // Session storage may be unavailable in private browsing.
+    console.warn("Session storage unavailable:", error);
+  }
+
+  if (!isCurrentUser(user, generation)) return;
+
+  redirecting = true;
+  show("Staff permission যাচাই সফল! Panel খুলছে...", "ok");
+  location.replace("./index.html");
+}
+
+async function rejectUser(user, generation) {
+  if (!isCurrentUser(user, generation)) return;
+
+  // Invalidate pending checks before signing out.
+  authGeneration++;
+
+  if (auth.currentUser?.uid === user.uid) {
+    await signOut(auth);
+  }
+}
+
+form.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (submitting || redirecting) return;
+
+  const email = emailInput.value.trim().toLowerCase();
+  const password = passwordInput.value;
+
+  if (!email) {
+    show("Gmail দিন।", "err");
+    emailInput.focus();
+    return;
+  }
+
+  if (!emailInput.validity.valid) {
+    show("সঠিক email address দিন।", "err");
+    emailInput.focus();
+    return;
+  }
+
+  if (!password) {
+    show("Password দিন।", "err");
+    passwordInput.focus();
+    return;
+  }
+
+  if (!authReady) {
+    show("Firebase session প্রস্তুত হচ্ছে। একটু অপেক্ষা করুন।", "info");
+    return;
+  }
+
+  submitting = true;
+  setLoading(true);
+  clearMessage();
+  show("Firebase login হচ্ছে...", "info");
+
+  try {
+    const result = await signInWithEmailAndPassword(
+      auth, email, password
+    );
+
+    const generation = authGeneration;
+
+    if (auth.currentUser?.uid !== result.user.uid) return;
+
+    await verifyUser(result.user, generation);
+
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+
+    if (!redirecting) {
+      show(firebaseMessage(error), "err");
+
+      try {
+        if (auth.currentUser) {
+          authGeneration++;
+          await signOut(auth);
+        }
+      } catch (signOutError) {
+        console.error("SIGN OUT ERROR:", signOutError);
+      }
     }
+  } finally {
+    submitting = false;
+    if (!redirecting) setLoading(false);
+  }
+});
 
-    show("Login successful. Admin Panel খুলছে...","ok");
-    btn.textContent = "SUCCESS";
+togglePassword.addEventListener("click", () => {
+  const visible = passwordInput.type === "password";
 
-    setTimeout(() => location.replace("./index.html"), 250);
-  }catch(err){
-    console.error("ADMIN LOGIN ERROR:", err);
-    show(firebaseMessage(err),"err");
-    btn.disabled = false;
-    btn.textContent = "LOGIN";
+  passwordInput.type = visible ? "text" : "password";
+  togglePassword.setAttribute("aria-pressed", String(visible));
+  togglePassword.setAttribute(
+    "aria-label",
+    visible ? "Hide password" : "Show password"
+  );
+
+  eyeIcon.innerHTML = visible
+    ? '<path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a16 16 0 0 1-3.1 3.8"/><path d="M6.2 6.2C3.5 8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.3 3.3-.7"/>'
+    : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+});
+
+onAuthStateChanged(auth, async user => {
+  authReady = true;
+  sessionUser = user;
+  authGeneration++;
+
+  const generation = authGeneration;
+
+  if (!user) {
+    if (!submitting && !redirecting) {
+      setLoading(false);
+    }
+    return;
+  }
+
+  if (redirecting || submitting || checking) return;
+
+  checking = true;
+  setLoading(true);
+
+  try {
+    await verifyUser(user, generation);
+  } catch (error) {
+    console.error("SESSION CHECK ERROR:", error);
+
+    if (isCurrentUser(user, generation) && !redirecting) {
+      show(firebaseMessage(error), "err");
+
+      authGeneration++;
+
+      try {
+        if (auth.currentUser?.uid === user.uid) {
+          await signOut(auth);
+        }
+      } catch (signOutError) {
+        console.error("SIGN OUT ERROR:", signOutError);
+      }
+    }
+  } finally {
+    checking = false;
+
+    if (!redirecting && !submitting) {
+      setLoading(false);
+    }
   }
 });
 </script>
