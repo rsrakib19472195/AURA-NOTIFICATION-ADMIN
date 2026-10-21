@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>AURA ARMAN TOUR - Notification Center</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <style>
 *{
@@ -13,16 +15,16 @@
 }
 
 :root{
- --bg:#020617;
- --card:rgba(15,23,42,.9);
- --border:rgba(255,255,255,.09);
- --text:#f8fafc;
- --muted:#94a3b8;
- --blue:#2563eb;
- --purple:#7c3aed;
- --green:#22c55e;
- --red:#ef4444;
- --yellow:#f59e0b
+ --bg:#f3f7f4;
+ --card:#ffffff;
+ --border:#dce7df;
+ --text:#14251b;
+ --muted:#66796d;
+ --blue:#16834a;
+ --purple:#47785b;
+ --green:#16834a;
+ --red:#dc2626;
+ --yellow:#b7791f
 }
 
 html{
@@ -31,8 +33,9 @@ html{
 
 body{
  font-family:Arial,sans-serif;
- background:radial-gradient(circle at top,#172554,#020617 55%);
+ background:linear-gradient(180deg,#f5faf6,#edf4ef);
  color:var(--text);
+ transition:background .18s ease,color .18s ease;
  min-height:100vh;
  padding:15px
 }
@@ -74,7 +77,8 @@ body{
 }
 
 .stat{
- background:rgba(15,23,42,.75);
+ background:var(--card);
+ color:var(--text);
  border:1px solid var(--border);
  border-radius:16px;
  padding:12px;
@@ -96,7 +100,7 @@ body{
  border:1px solid var(--border);
  border-radius:22px;
  padding:18px;
- box-shadow:0 20px 60px rgba(0,0,0,.35);
+ box-shadow:0 12px 30px rgba(28,65,42,.08);
  margin-bottom:13px
 }
 
@@ -126,8 +130,9 @@ input,
 textarea,
 select{
  width:100%;
- border:1px solid #334155;
- background:#020617;
+ border:1px solid var(--border);
+ background:#f7fbf8;
+ color:var(--text);
  color:white;
  border-radius:13px;
  padding:12px;
@@ -180,7 +185,9 @@ button:disabled{
 }
 
 .btn-secondary{
- background:#334155
+ background:#e7f1e9;
+ color:#17452a;
+ border:1px solid #cfe1d3
 }
 
 .btn-green{
@@ -207,8 +214,9 @@ button:disabled{
 }
 
 .target{
- border:1px solid #334155;
- background:#020617;
+ border:1px solid var(--border);
+ background:#f7fbf8;
+ color:var(--text);
  border-radius:14px;
  padding:12px;
  cursor:pointer
@@ -419,8 +427,9 @@ button:disabled{
 
 .mode{
  padding:11px;
- border:1px solid #334155;
- background:#020617;
+ border:1px solid var(--border);
+ background:#f7fbf8;
+ color:var(--text);
  border-radius:12px;
  text-align:center;
  cursor:pointer;
@@ -636,6 +645,34 @@ button:disabled{
   grid-template-columns:1fr
  }
 }
+
+/* Admin-panel theme system: light is intentionally the fresh-visit default. */
+body, .card, .stat, .target, input, select, textarea, .notification-preview {
+ transition:background-color .18s ease,color .18s ease,border-color .18s ease;
+}
+.card{background:var(--card);border-color:var(--border);color:var(--text)}
+.stat{background:var(--card);border-color:var(--border);color:var(--text)}
+input,select,textarea{background:#f8fbf9!important;color:#14251b!important;border:1px solid #d5e2d8!important;border-radius:11px}
+input::placeholder,textarea::placeholder{color:#829187!important}
+button{border-radius:11px}
+.header-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.header-actions a,.header-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 14px;border-radius:12px;border:1px solid #cfe0d3;background:#fff;color:#17452a;text-decoration:none;font-weight:800;font-size:12px;cursor:pointer}
+.header-actions .theme-toggle{background:#e7f4ea;border-color:#bcd8c4}
+.uid-lookup{margin-top:15px;padding:13px;border:1px solid var(--border);border-radius:15px;background:#f7fbf8}
+.uid-lookup-title{font-size:13px;font-weight:800;margin-bottom:8px;color:var(--text)}
+.uid-lookup-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+.uid-lookup small{display:block;color:var(--muted);font-size:11px;line-height:1.5;margin-top:7px}
+.uid-result{margin-top:8px;overflow-wrap:anywhere;font-size:12px;color:var(--text)}
+body.dark{--bg:#07110e;--card:#0d1b16;--border:#203a2c;--text:#ecfdf5;--muted:#9ab6a5;background:#07110e;color:#ecfdf5}
+body.dark .card,body.dark .stat{background:#0d1b16;color:#ecfdf5;border-color:#203a2c;box-shadow:0 12px 32px rgba(0,0,0,.18)}
+body.dark .target,body.dark .uid-lookup{background:#12251d;border-color:#203a2c;color:#ecfdf5}
+body.dark input,body.dark select,body.dark textarea{background:#08130f!important;color:#ecfdf5!important;border-color:#203a2c!important}
+body.dark .header-actions a,body.dark .header-actions button{background:#12251d;color:#ecfdf5;border-color:#203a2c}
+body.dark .header-actions .theme-toggle{background:#173a28}
+body.dark .btn-secondary{background:#183b29;color:#ecfdf5;border-color:#2c5a3f}
+body.dark .notification-preview{background:#0d1b16!important;color:#ecfdf5!important;border-color:#203a2c!important}
+@media(max-width:480px){.uid-lookup-row{grid-template-columns:1fr}.header-actions a,.header-actions button{flex:1}}
+
 </style>
 </head>
 
@@ -657,6 +694,11 @@ button:disabled{
 
 <p>Premium Notification Management Center</p>
 
+</div>
+
+<div class="header-actions">
+ <a href="index.html" aria-label="Back to admin panel">← Back to Admin Panel</a>
+ <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">🌙 Dark Theme</button>
 </div>
 
 
@@ -734,6 +776,16 @@ button:disabled{
 📋 PASTE
 </button>
 
+</div>
+
+<div class="uid-lookup">
+ <div class="uid-lookup-title">🔎 Gmail / Username দিয়ে Firebase UID খুঁজুন</div>
+ <div class="uid-lookup-row">
+  <input id="uidLookupQuery" type="text" placeholder="Gmail বা username লিখুন" autocomplete="off">
+  <button type="button" id="uidLookupBtn" class="btn-secondary">SEARCH UID</button>
+ </div>
+ <small>Firestore-এর users, players, profiles, members, accounts ও userProfiles collection-এ Gmail/username খুঁজবে।</small>
+ <div id="uidLookupResult" class="uid-result" aria-live="polite"></div>
 </div>
 
 <div class="specific-actions">
@@ -1240,6 +1292,20 @@ const DRAFT_KEY =
 
 const $ = id =>
 document.getElementById(id);
+
+/* Theme is reset to light on every fresh page load by design. */
+(function initAdminTheme(){
+ document.body.classList.remove("dark");
+ const toggle=$("themeToggle");
+ if(!toggle) return;
+ toggle.textContent="🌙 Dark Theme";
+ toggle.setAttribute("aria-pressed","false");
+ toggle.addEventListener("click",()=>{
+  const dark=document.body.classList.toggle("dark");
+  toggle.textContent=dark?"☀️ Light Theme":"🌙 Dark Theme";
+  toggle.setAttribute("aria-pressed",String(dark));
+ });
+})();
 
 
 /* =========================================================
@@ -2189,6 +2255,112 @@ $("pasteUidBtn")
   }
  );
 
+
+/* =========================================================
+   FIRESTORE UID LOOKUP
+   Uses the Firebase project and collection/field strategy from
+   the working AURA Firebase Control project. Notification APIs
+   and sending flow remain unchanged.
+========================================================= */
+const UID_LOOKUP_FIREBASE_CONFIG = {
+ apiKey: "AIzaSyA2wYMZAMx6p2GRC21KGgsHgiCoVz--81A",
+ authDomain: "aura-arman-tour.firebaseapp.com",
+ databaseURL: "https://aura-arman-tour-default-rtdb.firebaseio.com",
+ projectId: "aura-arman-tour",
+ storageBucket: "aura-arman-tour.firebasestorage.app",
+ messagingSenderId: "502326798792",
+ appId: "1:502326798792:web:2afd27cb9cd44da48cb8fd"
+};
+
+const UID_LOOKUP_COLLECTIONS = [
+ "users", "players", "profiles", "members", "accounts", "userProfiles"
+];
+const UID_LOOKUP_FIELDS = [
+ "email", "gmail", "username", "userName", "name", "displayName",
+ "uid", "userId", "phone"
+];
+let uidLookupDb = null;
+try {
+ if (window.firebase && firebase.firestore) {
+  const lookupAppName = "auraUidLookupApp";
+  let lookupApp = firebase.apps.find(app => app.name === lookupAppName);
+  if (!lookupApp) lookupApp = firebase.initializeApp(UID_LOOKUP_FIREBASE_CONFIG, lookupAppName);
+  uidLookupDb = lookupApp.firestore();
+ }
+} catch (initError) {
+ console.error("UID lookup Firebase initialization failed:", initError);
+}
+
+function uidNormalize(value){ return String(value ?? "").toLowerCase().trim(); }
+function uidContainsSearch(data, query){
+ if(data === null || data === undefined) return false;
+ if(typeof data === "string" || typeof data === "number" || typeof data === "boolean") return uidNormalize(data).includes(query);
+ if(Array.isArray(data)) return data.some(item => uidContainsSearch(item, query));
+ if(typeof data === "object") return Object.entries(data).some(([key,value]) =>
+  (UID_LOOKUP_FIELDS.includes(key) && uidNormalize(value).includes(query)) || uidContainsSearch(value, query)
+ );
+ return false;
+}
+function uidGetFromData(data, docId){
+ const keys = ["uid","UID","userId","userID","firebaseUid","firebaseUID"];
+ for(const key of keys){ if(data[key] !== undefined && data[key] !== null && String(data[key]).trim()) return String(data[key]).trim(); }
+ // Match the working project's behavior: only use a UID field in document data.
+ return "";
+}
+
+$("uidLookupBtn").addEventListener("click", async()=>{
+ const query = $("uidLookupQuery").value.trim();
+ const result = $("uidLookupResult");
+ const btn = $("uidLookupBtn");
+ if(!query){ result.textContent="Gmail বা username লিখুন।"; return; }
+ if(!uidLookupDb){ result.textContent="❌ Firebase lookup initialize হয়নি।"; return; }
+ btn.disabled=true; btn.textContent="SEARCHING..."; result.textContent="Firestore-এ খোঁজা হচ্ছে...";
+ try{
+  const found=[];
+  for(const collectionName of UID_LOOKUP_COLLECTIONS){
+   const snapshot = await uidLookupDb.collection(collectionName).limit(1000).get();
+   snapshot.forEach(doc=>{
+    const data=doc.data() || {};
+    if(uidContainsSearch(data, uidNormalize(query))){
+     const uid=uidGetFromData(data, doc.id);
+     if(uid) found.push({uid, collection:collectionName, docId:doc.id, data});
+    }
+   });
+  }
+  // Prefer exact email/username matches over partial matches.
+  found.sort((a,b)=>{
+   const exact = item => Object.entries(item.data || {}).some(([key,value]) =>
+    ["email","gmail","username","userName"].includes(key) && uidNormalize(value)===uidNormalize(query));
+   return Number(exact(b))-Number(exact(a));
+  });
+  const unique = [...new Map(found.map(item=>[item.uid,item])).values()];
+  if(!unique.length){ result.textContent="❌ কোনো matching UID পাওয়া যায়নি। Firestore rules/collection/field যাচাই করুন।"; return; }
+  if(unique.length===1){
+   const uid=unique[0].uid;
+   $("externalId").value=uid;
+   if(typeof saveDraft === "function") saveDraft();
+   result.textContent="✅ UID পাওয়া গেছে: "+uid+" ";
+   const copy=document.createElement("button"); copy.type="button"; copy.className="btn-secondary small-btn"; copy.style.marginLeft="8px"; copy.textContent="📋 COPY UID";
+   copy.addEventListener("click", async()=>{ try{ await navigator.clipboard.writeText(uid); popup("📋 UID copied!","success"); }catch{ $("externalId").focus(); $("externalId").select(); popup("UID ঘর select করা হয়েছে—Copy করুন।","info"); } });
+   result.appendChild(copy);
+  } else {
+   result.textContent="একাধিক UID পাওয়া গেছে—সঠিক account বেছে নিন:";
+   unique.slice(0,10).forEach(item=>{
+    const row=document.createElement("div"); row.style.cssText="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:10px";
+    const label=document.createElement("span"); label.textContent=item.uid+" · "+item.collection+"/"+item.docId; label.style.cssText="overflow-wrap:anywhere;flex:1";
+    const choose=document.createElement("button"); choose.type="button"; choose.className="btn-secondary small-btn"; choose.textContent="USE UID";
+    choose.addEventListener("click",()=>{ $("externalId").value=item.uid; if(typeof saveDraft === "function") saveDraft(); result.textContent="✅ UID selected: "+item.uid; });
+    const copy=document.createElement("button"); copy.type="button"; copy.className="btn-secondary small-btn"; copy.textContent="COPY";
+    copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(item.uid);popup("📋 UID copied!","success");}catch{popup("Clipboard access পাওয়া যায়নি।","error");}});
+    row.append(label,choose,copy); result.appendChild(row);
+   });
+  }
+ }catch(err){
+  console.error("Firestore UID lookup failed:",err);
+  result.textContent="❌ Firestore search failed: "+(err.message||"অনুমতি বা network সমস্যা।");
+ }finally{ btn.disabled=false; btn.textContent="SEARCH UID"; }
+});
+$("uidLookupQuery").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); $("uidLookupBtn").click(); } });
 
 /* =========================================================
    USER CHECK

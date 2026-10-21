@@ -9,402 +9,151 @@
 <style>
 :root{
   --green:#07833d;
-  --green-dark:#05632f;
-  --green-light:#e9f9ef;
+  --dark:#05652f;
+  --pale:#eaf8ef;
   --yellow:#f5d90a;
-  --text:#14251d;
-  --muted:#718078;
+  --text:#18271e;
+  --muted:#748078;
   --border:#dce8df;
-  --white:#fff;
-  --danger:#dc3545;
 }
-
 *{box-sizing:border-box}
-
 body{
-  margin:0;
-  min-height:100vh;
-  min-height:100dvh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:24px 16px;
-  font-family:Inter,"Segoe UI",Arial,sans-serif;
+  margin:0;min-height:100vh;min-height:100dvh;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px 15px;
+  font-family:"Noto Sans Bengali","Segoe UI",Arial,sans-serif;
   color:var(--text);
   background:
-    radial-gradient(ellipse at 5% 5%,#d8f7df 0,transparent 35%),
-    radial-gradient(ellipse at 100% 95%,#fff5a8 0,transparent 32%),
+    radial-gradient(ellipse at 0 0,#d9f7df,transparent 38%),
+    radial-gradient(ellipse at 100% 100%,#fff3a5,transparent 35%),
     #f8fbf8;
-  overflow-x:hidden;
 }
-
-body:before,
-body:after{
-  content:"";
-  position:fixed;
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  pointer-events:none;
-  z-index:-1;
+.page{width:100%;max-width:420px}
+.brand{
+  display:flex;align-items:center;justify-content:center;
+  gap:12px;margin-bottom:22px
 }
-body:before{
-  top:-150px;
-  left:-110px;
-  background:linear-gradient(135deg,#07833d,#a3e635);
-  filter:blur(1px);
-}
-body:after{
-  bottom:-170px;
-  right:-100px;
-  background:linear-gradient(135deg,#f5d90a,#b9e94c);
-  filter:blur(1px);
-}
-
-.page{
-  width:100%;
-  max-width:440px;
-}
-
-.top-brand{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  margin-bottom:22px;
-}
-
 .logo{
-  width:54px;
-  height:54px;
-  display:grid;
-  place-items:center;
-  flex-shrink:0;
-  border-radius:17px;
-  color:#fff;
-  font-size:25px;
-  font-weight:900;
-  background:linear-gradient(145deg,#07833d,#13b85b);
-  box-shadow:0 8px 20px #07833d30;
-  border:2px solid #fff;
-  outline:2px solid #c9efd4;
+  width:52px;height:52px;border-radius:16px;
+  display:grid;place-items:center;color:white;font-size:28px;
+  font-weight:900;background:linear-gradient(145deg,#087b38,#16b65a);
+  box-shadow:0 8px 20px #07833d25;outline:2px solid #ccebd4;
+  border:2px solid white
 }
-
-.brand-name{
-  font-size:20px;
-  font-weight:900;
-  letter-spacing:.5px;
-}
-
+.brand-name{font-size:20px;font-weight:900}
 .brand-name span{color:var(--green)}
-
-.brand-sub{
-  margin-top:4px;
-  color:var(--muted);
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:1.4px;
-}
-
+.brand-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:1px}
 .card{
-  position:relative;
-  overflow:hidden;
-  background:rgba(255,255,255,.96);
-  border:1px solid #e0eae2;
-  border-radius:27px;
-  padding:32px 27px 25px;
-  box-shadow:
-    0 25px 70px #173d2512,
-    0 5px 18px #173d2508;
+  position:relative;overflow:hidden;
+  padding:29px 24px 23px;
+  background:#ffffffed;border:1px solid #e0eae2;
+  border-radius:24px;box-shadow:0 22px 60px #153a2215
 }
-
 .card:before{
-  content:"";
-  position:absolute;
-  height:5px;
-  top:0;
-  left:0;
-  right:0;
-  background:linear-gradient(90deg,#087a38,#20b85b,#f5d90a);
+  content:"";position:absolute;top:0;left:0;right:0;height:5px;
+  background:linear-gradient(90deg,#07833d,#22b85c,#f5d90a)
 }
-
 .badge{
-  display:table;
-  margin:0 auto 19px;
-  padding:8px 14px;
-  border-radius:30px;
-  background:var(--green-light);
-  color:var(--green-dark);
-  border:1px solid #ccefd6;
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:1px;
+  width:max-content;margin:0 auto 16px;padding:7px 13px;
+  border-radius:30px;color:var(--dark);background:var(--pale);
+  border:1px solid #ccebd5;font-size:12px;font-weight:800
 }
-
-.badge-dot{
-  display:inline-block;
-  width:7px;
-  height:7px;
-  margin-right:6px;
-  border-radius:50%;
-  background:#16a34a;
-  box-shadow:0 0 0 3px #16a34a18;
+.dot{
+  display:inline-block;width:7px;height:7px;
+  border-radius:50%;background:#16a34a;margin-right:7px
 }
-
-h1{
-  margin:0;
-  text-align:center;
-  font-size:29px;
-  line-height:1.3;
-  font-weight:900;
-  letter-spacing:-.8px;
-}
-
+h1{text-align:center;font-size:27px;margin:0;font-weight:900}
 .subtitle{
-  text-align:center;
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.7;
-  margin:9px 0 27px;
+  text-align:center;color:var(--muted);font-size:13px;
+  line-height:1.9;margin:12px 0 23px
 }
-
-.accent-line{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:9px;
-  margin:13px auto 0;
-}
-
-.accent-line span{
-  width:34px;
-  height:3px;
-  border-radius:9px;
-  background:var(--yellow);
-}
-
-.accent-line i{
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:var(--green);
-}
-
-label{
-  display:block;
-  font-size:12px;
-  font-weight:800;
-  margin:17px 0 8px;
-  color:#263a2e;
-}
-
-.field{
-  position:relative;
-}
-
+label{display:block;margin:16px 0 8px;font-size:13px;font-weight:800}
+.field{position:relative}
 .field-icon{
-  position:absolute;
-  top:50%;
-  left:15px;
-  transform:translateY(-50%);
-  width:20px;
-  height:20px;
-  color:var(--green);
-  pointer-events:none;
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:20px;height:20px;color:var(--green);pointer-events:none
 }
-
 input{
-  display:block;
-  width:100%;
-  height:54px;
-  padding:0 46px;
-  border:1.5px solid var(--border);
-  border-radius:13px;
-  background:#fbfdfb;
-  color:var(--text);
-  outline:none;
-  font-size:14px;
-  transition:border-color .2s,box-shadow .2s,background .2s;
+  width:100%;height:51px;padding:0 44px;
+  border:1.5px solid var(--border);border-radius:12px;
+  background:#fbfdfb;color:var(--text);outline:none;
+  font-size:14px;font-family:inherit;
+  transition:border-color .2s,box-shadow .2s
 }
-
-input::placeholder{color:#a0aaa3}
-
-input:focus{
-  border-color:var(--green);
-  background:#fff;
-  box-shadow:0 0 0 4px #07833d12;
+input:focus{border-color:var(--green);box-shadow:0 0 0 4px #07833d12;background:white}
+input::placeholder{color:#9ba69e}
+.toggle{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  width:36px;height:36px;border:0;border-radius:9px;
+  background:transparent;color:#75847a;cursor:pointer;padding:8px
 }
-
-input:disabled{opacity:.7}
-
-.toggle-password{
-  position:absolute;
-  top:50%;
-  right:9px;
-  transform:translateY(-50%);
-  width:35px;
-  height:35px;
-  margin:0;
-  padding:0;
-  display:grid;
-  place-items:center;
-  border:0;
-  background:transparent;
-  color:#718078;
-  cursor:pointer;
-  border-radius:9px;
-}
-
-.toggle-password:hover{background:#eaf6ed;color:var(--green)}
-
-.toggle-password svg{width:19px;height:19px}
-
+.toggle svg{width:20px;height:20px}
 .login-btn{
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  width:100%;
-  min-height:54px;
-  margin-top:25px;
-  padding:14px;
-  border:0;
-  border-radius:14px;
-  background:linear-gradient(105deg,#087b38 0%,#10a94d 68%,#c7d900 100%);
-  color:#fff;
-  font-size:14px;
-  font-weight:900;
-  letter-spacing:1.1px;
-  cursor:pointer;
-  box-shadow:0 9px 22px #07833d26;
-  transition:transform .2s,box-shadow .2s,opacity .2s;
+  width:100%;min-height:51px;margin-top:21px;padding:13px;
+  display:flex;justify-content:center;align-items:center;gap:9px;
+  color:white;border:0;border-radius:13px;
+  background:linear-gradient(105deg,#087b38,#10a94d 68%,#c4d900);
+  box-shadow:0 8px 20px #07833d20;
+  font-family:inherit;font-size:14px;font-weight:900;
+  cursor:pointer;transition:transform .2s,opacity .2s
 }
-
-.login-btn:hover:not(:disabled){
-  transform:translateY(-2px);
-  box-shadow:0 13px 27px #07833d35;
-}
-
-.login-btn:active:not(:disabled){transform:scale(.985)}
-.login-btn:disabled{opacity:.7;cursor:wait}
-
+.login-btn:hover:not(:disabled){transform:translateY(-1px)}
+.login-btn:disabled{opacity:.7;cursor:not-allowed}
 .spinner{
-  display:none;
-  width:17px;
-  height:17px;
-  border:2px solid #ffffff70;
-  border-top-color:#fff;
-  border-radius:50%;
-  animation:spin .7s linear infinite;
+  display:none;width:16px;height:16px;border:2px solid #ffffff70;
+  border-top-color:white;border-radius:50%;animation:spin .7s linear infinite
 }
-
 .login-btn.loading .spinner{display:block}
-.login-btn.loading .btn-arrow{display:none}
-
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* Compact message: hidden until needed */
 #msg{
-  display:none;
-  margin-top:16px;
-  padding:11px 12px;
-  border-radius:11px;
-  font-size:12px;
-  line-height:1.65;
-  overflow-wrap:anywhere;
+  display:none;margin-top:12px;padding:9px 11px;
+  border-radius:10px;font-size:11px;line-height:1.8;
+  overflow-wrap:anywhere
 }
-
 #msg.show{display:block}
-#msg.ok{color:#08743a;background:#eaf9ef;border:1px solid #c7efd3}
-#msg.err{color:#b42335;background:#fff0f1;border:1px solid #ffd2d7}
-#msg.info{color:#805d00;background:#fff9db;border:1px solid #f5e8a2}
-
-.security-note{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:7px;
-  margin-top:22px;
-  color:#718078;
-  font-size:11px;
-  text-align:center;
+#msg.ok{background:#eaf8ef;color:#08743a;border:1px solid #c7ecd2}
+#msg.err{background:#fff1f2;color:#a81e32;border:1px solid #ffd3d8}
+#msg.info{background:#fff9df;color:#765800;border:1px solid #f3e6a4}
+.security{
+  display:flex;justify-content:center;align-items:center;gap:7px;
+  margin-top:19px;color:var(--muted);font-size:10px;text-align:center
 }
-
-.security-note svg{
-  width:15px;
-  height:15px;
-  color:var(--green);
-  flex-shrink:0;
-}
-
+.security svg{width:16px;height:16px;color:var(--green);flex-shrink:0}
 .back{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:8px;
-  margin-top:23px;
-  color:#42634d;
-  text-decoration:none;
-  font-size:13px;
-  font-weight:800;
-  transition:color .2s;
+  display:block;text-align:center;margin-top:21px;
+  color:#42634d;text-decoration:none;font-size:13px;font-weight:800
 }
-
 .back:hover{color:var(--green)}
-
-.footer{
-  margin-top:22px;
-  text-align:center;
-  color:#829187;
-  font-size:10px;
-  letter-spacing:.6px;
-}
-
-@media(max-width:420px){
-  body{padding:19px 13px}
-  .card{padding:29px 20px 23px;border-radius:23px}
-  h1{font-size:27px}
-  .brand-name{font-size:18px}
-}
-
+.footer{text-align:center;margin-top:19px;font-size:10px;color:#849087}
+@media(max-width:380px){.card{padding:27px 18px 21px}}
 @media(prefers-reduced-motion:reduce){
-  *,*:before,*:after{
-    animation-duration:.01ms!important;
-    transition-duration:.01ms!important;
-  }
+  *,*:before,*:after{animation:none!important;transition:none!important}
 }
 </style>
 </head>
 
 <body>
 <main class="page">
-
-  <header class="top-brand">
+  <header class="brand">
     <div class="logo" aria-hidden="true">A</div>
     <div>
       <div class="brand-name">AURA <span>ARMAN</span></div>
-      <div class="brand-sub">TOUR • ADMINISTRATION</div>
+      <div class="brand-sub">TOUR • ADMIN PANEL</div>
     </div>
   </header>
 
   <section class="card">
-    <div class="badge">
-      <span class="badge-dot"></span>
-      SECURE ADMIN ACCESS
-    </div>
-
-    <h1>Admin Login</h1>
-    <div class="accent-line" aria-hidden="true">
-      <span></span><i></i><span></span>
-    </div>
-
+    <div class="badge"><span class="dot"></span>নিরাপদ প্রবেশদ্বার</div>
+    <h1>স্বাগতম!</h1>
     <p class="subtitle">
-      AURA ARMAN TOUR<br>
-      Sign in to manage your dashboard
+      আপনার অ্যাডমিন অ্যাকাউন্টে প্রবেশ করুন।<br>
+      ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন।
     </p>
 
     <form id="loginForm" novalidate>
-      <label for="email">Admin / Staff Gmail</label>
+      <label for="email">Gmail ঠিকানা</label>
       <div class="field">
         <svg class="field-icon" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -412,10 +161,10 @@ input:disabled{opacity:.7}
           <path d="m4 7 8 6 8-6"/>
         </svg>
         <input id="email" type="email" autocomplete="username"
-          placeholder="Enter your Gmail" required maxlength="254">
+          placeholder="example@gmail.com" required maxlength="254">
       </div>
 
-      <label for="password">Password</label>
+      <label for="password">পাসওয়ার্ড</label>
       <div class="field">
         <svg class="field-icon" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -424,55 +173,40 @@ input:disabled{opacity:.7}
           <circle cx="12" cy="15" r="1"/>
           <path d="M12 16v2"/>
         </svg>
-
         <input id="password" type="password"
           autocomplete="current-password"
-          placeholder="Enter your password"
-          required maxlength="256">
-
-        <button class="toggle-password" id="togglePassword"
-          type="button" aria-label="Show password"
-          aria-pressed="false">
+          placeholder="আপনার পাসওয়ার্ড লিখুন" required maxlength="256">
+        <button class="toggle" id="togglePassword" type="button"
+          aria-label="পাসওয়ার্ড দেখুন" aria-pressed="false">
           <svg id="eyeIcon" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round"
-            aria-hidden="true">
+            stroke-linecap="round" stroke-linejoin="round">
             <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
         </button>
       </div>
 
-      <button id="loginBtn" class="login-btn" type="submit">
+      <button class="login-btn" id="loginBtn" type="submit">
         <span class="spinner" aria-hidden="true"></span>
-        <svg class="btn-arrow" width="19" height="19"
-          viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2.2" stroke-linecap="round"
-          stroke-linejoin="round" aria-hidden="true">
-          <path d="M5 12h14M13 6l6 6-6 6"/>
-        </svg>
-        <span id="btnText">LOGIN TO DASHBOARD</span>
+        <span id="btnText">লগইন করুন</span>
       </button>
 
       <div id="msg" role="status" aria-live="polite"></div>
     </form>
 
-    <div class="security-note">
+    <div class="security">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true">
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/>
         <path d="m9 12 2 2 4-4"/>
       </svg>
-      Protected login • Authorized staff only
+      আপনার অ্যাকাউন্টের নিরাপত্তা আমাদের কাছে গুরুত্বপূর্ণ
     </div>
   </section>
 
-  <a class="back" href="./index.html">
-    <span aria-hidden="true">←</span> Back to Home
-  </a>
-
-  <div class="footer">© AURA ARMAN TOUR • SECURE ADMIN PANEL</div>
+  <a class="back" href="./index.html">← হোম পেজে ফিরে যান</a>
+  <div class="footer">© AURA ARMAN TOUR • সর্বস্বত্ব সংরক্ষিত</div>
 </main>
 
 <script type="module">
@@ -480,16 +214,12 @@ import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 
 import {
-  getAuth,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
+  getAuth, signInWithEmailAndPassword,
+  onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 import {
-  getFirestore,
-  doc,
-  getDoc
+  getFirestore, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -502,140 +232,256 @@ const firebaseConfig = {
   appId: "1:502326798792:web:2afd27cb9cd44da48cb8fd"
 };
 
-const ADMIN_EMAIL = "auraskill19@gmail.com".toLowerCase();
+const ADMIN_EMAIL = "auraskill19@gmail.com";
+const LIMIT_KEY = "aura_login_attempts_v3";
+const MAX_ATTEMPTS = 3;
+const WINDOW_MS = 60_000;
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const form = document.getElementById("loginForm");
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const btn = document.getElementById("loginBtn");
-const btnText = document.getElementById("btnText");
-const msg = document.getElementById("msg");
-const togglePassword = document.getElementById("togglePassword");
-const eyeIcon = document.getElementById("eyeIcon");
+const $ = id => document.getElementById(id);
+const form = $("loginForm");
+const emailInput = $("email");
+const passwordInput = $("password");
+const btn = $("loginBtn");
+const btnText = $("btnText");
+const msg = $("msg");
+const togglePassword = $("togglePassword");
+const eyeIcon = $("eyeIcon");
 
 let submitting = false;
 let redirecting = false;
 let checking = false;
 let authReady = false;
-let authGeneration = 0;
-let sessionUser = null;
+let generation = 0;
+let attempts = [];
+let cooldownTimer = null;
 
-function show(message, cls = "info") {
-  msg.className = cls + " show";
-  msg.textContent = message;
+function bn(n) {
+  return Number(n).toLocaleString("bn-BD");
 }
 
-function clearMessage() {
+function show(text, type = "info") {
+  msg.className = type + " show";
+  msg.textContent = text;
+}
+
+function hideMessage() {
   msg.className = "";
   msg.textContent = "";
 }
 
-function setLoading(loading) {
-  btn.disabled = loading;
-  btn.classList.toggle("loading", loading);
-  btnText.textContent = loading ? "VERIFYING..." : "LOGIN TO DASHBOARD";
-  emailInput.disabled = loading;
-  passwordInput.disabled = loading;
-  togglePassword.disabled = loading;
+function setLoading(value) {
+  btn.classList.toggle("loading", value);
+  btnText.textContent = value ? "অনুগ্রহ করে অপেক্ষা করুন..." : "লগইন করুন";
+  emailInput.disabled = value;
+  passwordInput.disabled = value;
+  togglePassword.disabled = value;
+}
+
+function isCurrent(user, token) {
+  return generation === token &&
+    auth.currentUser?.uid === user?.uid;
+}
+
+/* Keep attempts through refreshes in the same browser. */
+function readAttempts(now = Date.now()) {
+  try {
+    const raw = localStorage.getItem(LIMIT_KEY);
+    const saved = raw ? JSON.parse(raw) : [];
+
+    if (!Array.isArray(saved) ||
+        saved.some(t => !Number.isSafeInteger(t) ||
+                        t < 0 || t > now + 5000)) {
+      throw new Error("Invalid rate limit data");
+    }
+
+    attempts = saved.filter(t => now - t < WINDOW_MS);
+  } catch {
+    attempts = attempts.filter(t => now - t < WINDOW_MS);
+  }
+
+  return attempts.slice();
+}
+
+function saveAttempts(list) {
+  attempts = list.slice();
+
+  try {
+    localStorage.setItem(LIMIT_KEY, JSON.stringify(attempts));
+  } catch {
+    // If storage is blocked, the fallback works only until page reload.
+  }
+}
+
+function waitRemaining(list, now = Date.now()) {
+  if (list.length < MAX_ATTEMPTS) return 0;
+  return Math.max(0, list[0] + WINDOW_MS - now);
+}
+
+function clearAttempts() {
+  attempts = [];
+  try {
+    localStorage.removeItem(LIMIT_KEY);
+  } catch {}
+}
+
+function refreshButton() {
+  if (submitting || redirecting || checking) return;
+
+  const list = readAttempts();
+  const remaining = waitRemaining(list);
+
+  btn.disabled = !authReady || remaining > 0;
+
+  if (remaining > 0) {
+    btnText.textContent = "সাময়িকভাবে বন্ধ";
+  } else {
+    btnText.textContent = "লগইন করুন";
+  }
+}
+
+function updateCooldownMessage() {
+  if (submitting || redirecting || checking) return;
+
+  const list = readAttempts();
+  const remaining = waitRemaining(list);
+
+  if (remaining > 0) {
+    const seconds = Math.ceil(remaining / 1000);
+    const used = list.length;
+
+    show(
+      "আপনার " + bn(used) + " বার চেষ্টা শেষ। " +
+      "আবার চেষ্টা করতে " + bn(seconds) + " সেকেন্ড অপেক্ষা করুন।",
+      "err"
+    );
+  }
+
+  refreshButton();
+}
+
+function recordAttempt() {
+  const now = Date.now();
+  const list = readAttempts(now);
+
+  if (waitRemaining(list, now) > 0) {
+    updateCooldownMessage();
+    return false;
+  }
+
+  list.push(now);
+  saveAttempts(list);
+  return true;
+}
+
+function showAttemptResult() {
+  const list = readAttempts();
+  const remaining = waitRemaining(list);
+
+  if (remaining > 0) {
+    updateCooldownMessage();
+    return;
+  }
+
+  const used = list.length;
+  const left = MAX_ATTEMPTS - used;
+
+  show(
+    "লগইন সফল হয়নি। " + bn(used) + "/৩ বার চেষ্টা হয়েছে। " +
+    "আর " + bn(left) + " বার চেষ্টা করতে পারবেন।",
+    "err"
+  );
 }
 
 function normalizeRole(role) {
-  return String(role || "")
-    .trim()
-    .toLowerCase()
+  return String(role || "").trim().toLowerCase()
     .replace(/[\s-]+/g, "_");
 }
 
-function firebaseMessage(error) {
+function friendlyError(error) {
   const code = String(error?.code || "");
 
   if ([
     "auth/invalid-credential",
     "auth/wrong-password",
-    "auth/invalid-login-credentials"
-  ].includes(code)) return "Gmail অথবা password সঠিক নয়।";
-
-  if (code === "auth/user-not-found")
-    return "Firebase Authentication-এ এই Gmail নেই।";
-
-  if (code === "auth/too-many-requests")
-    return "অনেকবার চেষ্টা হয়েছে। পরে আবার চেষ্টা করুন।";
-
-  if (code === "auth/operation-not-allowed")
-    return "Firebase Email/Password Sign-in চালু করুন।";
-
-  if (code === "auth/invalid-email")
-    return "সঠিক Gmail address দিন।";
-
-  if (code === "auth/network-request-failed")
-    return "Internet connection পরীক্ষা করুন।";
-
-  if ([
-    "permission-denied",
-    "firestore/permission-denied"
+    "auth/invalid-login-credentials",
+    "auth/user-not-found"
   ].includes(code)) {
-    return "Firestore Rules staffAdmins পড়তে বাধা দিচ্ছে।";
+    return "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়। আবার চেষ্টা করুন।";
   }
 
-  return "Login ব্যর্থ হয়েছে। Firebase settings পরীক্ষা করুন।";
+  if (code === "auth/too-many-requests") {
+    return "নিরাপত্তার কারণে আপাতত প্রবেশ বন্ধ রয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।";
+  }
+
+  if (code === "auth/invalid-email") {
+    return "সঠিক Gmail ঠিকানা লিখুন।";
+  }
+
+  if ([
+    "auth/network-request-failed",
+    "unavailable",
+    "deadline-exceeded"
+  ].includes(code)) {
+    return "ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।";
+  }
+
+  return "এই মুহূর্তে প্রবেশ করা যাচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।";
 }
 
-function isCurrentUser(user, generation) {
-  return authGeneration === generation &&
-    auth.currentUser?.uid === user?.uid;
+async function rejectUser(user, token) {
+  if (!isCurrent(user, token)) return;
+
+  generation++;
+  if (auth.currentUser?.uid === user.uid) {
+    await signOut(auth);
+  }
 }
 
-async function verifyUser(user, generation = authGeneration) {
-  if (!user || !isCurrentUser(user, generation)) return;
+async function verifyUser(user, token) {
+  if (!user || !isCurrent(user, token)) return false;
 
   const email = String(user.email || "").trim().toLowerCase();
 
-  // Main Admin
   if (email === ADMIN_EMAIL) {
-    if (!isCurrentUser(user, generation)) return;
+    if (!isCurrent(user, token)) return false;
 
+    clearAttempts();
     redirecting = true;
-    show("Admin login successful. Panel খুলছে...", "ok");
+    show("লগইন সফল হয়েছে! প্যানেল খোলা হচ্ছে...", "ok");
     location.replace("./index.html");
-    return;
+    return true;
   }
 
-  show("Staff permission যাচাই হচ্ছে...", "info");
+  const snap = await getDoc(doc(db, "staffAdmins", email));
+  if (!isCurrent(user, token)) return false;
 
-  // Staff document ID = normalized email
-  const staffSnap = await getDoc(doc(db, "staffAdmins", email));
-
-  if (!isCurrentUser(user, generation)) return;
-
-  if (!staffSnap.exists()) {
-    await rejectUser(user, generation);
-    show("এই Gmail staffAdmins-এ পাওয়া যায়নি।", "err");
-    return;
+  if (!snap.exists()) {
+    await rejectUser(user, token);
+    showAttemptResult();
+    return false;
   }
 
-  const staff = staffSnap.data();
-  const savedEmail = String(staff.email || "")
-    .trim().toLowerCase();
+  const staff = snap.data();
+  const savedEmail = String(staff.email || "").trim().toLowerCase();
   const savedUid = String(staff.uid || staff.userId || "").trim();
 
   if (savedEmail !== email || savedUid !== user.uid) {
-    await rejectUser(user, generation);
-    show("Staff Gmail অথবা UID মিলছে না।", "err");
-    return;
+    await rejectUser(user, token);
+    showAttemptResult();
+    return false;
   }
 
   if (staff.enabled !== true) {
-    await rejectUser(user, generation);
-    show("আপনার Staff account disabled।", "err");
-    return;
+    await rejectUser(user, token);
+    show("আপনার অ্যাকাউন্টটি বর্তমানে সক্রিয় নয়। কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।", "err");
+    return false;
   }
 
   const role = normalizeRole(staff.role);
-
   const allowedRoles = [
     "deposit_admin",
     "withdraw_admin",
@@ -646,12 +492,12 @@ async function verifyUser(user, generation = authGeneration) {
   ];
 
   if (!allowedRoles.includes(role)) {
-    await rejectUser(user, generation);
-    show("আপনার Staff role অনুমোদিত নয়।", "err");
-    return;
+    await rejectUser(user, token);
+    show("আপনার অ্যাকাউন্টে প্রবেশের অনুমতি নেই।", "err");
+    return false;
   }
 
-  if (!isCurrentUser(user, generation)) return;
+  if (!isCurrent(user, token)) return false;
 
   try {
     sessionStorage.setItem("auraStaffRole", role);
@@ -661,105 +507,114 @@ async function verifyUser(user, generation = authGeneration) {
         Array.isArray(staff.permissions) ? staff.permissions : []
       )
     );
-  } catch (error) {
-    // Session storage may be unavailable in private browsing.
-    console.warn("Session storage unavailable:", error);
-  }
+  } catch {}
 
-  if (!isCurrentUser(user, generation)) return;
+  if (!isCurrent(user, token)) return false;
 
+  clearAttempts();
   redirecting = true;
-  show("Staff permission যাচাই সফল! Panel খুলছে...", "ok");
+  show("লগইন সফল হয়েছে! প্যানেল খোলা হচ্ছে...", "ok");
   location.replace("./index.html");
-}
-
-async function rejectUser(user, generation) {
-  if (!isCurrentUser(user, generation)) return;
-
-  // Invalidate pending checks before signing out.
-  authGeneration++;
-
-  if (auth.currentUser?.uid === user.uid) {
-    await signOut(auth);
-  }
+  return true;
 }
 
 form.addEventListener("submit", async event => {
   event.preventDefault();
 
-  if (submitting || redirecting) return;
+  if (submitting || redirecting || checking) return;
+
+  const list = readAttempts();
+  if (waitRemaining(list) > 0) {
+    updateCooldownMessage();
+    return;
+  }
 
   const email = emailInput.value.trim().toLowerCase();
   const password = passwordInput.value;
 
   if (!email) {
-    show("Gmail দিন।", "err");
+    show("অনুগ্রহ করে আপনার Gmail ঠিকানা লিখুন।", "err");
     emailInput.focus();
     return;
   }
 
-  if (!emailInput.validity.valid) {
-    show("সঠিক email address দিন।", "err");
+  /* Invalid domain is rejected BEFORE counting an attempt. */
+  if (!/^[^\s@]+@gmail\.com$/i.test(email)) {
+    show(
+      "সঠিক Gmail ঠিকানা দিন। ঠিকানার শেষে @gmail.com থাকতে হবে।",
+      "err"
+    );
     emailInput.focus();
     return;
   }
 
   if (!password) {
-    show("Password দিন।", "err");
+    show("অনুগ্রহ করে আপনার পাসওয়ার্ড লিখুন।", "err");
     passwordInput.focus();
     return;
   }
 
   if (!authReady) {
-    show("Firebase session প্রস্তুত হচ্ছে। একটু অপেক্ষা করুন।", "info");
+    show("সিস্টেম প্রস্তুত হচ্ছে। একটু অপেক্ষা করুন।", "info");
     return;
   }
 
+  if (!recordAttempt()) return;
+
   submitting = true;
   setLoading(true);
-  clearMessage();
-  show("Firebase login হচ্ছে...", "info");
+  show("আপনার তথ্য যাচাই করা হচ্ছে...", "info");
 
   try {
     const result = await signInWithEmailAndPassword(
       auth, email, password
     );
 
-    const generation = authGeneration;
+    const token = generation;
 
     if (auth.currentUser?.uid !== result.user.uid) return;
 
-    await verifyUser(result.user, generation);
+    const success = await verifyUser(result.user, token);
 
+    if (!success && !redirecting) {
+      // Keep the attempt counted; display compact Bengali feedback.
+      if (!msg.classList.contains("show")) showAttemptResult();
+    }
   } catch (error) {
-    console.error("LOGIN ERROR:", error);
+    console.error("Login error:", error);
 
     if (!redirecting) {
-      show(firebaseMessage(error), "err");
+      show(friendlyError(error), "err");
 
       try {
         if (auth.currentUser) {
-          authGeneration++;
+          generation++;
           await signOut(auth);
         }
       } catch (signOutError) {
-        console.error("SIGN OUT ERROR:", signOutError);
+        console.error("Sign out error:", signOutError);
       }
+
+      showAttemptResult();
     }
   } finally {
     submitting = false;
-    if (!redirecting) setLoading(false);
+
+    if (!redirecting) {
+      setLoading(false);
+      refreshButton();
+    }
   }
 });
 
 togglePassword.addEventListener("click", () => {
   const visible = passwordInput.type === "password";
-
   passwordInput.type = visible ? "text" : "password";
+
   togglePassword.setAttribute("aria-pressed", String(visible));
   togglePassword.setAttribute(
     "aria-label",
-    visible ? "Hide password" : "Show password"
+    visible ? "পাসওয়ার্ড লুকান" : "পাসওয়ার্ড দেখুন"
   );
 
   eyeIcon.innerHTML = visible
@@ -767,17 +622,25 @@ togglePassword.addEventListener("click", () => {
     : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
 });
 
+window.addEventListener("pageshow", () => {
+  refreshButton();
+  updateCooldownMessage();
+});
+
+window.addEventListener("storage", event => {
+  if (event.key === LIMIT_KEY) {
+    refreshButton();
+    updateCooldownMessage();
+  }
+});
+
 onAuthStateChanged(auth, async user => {
   authReady = true;
-  sessionUser = user;
-  authGeneration++;
-
-  const generation = authGeneration;
+  generation++;
+  const token = generation;
 
   if (!user) {
-    if (!submitting && !redirecting) {
-      setLoading(false);
-    }
+    if (!submitting && !redirecting) refreshButton();
     return;
   }
 
@@ -787,21 +650,20 @@ onAuthStateChanged(auth, async user => {
   setLoading(true);
 
   try {
-    await verifyUser(user, generation);
+    await verifyUser(user, token);
   } catch (error) {
-    console.error("SESSION CHECK ERROR:", error);
+    console.error("Session verification error:", error);
 
-    if (isCurrentUser(user, generation) && !redirecting) {
-      show(firebaseMessage(error), "err");
-
-      authGeneration++;
+    if (isCurrent(user, token) && !redirecting) {
+      show(friendlyError(error), "err");
+      generation++;
 
       try {
         if (auth.currentUser?.uid === user.uid) {
           await signOut(auth);
         }
       } catch (signOutError) {
-        console.error("SIGN OUT ERROR:", signOutError);
+        console.error("Sign out error:", signOutError);
       }
     }
   } finally {
@@ -809,9 +671,17 @@ onAuthStateChanged(auth, async user => {
 
     if (!redirecting && !submitting) {
       setLoading(false);
+      refreshButton();
     }
   }
 });
+
+/* Small message only; no large counter panel. */
+cooldownTimer = setInterval(() => {
+  if (!submitting && !redirecting && !checking) {
+    updateCooldownMessage();
+  }
+}, 1000);
 </script>
 </body>
 </html>

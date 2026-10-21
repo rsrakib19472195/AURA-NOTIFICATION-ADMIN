@@ -294,7 +294,7 @@ body[data-theme="light"] .text-green-400,body[data-theme="light"] .text-emerald-
 body[data-theme="light"] .text-yellow-300,body[data-theme="light"] .text-yellow-400,body[data-theme="light"] .text-amber-300{color:#854d0e!important}
 body[data-theme="light"] .text-blue-300,body[data-theme="light"] .text-blue-400{color:#1d4ed8!important}
 /* Smooth theme switch + subtle ambient background motion */
-body,body *{transition-property:background-color,border-color,color,box-shadow;transition-duration:.22s;transition-timing-function:ease}
+
 body.theme-switching{animation:themeBloomV4 .55s ease both}
 @keyframes themeBloomV4{0%{opacity:.94;filter:brightness(.92)}55%{opacity:1;filter:brightness(1.04)}100%{filter:brightness(1)}}
 body[data-theme="light"]:before,body[data-theme="dark"]:before{content:"";position:fixed;inset:-35%;z-index:-1;pointer-events:none;opacity:.5;animation:ambientDriftV4 18s ease-in-out infinite alternate}
@@ -440,8 +440,7 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
     <div id="adminAccessLoading" role="status" aria-live="polite"
          style="position:fixed;inset:0;z-index:100000;background:#050811;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#f8fafc;">
         <div style="width:38px;height:38px;border:4px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;animation:adminGateSpin .7s linear infinite"></div>
-        <p style="font-size:14px;font-weight:700">Admin Role যাচাই হচ্ছে...</p>
-        <p style="font-size:11px;color:#94a3b8">অনুগ্রহ করে অপেক্ষা করুন</p>
+        <p style="font-size:14px;font-weight:700">নিরাপদে প্যানেল প্রস্তুত হচ্ছে…</p>
     </div>
     <style>@keyframes adminGateSpin{to{transform:rotate(360deg)}} body.admin-gate-pending > :not(#adminAccessLoading){visibility:hidden!important}</style>
     <script>document.body.classList.add('admin-gate-pending');</script>
@@ -463,6 +462,12 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
 
     <main class="max-w-4xl mx-auto px-4 py-6 w-full space-y-6">
 
+        <section id="tab-dashboard" class="space-y-4">
+            <div class="flex items-center justify-between gap-3">
+                <div><h2 class="text-xl font-black text-white">Dashboard Overview</h2><p class="text-xs text-slate-400 mt-1">সব গুরুত্বপূর্ণ হিসাব এক জায়গায়</p></div>
+                <button onclick="refreshAdminDashboard()" class="bg-slate-800 border border-slate-700 px-3 py-2 rounded-xl text-xs"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
+            </div>
+            <div id="dashboard-stats" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
         <!-- Live Counters Dashboard Box -->
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
             <div class="glass-card p-4 rounded-2xl border border-amber-500/30 flex items-center justify-between">
@@ -484,44 +489,14 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
                 </div>
             </div>
         </div>
-
-        <section id="tab-dashboard" class="space-y-4">
-            <div class="flex items-center justify-between gap-3">
-                <div><h2 class="text-xl font-black text-white">Dashboard Overview</h2><p class="text-xs text-slate-400 mt-1">সব গুরুত্বপূর্ণ হিসাব এক জায়গায়</p></div>
-                <button onclick="refreshAdminDashboard()" class="bg-slate-800 border border-slate-700 px-3 py-2 rounded-xl text-xs"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
-            </div>
-            <div id="dashboard-stats" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <section class="glass-card rounded-2xl p-4 space-y-3" id="adminProfileCard">
-                <div class="flex items-center justify-between gap-2"><div><h3 class="font-bold">Admin Profile</h3><p class="text-xs ui-muted mt-1">Display name ও logo একবার সেট করো</p></div><span class="ui-status approved">Profile</span></div>
-                <div id="adminProfileSaved" class="hidden items-center gap-3"><img id="adminProfileLogo" alt="Admin logo" class="w-14 h-14 rounded-2xl object-cover border" style="border-color:var(--ui-border);display:none"><div><p id="adminProfileNameDisplay" class="font-black text-lg"></p><p id="adminProfileEmailDisplay" class="text-xs ui-muted"></p></div></div>
-                <div id="adminProfileForm" class="space-y-3">
-                  <label class="block text-xs font-bold">Display Name <input id="adminDisplayNameInput" maxlength="32" class="ui-control w-full p-3 mt-1" placeholder="তোমার display name"></label>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><label class="block text-xs font-bold">Logo gallery থেকে <input id="adminLogoFileInput" type="file" accept="image/*" class="ui-control w-full p-2 mt-1 text-xs"></label><label class="block text-xs font-bold">অথবা Logo URL <input id="adminLogoUrlInput" type="url" class="ui-control w-full p-3 mt-1" placeholder="https://example.com/logo.png"></label></div>
-                  <div class="flex items-center gap-3 rounded-xl border p-3" style="border-color:var(--ui-border)"><img id="adminLogoPreview" alt="Logo live preview" class="w-14 h-14 rounded-xl object-cover" style="display:none"><span id="adminLogoPreviewEmpty" class="text-xs ui-muted">Logo preview এখানে দেখা যাবে</span><button type="button" onclick="clearAdminLogoChoice()" class="ui-btn-secondary ml-auto px-3 py-2 text-xs">Clear logo</button></div>
-                  <button type="button" id="saveAdminProfileBtn" onclick="saveAdminProfileOnce()" class="ui-btn-primary w-full px-4 py-3 font-bold"><i class="fa-solid fa-floppy-disk mr-2"></i>Save Profile</button>
-                  <p class="text-[11px] ui-muted">Save করার পর display name form আর দেখাবে না। Profile তথ্য Firestore-এ সংরক্ষিত হবে।</p>
-                </div>
-              </section>
-              <section class="glass-card rounded-2xl p-4 space-y-3" id="adminLeaderboardCard">
-                <div class="flex items-center justify-between gap-2"><div><h3 class="font-bold"><i class="fa-solid fa-ranking-star mr-2 text-amber-500"></i>Admin Leaderboard</h3><p class="text-xs ui-muted mt-1">সব Admin ও Staff দেখতে পারবে</p></div><button type="button" onclick="loadAdminLeaderboard()" class="ui-btn-secondary px-3 py-2 text-xs"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button></div>
-                <div id="adminLeaderboardList" class="space-y-2"><div class="ui-skeleton h-12 rounded-xl"></div><div class="ui-skeleton h-12 rounded-xl"></div></div>
-                <p class="text-[10px] ui-muted">Leaderboard-এ profile-এ opt-in করে সংরক্ষিত display name, role ও activity score দেখানো হবে।</p>
-              </section>
-            </div>
-            <section class="grid grid-cols-1 xl:grid-cols-2 gap-4" id="dashboard-analytics-panels">
-              <div class="glass-card rounded-2xl p-4 space-y-3"><div class="flex items-start justify-between gap-2 flex-wrap"><div><h3 class="font-bold"><i class="fa-solid fa-chart-line mr-2 text-emerald-500"></i>Revenue Overview</h3><p class="text-xs ui-muted mt-1">Approved deposit ও withdraw-এর হিসাব</p></div><div class="flex gap-2 flex-wrap"><select id="dashboardDateRange" class="ui-control px-2 py-2 text-xs"><option value="today">Today</option><option value="7" selected>7 Days</option><option value="30">30 Days</option><option value="custom">Custom Date</option></select><input id="dashboardDateStart" type="date" class="ui-control px-2 py-2 text-xs hidden"><input id="dashboardDateEnd" type="date" class="ui-control px-2 py-2 text-xs hidden"><button class="ui-btn-secondary px-3 py-2 text-xs" onclick="renderDashboardAnalytics()">Apply</button></div></div><div class="grid grid-cols-2 gap-3"><div class="rounded-xl p-3" style="background:var(--ui-surface-2)"><p class="text-xs ui-muted">Approved Deposits</p><p id="dashRevenueDeposit" class="text-lg font-black text-emerald-600">৳0</p></div><div class="rounded-xl p-3" style="background:var(--ui-surface-2)"><p class="text-xs ui-muted">Approved Withdrawals</p><p id="dashRevenueWithdraw" class="text-lg font-black text-rose-600">৳0</p></div></div><div id="dashRevenueChart" class="space-y-3"><div class="ui-skeleton h-8 rounded-xl"></div></div><p class="text-[10px] ui-muted">সংরক্ষিত transaction data থেকে হিসাব; এটি audited profit নয়।</p></div>
-              <div class="glass-card rounded-2xl p-4 space-y-3"><div class="flex items-center justify-between gap-2"><div><h3 class="font-bold"><i class="fa-solid fa-sliders mr-2 text-indigo-500"></i>Dashboard Cards</h3><p class="text-xs ui-muted mt-1">Card দেখাও বা লুকাও</p></div><button onclick="resetDashboardCards()" class="ui-btn-secondary px-3 py-2 text-xs">Reset</button></div><div id="dashboardCardPreferences" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div><div class="border-t pt-3" style="border-color:var(--ui-border)"><h3 class="font-bold text-sm"><i class="fa-solid fa-triangle-exclamation mr-2 text-amber-500"></i>Anomaly Alerts</h3><div id="dashboardAnomalyAlerts" class="space-y-2 mt-2"><div class="ui-skeleton h-8 rounded-lg"></div></div></div></div>
-            </section>
-            <section class="grid grid-cols-1 xl:grid-cols-2 gap-4"><div class="glass-card rounded-2xl p-4"><div class="flex items-center justify-between gap-2"><h3 class="font-bold"><i class="fa-solid fa-clock-rotate-left mr-2 text-sky-500"></i>Recent Activities</h3><button onclick="switchTab('activity')" class="ui-btn-secondary px-3 py-2 text-xs">All activity</button></div><div id="dashboardRecentActivities" class="space-y-2 mt-3"><div class="ui-skeleton h-10 rounded-xl"></div></div></div><div class="glass-card rounded-2xl p-4"><h3 class="font-bold"><i class="fa-solid fa-hourglass-half mr-2 text-amber-500"></i>Pending Work</h3><div id="dashboardPendingWork" class="grid grid-cols-2 gap-2 mt-3"></div><div class="mt-3"><h3 class="font-bold text-sm"><i class="fa-solid fa-trophy mr-2 text-violet-500"></i>Top Players / Registration</h3><div id="dashboardTopPlayers" class="space-y-2 mt-2"><p class="text-xs ui-muted">Tournament data load হলে registration summary দেখাবে।</p></div></div></div></section>
-            <div class="glass-card rounded-2xl p-4"><p class="text-sm font-bold">Quick Actions</p><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3"><button onclick="switchTab('sections')" class="ui-btn-secondary p-3 text-xs"><i class="fa-solid fa-layer-group mr-1"></i>Add Category</button><button onclick="switchTab('tournaments')" class="ui-btn-secondary p-3 text-xs"><i class="fa-solid fa-trophy mr-1"></i>Tournaments</button><button onclick="switchTab('banners')" class="ui-btn-secondary p-3 text-xs"><i class="fa-regular fa-image mr-1"></i>Banners</button><button onclick="switchTab('staff')" class="ui-btn-secondary p-3 text-xs"><i class="fa-solid fa-magnifying-glass mr-1"></i>Staff Search</button></div></div>
-        </section>
+</section>
 
         <div id="adminMenuBackdrop" onclick="toggleAdminMenu(false)" class="fixed inset-0 z-40 bg-black/60" style="display:none"></div>
         <aside id="adminMenu" class="fixed right-3 top-[70px] z-50 w-[min(320px,calc(100vw-24px))] max-h-[82vh] overflow-y-auto rounded-2xl border border-slate-700 bg-[#0b1220] p-3 shadow-2xl" style="display:none">
             <div class="flex items-center justify-between px-2 pb-2 border-b border-slate-800"><div><b class="text-sm">Admin Menu</b><p class="text-[10px] text-slate-500">যে পেজ দরকার সেটি বেছে নাও</p></div><button onclick="toggleAdminMenu(false)" class="text-slate-400 text-xl px-2">×</button></div>
             <div id="adminMenuButtons" class="grid grid-cols-2 gap-2 pt-3">
                 <button data-tab="dashboard" onclick="switchTab('dashboard')" class="admin-menu-item"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+                <button data-tab="profile" onclick="switchTab('profile')" class="admin-menu-item"><i class="fa-solid fa-id-card"></i> Admin Profile</button>
                 <button data-tab="sections" onclick="switchTab('sections')" class="admin-menu-item"><i class="fa-solid fa-layer-group"></i> Categories</button>
                 <button data-tab="groups" onclick="switchTab('groups')" class="admin-menu-item"><i class="fa-solid fa-users"></i> Groups</button>
                 <button data-tab="tournaments" onclick="switchTab('tournaments')" class="admin-menu-item"><i class="fa-solid fa-trophy"></i> Tournaments</button>
@@ -531,15 +506,31 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
                 <button data-tab="rules" onclick="switchTab('rules')" class="admin-menu-item"><i class="fa-solid fa-book"></i> Rules</button>
                 <button data-tab="staff" id="staffMenuButton" onclick="switchTab('staff')" class="admin-menu-item"><i class="fa-solid fa-user-shield"></i> Staff Management</button>
                 <button data-tab="activity" id="activityMenuButton" onclick="switchTab('activity')" class="admin-menu-item"><i class="fa-solid fa-clipboard-list"></i> Activity & Errors</button>
-                <button onclick="window.location.assign('./notification.html')" class="admin-menu-item"><i class="fa-solid fa-bell"></i> Notifications</button>
-                <button onclick="openAppUpdateModalSafe()" class="admin-menu-item"><i class="fa-solid fa-mobile-screen-button"></i> App Update</button>
-                <button onclick="openMaintenanceModalSafe()" class="admin-menu-item"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</button>
-                <button onclick="openAuraLegacyFeatures();toggleAdminMenu(false)" class="admin-menu-item col-span-2"><i class="fa-solid fa-shield-halved"></i> AURA ARMAN FEATURES</button>
+                <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('notifications'))){window.location.assign('./notification.html')}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item"><i class="fa-solid fa-bell"></i> Notifications</button>
+                <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('app_update'))){openAppUpdateModalSafe()}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item"><i class="fa-solid fa-mobile-screen-button"></i> App Update</button>
+                <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('maintenance'))){openMaintenanceModalSafe()}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</button>
+                <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('aura_features'))){openAuraLegacyFeatures();toggleAdminMenu(false)}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item col-span-2"><i class="fa-solid fa-shield-halved"></i> AURA ARMAN FEATURES</button>
                 <a href="index.html" class="admin-menu-item col-span-2"><i class="fa-solid fa-house"></i> Home View</a>
                 <button onclick="adminLogout()" class="admin-menu-item col-span-2 !border-rose-500/40 !text-rose-300"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
             </div>
         </aside>
         <style>.admin-menu-item{display:flex;align-items:center;gap:9px;text-align:left;padding:12px;border:1px solid #243044;background:#111827;border-radius:12px;color:#dbeafe;font-size:12px;font-weight:700}.admin-menu-item i{color:#60a5fa;width:16px;text-align:center}.admin-menu-item:active{transform:scale(.98)}.stat-card{background:rgba(15,23,42,.88);border:1px solid #263449;border-radius:16px;padding:14px;min-width:0}.stat-card .stat-label{font-size:11px;color:#94a3b8;font-weight:700}.stat-card .stat-value{font-size:23px;font-weight:900;line-height:1.25;margin-top:6px;overflow-wrap:anywhere}</style>
+
+<section id="tab-profile" class="space-y-4" style="display:none">
+<div class="flex items-center justify-between"><h2 class="text-xl font-black">Admin Profile</h2><p class="text-xs ui-muted">Menu থেকে manage করো</p></div>
+<section class="glass-card rounded-2xl p-4 space-y-3" id="adminProfileCard">
+                <div class="flex items-center justify-between gap-2"><div><h3 class="font-bold">Admin Profile</h3><p class="text-xs ui-muted mt-1">Display name ও logo একবার সেট করো</p></div><span class="ui-status approved">Profile</span></div>
+                <div id="adminProfileSaved" class="hidden items-center gap-3"><img id="adminProfileLogo" alt="Admin logo" class="w-14 h-14 rounded-2xl object-cover border" style="border-color:var(--ui-border);display:none"><div><p id="adminProfileNameDisplay" class="font-black text-lg"></p><p id="adminProfileEmailDisplay" class="text-xs ui-muted"></p></div></div>
+                <div id="adminProfileForm" class="space-y-3">
+                  <label class="block text-xs font-bold">Display Name <input id="adminDisplayNameInput" maxlength="32" class="ui-control w-full p-3 mt-1" placeholder="তোমার display name"></label>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><label class="block text-xs font-bold">Logo gallery থেকে <input id="adminLogoFileInput" type="file" accept="image/*" class="ui-control w-full p-2 mt-1 text-xs"></label><label class="block text-xs font-bold">অথবা Logo URL <input id="adminLogoUrlInput" type="url" class="ui-control w-full p-3 mt-1" placeholder="https://example.com/logo.png"></label></div>
+                  <div class="flex items-center gap-3 rounded-xl border p-3" style="border-color:var(--ui-border)"><img id="adminLogoPreview" alt="Logo live preview" class="w-14 h-14 rounded-xl object-cover" style="display:none"><span id="adminLogoPreviewEmpty" class="text-xs ui-muted">Logo preview এখানে দেখা যাবে</span><button type="button" onclick="clearAdminLogoChoice()" class="ui-btn-secondary ml-auto px-3 py-2 text-xs">Clear logo</button></div>
+                  <div id="adminLogoUploadStatus" aria-live="polite" class="text-xs ui-muted"></div>
+                  <button type="button" id="saveAdminProfileBtn" onclick="saveAdminProfileOnce()" class="ui-btn-primary w-full px-4 py-3 font-bold"><i class="fa-solid fa-floppy-disk mr-2"></i>Save Profile</button>
+                  <p class="text-[11px] ui-muted">Save করার পর display name form আর দেখাবে না। Profile তথ্য Firestore-এ সংরক্ষিত হবে।</p>
+                </div>
+              </section>
+</section>
 
         <div id="tab-sections" class="space-y-4">
             <div class="flex justify-between items-center">
@@ -609,7 +600,7 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input id="depositSearchInput" oninput="renderDepositsList()" placeholder="Search user / TrxID / request ID..." class="ui-control w-full p-3 text-xs">
-                <select id="depositStatusFilter" onchange="renderDepositsList()" class="ui-control w-full p-3 text-xs"><option value="pending">Pending only</option><option value="all">All statuses</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+                <select id="depositStatusFilter" onchange="refreshDepositStatus()" class="ui-control w-full p-3 text-xs"><option value="pending">Pending only</option><option value="all">All statuses</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
             </div>
             <div id="admin-deposits-list" class="space-y-3"></div>
         </div>
@@ -634,7 +625,7 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input id="withdrawSearchInput" oninput="renderWithdrawsList()" placeholder="Search user / UID / request ID..." class="ui-control w-full p-3 text-xs">
-                <select id="withdrawStatusFilter" onchange="renderWithdrawsList()" class="ui-control w-full p-3 text-xs"><option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+                <select id="withdrawStatusFilter" onchange="refreshWithdrawStatus()" class="ui-control w-full p-3 text-xs"><option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
             </div>
             <div id="admin-withdraws-list" class="space-y-3"></div>
         </div>
@@ -910,7 +901,31 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
             box.innerHTML=rows.slice(0,150).map((r,i)=>{const status=String(r.status||'pending').toLowerCase(),user=r.userName||r.userEmail||r.email||r.username||r.userId||r.uid||'User',trx=r.trxId||r.transactionId||r.id,amount=Number(r.amount||0);return `<article class="ui-request-card p-3 text-xs space-y-2"><div class="flex justify-between gap-2"><b>${esc(user)}</b><b>৳${amount.toLocaleString('en-BD')}</b></div><div class="flex flex-wrap justify-between gap-2 ui-muted"><span>${type} • ${esc(r.gateway||r.method||'—')}</span><span>${esc(status.toUpperCase())}</span></div><div class="break-all">Transaction ID: <b>${esc(trx)}</b></div><div class="break-all ui-muted">UID: ${esc(r.uid||r.userId||'—')} • Gmail: ${esc(r.userEmail||r.email||'—')}</div><div class="ui-muted">${r.__time?new Date(r.__time).toLocaleString():'Time unavailable'} • Request: ${esc(r.id||'—')}</div><div class="flex gap-2"><button class="ui-btn-secondary px-3 py-2" onclick="printTransactionReceipt(${i})">Print receipt</button><button class="ui-btn-secondary px-3 py-2" onclick="showTransactionDetails(${i})">Details</button></div></article>`}).join('')+(rows.length>150?'<p class="ui-muted text-xs">প্রথম ১৫০টি ফলাফল দেখানো হয়েছে; search দিয়ে narrow করুন।</p>':'');
         };
         window.showTransactionDetails=function(i){const r=(window.__visibleTransactionRows||[])[i];if(!r)return;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));document.getElementById('modal-title').textContent='Transaction Details';document.getElementById('modal-body').innerHTML=`<div class="space-y-3 text-sm"><div class="ui-request-card p-4 space-y-2">${[['Type',r.__kind],['Request ID',r.id],['Transaction ID',r.trxId||r.transactionId||'—'],['UID',r.uid||r.userId||'—'],['Gmail',r.userEmail||r.email||'—'],['Amount','৳'+Number(r.amount||0).toLocaleString('en-BD')],['Method',r.gateway||r.method||'—'],['Status',r.status||'pending'],['Created',r.__time?new Date(r.__time).toLocaleString():'—'],['Review reason',r.reason||r.reviewReason||'—']].map(([k,v])=>`<div class="flex justify-between gap-3 border-b border-slate-700/30 pb-2"><span class="ui-muted">${esc(k)}</span><b class="text-right break-all">${esc(v)}</b></div>`).join('')}</div><button onclick="printTransactionReceipt(${i})" class="ui-btn-primary w-full p-3">Print receipt</button><button onclick="openHistoryModal(window.__unifiedHistoryType||'Deposit')" class="ui-btn-secondary w-full p-3">Back to history</button></div>`;};
-        window.printTransactionReceipt=function(i){const r=(window.__visibleTransactionRows||[])[i];if(!r)return;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const html=`<!doctype html><html><head><meta charset="utf-8"><title>Transaction Receipt</title><style>body{font:14px Arial;padding:28px;color:#111}h2{margin-bottom:4px}.row{padding:9px 0;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;gap:20px}.foot{margin-top:24px;color:#555;font-size:11px}</style></head><body><h2>Transaction Receipt</h2><p>Admin transaction record</p>${[['Type',r.__kind],['Request ID',r.id],['Transaction ID',r.trxId||r.transactionId||r.id],['UID',r.uid||r.userId||'—'],['Email',r.userEmail||r.email||'—'],['Amount','BDT '+Number(r.amount||0).toFixed(2)],['Method',r.gateway||r.method||'—'],['Status',r.status||'pending'],['Date',r.__time?new Date(r.__time).toLocaleString():'—']].map(([k,v])=>`<div class="row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}<p class="foot">Generated from current admin records. This receipt is not proof of external payment settlement.</p><script>window.onload=()=>window.print()<\/script></body></html>`;const w=window.open('','_blank','width=700,height=800');if(!w){showToast('Popup allow করলে receipt print হবে','warning');return;}w.document.write(html);w.document.close();};
+        window.printTransactionReceipt=function(i){const r=(window.__visibleTransactionRows||[])[i];if(!r)return;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const html=`<!doctype html><html><head><meta charset="utf-8"><title>Transaction Receipt</title><style>body{font:14px Arial;padding:28px;color:#111}h2{margin-bottom:4px}.row{padding:9px 0;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;gap:20px}.foot{margin-top:24px;color:#555;font-size:11px}</style></head><body><h2>Transaction Receipt</h2><p>Admin transaction record</p>${[['Type',r.__kind],['Request ID',r.id],['Transaction ID',r.trxId||r.transactionId||r.id],['UID',r.uid||r.userId||'—'],['Email',r.userEmail||r.email||'—'],['Amount','BDT '+Number(r.amount||0).toFixed(2)],['Method',r.gateway||r.method||'—'],['Status',r.status||'pending'],['Date',r.__time?new Date(r.__time).toLocaleString():'—']].map(([k,v])=>`<div class="row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}<p class="foot">Generated from current admin records. This receipt is not proof of external payment settlement.</p><script>window.onload=()=>window.print()<\/script>
+<style id="polished-theme-toggle-v2">
+/* Compact, premium theme switch: icon-only so it never collides with MENU. */
+#themeToggleBtn.ui-theme-toggle{
+  box-sizing:border-box!important; flex:0 0 56px!important; width:56px!important; min-width:56px!important; max-width:56px!important;
+  height:56px!important; min-height:56px!important; padding:0!important; margin:0!important;
+  display:inline-flex!important; align-items:center!important; justify-content:center!important; gap:0!important;
+  position:relative!important; overflow:hidden!important; isolation:isolate!important;
+  border:1px solid rgba(148,163,184,.34)!important; border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(226,239,231,.88))!important;
+  color:#175b38!important; box-shadow:0 8px 22px rgba(20,83,45,.12),inset 0 1px 0 rgba(255,255,255,.9)!important;
+  -webkit-tap-highlight-color:transparent!important; cursor:pointer!important;
+}
+#themeToggleBtn.ui-theme-toggle::before{content:"";position:absolute;inset:5px;border-radius:13px;background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(255,255,255,.08));z-index:-1;pointer-events:none}
+#themeToggleBtn.ui-theme-toggle i{font-size:22px!important;line-height:1!important;margin:0!important;transform:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.12));}
+#themeToggleBtn.ui-theme-toggle span{display:none!important}
+#themeToggleBtn.ui-theme-toggle:hover{transform:translateY(-1px)!important;filter:brightness(1.02)!important;box-shadow:0 11px 26px rgba(20,83,45,.17),inset 0 1px 0 rgba(255,255,255,.9)!important}
+#themeToggleBtn.ui-theme-toggle:active{transform:scale(.94)!important}
+body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle{background:linear-gradient(145deg,#202d42,#111a2a)!important;color:#facc15!important;border-color:rgba(148,163,184,.3)!important;box-shadow:0 8px 24px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.07)!important}
+body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linear-gradient(135deg,rgba(250,204,21,.13),rgba(99,102,241,.08))}
+@media(max-width:480px){#themeToggleBtn.ui-theme-toggle{flex-basis:52px!important;width:52px!important;min-width:52px!important;max-width:52px!important;height:52px!important;min-height:52px!important;border-radius:16px!important}#themeToggleBtn.ui-theme-toggle i{font-size:21px!important}}
+@media(prefers-reduced-motion:reduce){#themeToggleBtn.ui-theme-toggle{transition:none!important}}
+</style>
+
+</body></html>`;const w=window.open('','_blank','width=700,height=800');if(!w){showToast('Popup allow করলে receipt print হবে','warning');return;}w.document.write(html);w.document.close();};
         window.printVisibleTransactionReceipt=function(){if(!(window.__visibleTransactionRows||[]).length){showToast('আগে transaction search করুন','warning');return;}window.printTransactionReceipt(0)};
         window.exportDailyTransactionReport=function(){const today=new Date().toISOString().slice(0,10),rows=[...(allDeposits||[]).map(r=>({...r,__kind:'Deposit'})),...(allWithdraws||[]).map(r=>({...r,__kind:'Withdraw'})),...(allWithdrawHistory||[]).map(r=>({...r,__kind:'Withdraw'}))].filter(r=>{const t=Number(r.timestamp||r.createdAt||r.reviewedAt||r.approvedAt||r.historyCreatedAt||0);return t&&new Date(t).toISOString().slice(0,10)===today});const status=r=>String(r.status||'pending').toLowerCase();const summary=['Daily Transaction Report — '+today,'Type,Request ID,Transaction ID,UID,Email,Amount,Status,Date',...rows.map(r=>[r.__kind,r.id,r.trxId||r.transactionId||'',r.uid||r.userId||'',r.userEmail||r.email||'',Number(r.amount||0),status(r),new Date(Number(r.timestamp||r.createdAt||r.reviewedAt||r.approvedAt||r.historyCreatedAt||0)).toISOString()].map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(','))];for(const t of ['Deposit','Withdraw'])for(const st of ['approved','rejected','pending'])summary.splice(1,0,`${t} ${st}: ${rows.filter(r=>r.__kind===t&&status(r)===st).length}`);const blob=new Blob(['\ufeff'+summary.join('\r\n')],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`daily-transaction-report-${today}.csv`;a.click();URL.revokeObjectURL(url);showToast('Daily transaction report export হয়েছে');};
         // Deposit number preview + Cancel, while retaining the existing save workflow.
@@ -936,8 +951,7 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
         window.openBackupRestore=function(){document.getElementById('modal-title').textContent='Backup & Restore Plan';document.getElementById('generic-modal').style.display='flex';document.getElementById('modal-body').innerHTML=`<div class="space-y-3 text-xs"><p class="ui-muted">Export creates a JSON backup of the selected collections accessible to this admin. Restore merges records by document ID; test on staging first.</p><button onclick="exportAdminBackup()" class="ui-btn-primary w-full p-3">Download Database Backup (JSON)</button><label class="block font-bold">Restore JSON backup<input id="admin-backup-file" type="file" accept="application/json,.json" class="ui-control w-full p-3 mt-2"></label><button onclick="restoreAdminBackup()" class="ui-btn-danger w-full p-3">Restore / Merge Backup</button><div class="ui-request-card p-3 space-y-1"><b>Recovery checklist</b><p>1. Export backup before risky changes.</p><p>2. Keep encrypted copy outside this website.</p><p>3. Restore to staging and verify user balances, requests, referrals and settings.</p><p>4. Only then restore production; test login and transaction processing.</p><p class="text-amber-500">This browser backup is not a scheduled/atomic server backup.</p></div></div>`;};
         window.exportAdminBackup=async function(){if(!(await window.adminConfirm('Backup download করবেন?','Backup-এ personal data থাকতে পারে। নিরাপদ জায়গায় রাখুন।','Download Backup','Cancel')))return;try{const out={format:'gamechanger-admin-backup-v1',createdAt:new Date().toISOString(),collections:{}};for(const c of __backupCollections){const snap=await getDocs(collection(db,c));out.collections[c]=snap.docs.map(d=>({id:d.id,data:d.data()}));}const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`admin-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);await window.logAdminActivity('security','backup_export','Admin exported Firestore backup');showToast('Backup JSON download হয়েছে');}catch(e){window.recordAdminSecurityEvent('backup_export_failed',e.message||e);showToast('Backup failed: '+(e.message||e),'error');}};
         window.restoreAdminBackup=async function(){const file=document.getElementById('admin-backup-file')?.files?.[0];if(!file){showToast('Backup JSON file select করুন','warning');return;}if(!(await window.adminConfirm('Backup restore করবেন?','এটি database-এ data merge করবে। আগে বর্তমান backup রাখুন; ভুল file data নষ্ট করতে পারে।','Restore Backup','Cancel')))return;try{const data=JSON.parse(await file.text());if(!data.collections||!String(data.format||'').startsWith('gamechanger-admin-backup'))throw new Error('Unsupported backup format');for(const [c,items] of Object.entries(data.collections)){if(!__backupCollections.includes(c)||!Array.isArray(items))continue;for(const item of items){if(!item?.id||!item.data)continue;await setDoc(doc(db,c,String(item.id)),item.data,{merge:true});}}await window.logAdminActivity('security','backup_restore','Admin restored/merged JSON backup');showToast('Restore merge complete. Data verify করুন।');await loadAllAdminData();}catch(e){window.recordAdminSecurityEvent('backup_restore_failed',e.message||e);showToast('Restore failed: '+(e.message||e),'error');}};
-        // Dashboard security tools / global search entry point.
-        setTimeout(()=>{const dash=document.getElementById('tab-dashboard');if(dash&&!document.getElementById('admin-security-tools')){const panel=document.createElement('section');panel.id='admin-security-tools';panel.className='glass-card rounded-2xl p-4 space-y-3';panel.innerHTML=`<div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold">Transactions & Security Tools</h3><p class="text-xs ui-muted mt-1">Global search, daily report, backup, session/security events</p></div><button onclick="openGlobalAdminSearch()" class="ui-btn-primary px-3 py-2 text-xs"><i class="fa-solid fa-magnifying-glass mr-1"></i>Global Search</button></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><button onclick="openHistoryModal('Deposit')" class="ui-btn-secondary p-3 text-xs">Unified Transaction History</button><button onclick="exportDailyTransactionReport()" class="ui-btn-secondary p-3 text-xs">Daily Transaction Report CSV</button><button onclick="openBackupRestore()" class="ui-btn-secondary p-3 text-xs">Backup & Restore Plan</button><button onclick="openReferralHistory()" class="ui-btn-secondary p-3 text-xs">Refer History</button></div><div><h4 class="text-xs font-bold mb-2">Security Event Alerts</h4><div id="admin-security-events" class="space-y-2"><p class="ui-muted text-xs">এই browser session-এ কোনো security event ধরা পড়েনি।</p></div></div><p class="text-[10px] ui-muted">Security reminder: client-side checks alone cannot secure a database. Owner-role lock, privileged action authorization, transaction idempotency and scheduled backups must also be enforced with Firestore Security Rules / trusted Cloud Functions.</p>`;dash.appendChild(panel);}},1200);
+        // Legacy 'Other' menu and its injected tools have been removed.
         document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();window.openGlobalAdminSearch();}});
 
         window.closeGenericModal = function() {
@@ -1134,18 +1148,23 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
         };
         window.getStaffAllowedTabs = function() {
             const role = window.currentStaffRole || '';
-            if (['owner','main_admin','full_admin'].includes(role)) return ['dashboard','sections','groups','tournaments','banners','deposits','withdraws','rules','staff','activity'];
-            if (role === 'admin') return ['dashboard','sections','groups','tournaments','banners','deposits','withdraws','rules'];
+            const full = ['owner','main_admin','full_admin'];
+            if (full.includes(role)) return ['dashboard','profile','sections','groups','tournaments','banners','deposits','withdraws','rules','staff','activity'];
+            if (role === 'admin') return ['dashboard','profile','sections','groups','tournaments','banners','deposits','withdraws','rules'];
             if (role === 'deposit_admin') return ['dashboard','deposits'];
             if (role === 'withdraw_admin') return ['dashboard','withdraws'];
             if (role === 'tournament_admin') return ['dashboard','tournaments'];
-            if (role === 'custom_admin') return ['dashboard', ...(window.currentStaffPermissions || [])].filter(x => ['dashboard','sections','groups','tournaments','banners','deposits','withdraws','rules'].includes(x));
+            if (role === 'custom_admin') {
+                const granted = Array.isArray(window.currentStaffPermissions) ? window.currentStaffPermissions : [];
+                return [...new Set(['dashboard', ...granted.filter(x => ['profile','sections','groups','tournaments','banners','deposits','withdraws','rules','notifications','app_update','maintenance','aura_features'].includes(x))])];
+            }
             return [];
         };
         window.switchTab = function(tabName) {
             const allowed = window.getStaffAllowedTabs();
+            const special = { notifications:'notifications', app_update:'app_update', maintenance:'maintenance', aura_features:'aura_features' };
             if (!allowed.includes(tabName)) { window.showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error'); return; }
-            ['dashboard','sections','groups','tournaments','banners','deposits','withdraws','rules','staff','activity'].forEach(t => {
+            ['dashboard','profile','sections','groups','tournaments','banners','deposits','withdraws','rules','staff','activity'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.style.display = (t === tabName) ? 'block' : 'none';
             });
@@ -1156,24 +1175,51 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
         window.applyStaffPermissions = function() {
             const role = window.currentStaffRole || '';
             const allowed = window.getStaffAllowedTabs();
-            document.getElementById('adminRoleBadge').textContent = role === 'owner' ? 'OWNER' : role.replaceAll('_',' ').toUpperCase();
-            document.querySelectorAll('#adminMenuButtons [data-tab]').forEach(btn => { btn.style.display = allowed.includes(btn.dataset.tab) ? 'flex' : 'none'; });
+            const granted = Array.isArray(window.currentStaffPermissions) ? window.currentStaffPermissions : [];
+            const privileged = ['owner','main_admin','full_admin','admin'].includes(role);
             const canManageStaff = ['owner','main_admin','full_admin'].includes(role);
-            const activityBtn = document.getElementById('activityMenuButton'); if (activityBtn) activityBtn.style.display = canManageStaff ? 'flex' : 'none';
-            document.getElementById('staffMenuButton').style.display = canManageStaff ? 'flex' : 'none';
-            document.querySelectorAll('#adminMenuButtons button:not([data-tab]), #adminMenuButtons a').forEach(btn => {
-                const t = btn.textContent || '';
-                let visible = false;
-                if (t.includes('Notifications')) visible = ['owner','main_admin','admin','full_admin'].includes(role) || (role === 'custom_admin' && (window.currentStaffPermissions||[]).includes('notifications'));
-                else if (t.includes('App Update')) visible = ['owner','main_admin','admin','full_admin'].includes(role) || (role === 'custom_admin' && (window.currentStaffPermissions||[]).includes('app_update'));
-                else if (t.includes('Maintenance')) visible = ['owner','main_admin','admin','full_admin'].includes(role) || (role === 'custom_admin' && (window.currentStaffPermissions||[]).includes('maintenance'));
-                else if (t.includes('AURA ARMAN')) visible = ['owner','main_admin','admin','full_admin'].includes(role) || (role === 'custom_admin' && (window.currentStaffPermissions||[]).includes('aura_features'));
-                else if (t.includes('Logout')) visible = true;
-                else if (t.includes('Home View')) visible = !['deposit_admin','withdraw_admin'].includes(role);
+            const badge = document.getElementById('adminRoleBadge');
+            if (badge) badge.textContent = role === 'owner' ? 'OWNER' : role.replaceAll('_',' ').toUpperCase();
+            document.querySelectorAll('#adminMenuButtons [data-tab]').forEach(btn => {
+                const visible = allowed.includes(btn.dataset.tab);
+                btn.hidden = !visible;
                 btn.style.display = visible ? 'flex' : 'none';
             });
-            ['sections','groups','tournaments','banners','deposits','withdraws','rules','staff'].forEach(t=>{ const el=document.getElementById('tab-'+t); if(el) el.style.display='none'; });
-            document.getElementById('tab-dashboard').style.display='block';
+            const activityBtn = document.getElementById('activityMenuButton');
+            if (activityBtn) { activityBtn.hidden = !canManageStaff; activityBtn.style.display = canManageStaff ? 'flex' : 'none'; }
+            const staffBtn = document.getElementById('staffMenuButton');
+            if (staffBtn) { staffBtn.hidden = !canManageStaff; staffBtn.style.display = canManageStaff ? 'flex' : 'none'; }
+            document.querySelectorAll('#adminMenuButtons button:not([data-tab]), #adminMenuButtons a').forEach(btn => {
+                const t = (btn.textContent || '').trim();
+                let visible = false;
+                if (t.includes('Notifications')) visible = privileged || (role === 'custom_admin' && granted.includes('notifications'));
+                else if (t.includes('App Update')) visible = privileged || (role === 'custom_admin' && granted.includes('app_update'));
+                else if (t.includes('Maintenance')) visible = privileged || (role === 'custom_admin' && granted.includes('maintenance'));
+                else if (t.includes('AURA ARMAN')) visible = privileged || (role === 'custom_admin' && granted.includes('aura_features'));
+                else if (t.includes('Logout')) visible = true;
+                else if (t.includes('Home View')) visible = privileged || (role === 'custom_admin' && granted.includes('home_view'));
+                btn.hidden = !visible;
+                btn.style.display = visible ? 'flex' : 'none';
+            });
+            // Dashboard is shared, but limited staff only see widgets for their own permissions.
+            const dashStats = document.getElementById('dashboard-stats');
+            if (dashStats) dashStats.style.display = privileged ? '' : 'none';
+            const pendingDeposit = document.getElementById('live-pending-deposits')?.closest('.glass-card');
+            const pendingWithdraw = document.getElementById('live-pending-withdraws')?.closest('.glass-card');
+            if (pendingDeposit) pendingDeposit.style.display = privileged || allowed.includes('deposits') ? '' : 'none';
+            if (pendingWithdraw) pendingWithdraw.style.display = privileged || allowed.includes('withdraws') ? '' : 'none';
+            const liveGrid = pendingDeposit?.parentElement;
+            if (liveGrid) liveGrid.style.display = (pendingDeposit?.style.display !== 'none' || pendingWithdraw?.style.display !== 'none') ? '' : 'none';
+            ['profile','sections','groups','tournaments','banners','deposits','withdraws','rules','staff','activity'].forEach(t=>{
+                const el=document.getElementById('tab-'+t); if(el) el.style.display='none';
+            });
+            const dashboard = document.getElementById('tab-dashboard');
+            if (dashboard) dashboard.style.display = allowed.includes('dashboard') ? 'block' : 'none';
+            // Hide dashboard shortcuts for sections the staff cannot open.
+            document.querySelectorAll('#tab-dashboard [onclick*="switchTab("]').forEach(el => {
+                const m = (el.getAttribute('onclick') || '').match(/switchTab\(['"]([^'"]+)/);
+                if (m) el.style.display = allowed.includes(m[1]) ? '' : 'none';
+            });
         };
         window.adminLogout = async function() {
             if (!(await window.adminConfirm('লগআউট করবেন?', 'আপনার Admin session নিরাপদে বন্ধ হবে।', 'হ্যাঁ, Logout', 'Logout বাতিল'))) return;
@@ -2130,20 +2176,48 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
             document.getElementById('modal-title').innerText = "Add Banner";
             document.getElementById('generic-modal').style.display = 'flex';
             document.getElementById('modal-body').innerHTML = `
-                <div>
-                    <label class="text-slate-400 block mb-1">Image URL</label>
-                    <input type="text" id="banner-image" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                <div class="space-y-2">
+                    <label class="text-slate-400 block mb-1">ছবি নির্বাচন করে ImgBB-তে Upload করুন</label>
+                    <input type="file" id="banner-image-file" accept="image/*" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    <div id="banner-upload-status" aria-live="polite" class="text-xs ui-muted"></div>
+                    <label class="text-slate-400 block mb-1">অথবা Image URL দিন</label>
+                    <input type="url" id="banner-image" placeholder="https://..." class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
                 </div>
                 <div class="rounded-xl border p-2 mt-2" style="border-color:var(--ui-border)"><p class="text-xs ui-muted mb-2">Live Preview</p><img id="banner-live-preview" alt="Banner preview" class="w-full max-h-40 object-contain rounded-lg" style="background:var(--ui-surface-2);display:none"><p id="banner-preview-empty" class="text-xs ui-muted text-center py-4">Image URL দিলে preview দেখা যাবে</p></div>
                 <div class="flex gap-2 mt-2"><button onclick="closeGenericModal()" class="flex-1 ui-btn-secondary font-bold py-2.5 rounded-xl">Cancel</button><button onclick="saveBanner()" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-xl">Add</button></div>
-                <script>document.getElementById('banner-image')?.addEventListener('input',function(){const im=document.getElementById('banner-live-preview'),empty=document.getElementById('banner-preview-empty');im.src=this.value.trim();im.style.display=this.value.trim()?'block':'none';empty.style.display=this.value.trim()?'none':'block';im.onerror=()=>{im.style.display='none';empty.style.display='block';empty.textContent='এই URL থেকে preview লোড করা যায়নি';};});<\/script>
+
             `;
+            const urlField = document.getElementById('banner-image');
+            const fileField = document.getElementById('banner-image-file');
+            const preview = document.getElementById('banner-live-preview');
+            const emptyPreview = document.getElementById('banner-preview-empty');
+            urlField?.addEventListener('input', function(){
+                const url = this.value.trim();
+                if(preview){preview.src=url;preview.style.display=url?'block':'none';preview.onerror=()=>{preview.style.display='none';if(emptyPreview){emptyPreview.style.display='block';emptyPreview.textContent='এই URL থেকে preview লোড করা যায়নি';}};}
+                if(emptyPreview && url){emptyPreview.style.display='none';}
+                else if(emptyPreview){emptyPreview.style.display='block';emptyPreview.textContent='Image URL দিলে preview দেখা যাবে';}
+            });
+            fileField?.addEventListener('change', async function(){
+                const file=this.files?.[0]; if(!file)return;
+                const status=document.getElementById('banner-upload-status');
+                const btn=document.querySelector('#modal-body button[onclick="saveBanner()"]');
+                if(btn)btn.disabled=true;
+                try{
+                    const url=await window.uploadImageToImgBB(file,status);
+                    if(urlField){urlField.value=url;urlField.dispatchEvent(new Event('input',{bubbles:true}));}
+                }catch(e){window.showToast?.(e.message||'ছবি upload হয়নি','error');}
+                finally{if(btn)btn.disabled=false;}
+            });
         }
 
+        let __bannerSaveBusy = false;
         window.saveBanner = async function() {
-            const imageUrl = document.getElementById('banner-image').value.trim();
-            if(!imageUrl) { showToast('লিংক দিন', 'error'); return; }
-
+            if(__bannerSaveBusy) return;
+            const imageUrl = document.getElementById('banner-image')?.value.trim() || '';
+            if(!imageUrl) { showToast('ছবি upload করুন অথবা Image URL দিন', 'error'); return; }
+            __bannerSaveBusy = true;
+            const saveBtn = document.querySelector('#modal-body button[onclick=\"saveBanner()\"]');
+            if(saveBtn) saveBtn.disabled = true;
             try {
                 await addDoc(collection(db, "banners"), {
                     imageUrl,
@@ -2173,6 +2247,9 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
                 await loadAllAdminData();
             } catch(e) {
                 showToast('Banner update করতে সমস্যা হয়েছে: ' + (e?.message || e), 'error');
+            } finally {
+                __bannerSaveBusy = false;
+                if(saveBtn) saveBtn.disabled = false;
             }
         }
 
@@ -2189,6 +2266,66 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
             document.getElementById('wd-filter-nagad').className = gw === 'nagad' ? 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-pink-600 text-white transition' : 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition';
             renderWithdrawsList();
         }
+
+        // Refresh only the selected transaction area when status changes; avoid reloading the whole admin dashboard.
+        let __depositStatusRefreshBusy = false;
+        let __withdrawStatusRefreshBusy = false;
+        window.refreshDepositStatus = async function() {
+            if (__depositStatusRefreshBusy) { renderDepositsList(); return; }
+            __depositStatusRefreshBusy = true;
+            const list = document.getElementById('admin-deposits-list');
+            if (list) list.setAttribute('aria-busy', 'true');
+            try {
+                const [depSnap, txSnap] = await Promise.all([
+                    getDocs(collection(db, 'deposits')),
+                    getDocs(collection(db, 'transactions'))
+                ]);
+                const fresh = new Map();
+                depSnap.forEach(d => fresh.set(d.id, { id: d.id, ...(d.data() || {}), __source: 'deposits' }));
+                txSnap.forEach(d => {
+                    const data = d.data() || {};
+                    if ((data.type === 'Deposit' || data.gateway || data.amount != null) && !fresh.has(d.id)) {
+                        fresh.set(d.id, { id: d.id, ...data, __source: 'transactions' });
+                    }
+                });
+                allDeposits = Array.from(fresh.values()).sort((a,b) => Number(b.timestamp || b.createdAt || b.reviewedAt || 0) - Number(a.timestamp || a.createdAt || a.reviewedAt || 0));
+                adminListPages.deposits = 1;
+                renderDepositsList();
+            } catch (e) {
+                console.error('Deposit status refresh failed:', e);
+                if (list && !allDeposits.length) list.innerHTML = '<div class="ui-request-card p-4 text-center text-xs">ডিপোজিট লোড হয়নি। আবার চেষ্টা করুন।</div>';
+                else showToast('Deposit list refresh হয়নি', 'error');
+            } finally {
+                __depositStatusRefreshBusy = false;
+                if (list) list.removeAttribute('aria-busy');
+            }
+        };
+        window.refreshWithdrawStatus = async function() {
+            if (__withdrawStatusRefreshBusy) { renderWithdrawsList(); return; }
+            __withdrawStatusRefreshBusy = true;
+            const list = document.getElementById('admin-withdraws-list');
+            if (list) list.setAttribute('aria-busy', 'true');
+            try {
+                const [wdSnap, historySnap] = await Promise.all([
+                    getDocs(collection(db, 'withdraws')),
+                    getDocs(collection(db, 'withdrawHistory'))
+                ]);
+                allWithdraws = [];
+                wdSnap.forEach(d => allWithdraws.push({ id: d.id, ...(d.data() || {}) }));
+                allWithdrawHistory = [];
+                historySnap.forEach(d => allWithdrawHistory.push({ id: d.id, ...(d.data() || {}) }));
+                allWithdrawHistory.sort((a,b) => Number(b.reviewedAt || b.createdAt || b.timestamp || 0) - Number(a.reviewedAt || a.createdAt || a.timestamp || 0));
+                adminListPages.withdraws = 1;
+                await renderWithdrawsList();
+            } catch (e) {
+                console.error('Withdraw status refresh failed:', e);
+                if (list && !allWithdraws.length) list.innerHTML = '<div class="ui-request-card p-4 text-center text-xs">Withdraw লোড হয়নি। আবার চেষ্টা করুন।</div>';
+                else showToast('Withdraw list refresh হয়নি', 'error');
+            } finally {
+                __withdrawStatusRefreshBusy = false;
+                if (list) list.removeAttribute('aria-busy');
+            }
+        };
 
         function renderDepositsList() {
             const list = document.getElementById('admin-deposits-list');
@@ -2810,7 +2947,8 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
         window.auraSaveHomeContent = async function(){const notice=document.getElementById('aura-notice').value;const lines=document.getElementById('aura-media').value.split('\n').map(x=>x.trim()).filter(Boolean);const heroMedia=lines.map(x=>{const [type,url,link]=x.split('|');return{type:type||'image',url:url||'',link:link||''}}).filter(x=>x.url);await setDoc(doc(db,'settings','homePage'),{noticeText:notice,heroMedia},{merge:true});alert('Home content saved');auraHomeContent();};
 
         window.auraMediaAPK = function(){auraPanel('Media / APK',`<div class="space-y-3"><div><label class="text-slate-400">Home image/video</label><input id="aura-media-file" type="file" accept="image/*,video/*" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white"><button onclick="auraUploadMedia()" class="w-full bg-blue-600 text-white p-2 rounded-xl mt-2 font-bold">Upload Media</button></div><hr class="border-slate-800"><div><label class="text-slate-400">APK file</label><input id="aura-apk-file" type="file" accept=".apk,application/vnd.android.package-archive" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2 text-white"><button onclick="auraUploadAPK()" class="w-full bg-emerald-600 text-white p-2 rounded-xl mt-2 font-bold">Upload APK</button></div><div id="aura-upload-status" class="text-xs text-slate-400"></div></div>`)};
-        window.auraUploadMedia = async function(){const f=document.getElementById('aura-media-file').files[0];if(!f)return alert('File select করুন');const path=`home-media/${Date.now()}_${f.name}`;const r=storageRef(auraStorage,path);document.getElementById('aura-upload-status').innerText='Uploading...';await uploadBytes(r,f);const url=await getDownloadURL(r);const s=await getDoc(doc(db,'settings','homePage'));const v=s.exists()?s.data():{};const arr=Array.isArray(v.heroMedia)?v.heroMedia:[];arr.push({type:f.type.startsWith('video/')?'video':'image',url,link:''});await setDoc(doc(db,'settings','homePage'),{heroMedia:arr},{merge:true});document.getElementById('aura-upload-status').innerText='Media uploaded successfully.';};
+        let __auraMediaUploadBusy=false;
+        window.auraUploadMedia = async function(){if(__auraMediaUploadBusy)return;const f=document.getElementById('aura-media-file')?.files?.[0];if(!f)return alert('File select করুন');const status=document.getElementById('aura-upload-status');__auraMediaUploadBusy=true;try{let url;if(f.type.startsWith('image/')){url=await window.uploadImageToImgBB(f,status);}else if(f.type.startsWith('video/')){const path=`home-media/${Date.now()}_${f.name}`;const r=storageRef(auraStorage,path);if(status)status.innerText='Video uploading...';await uploadBytes(r,f);url=await getDownloadURL(r);}else{throw new Error('Image বা video file নির্বাচন করুন।');}const s=await getDoc(doc(db,'settings','homePage'));const v=s.exists()?s.data():{};const arr=Array.isArray(v.heroMedia)?v.heroMedia:[];if(!arr.some(x=>String(x?.url||'')===url))arr.push({type:f.type.startsWith('video/')?'video':'image',url,link:''});await setDoc(doc(db,'settings','homePage'),{heroMedia:arr},{merge:true});if(status)status.innerText='Media uploaded successfully ✓';}catch(e){if(status)status.innerText=e.message||'Media upload failed';alert(e.message||'Media upload failed');}finally{__auraMediaUploadBusy=false;}};
         window.auraUploadAPK = async function(){const f=document.getElementById('aura-apk-file').files[0];if(!f)return alert('APK select করুন');const r=storageRef(auraStorage,`app-downloads/${Date.now()}_${f.name}`);document.getElementById('aura-upload-status').innerText='Uploading APK...';await uploadBytes(r,f,{contentType:'application/vnd.android.package-archive'});const url=await getDownloadURL(r);await setDoc(doc(db,'settings','appDownload'),{url,name:f.name,updatedAt:Date.now()},{merge:true});document.getElementById('aura-upload-status').innerText='APK uploaded successfully.';};
 
         window.auraMemoryCenter = function(){auraPanel('Memory Centre',`<div class="space-y-3"><p class="text-amber-300 text-xs">⚠️ এগুলো permanent delete হতে পারে। আগে নিশ্চিত হন।</p><div class="grid grid-cols-2 gap-2">${['users','sections','groups','tournaments','registrations','transactions','deposits','withdraws','giftCodes','supportTickets','notifications','banners'].map(c=>`<button onclick="auraClearCollection('${c}')" class="bg-red-950/40 border border-red-500/20 text-red-200 p-2 rounded-lg text-xs font-bold">Clear ${c}</button>`).join('')}</div><button onclick="auraClearStorageFolder('home-media')" class="w-full bg-red-900/40 border border-red-500/30 text-red-200 p-2 rounded-xl font-bold">Clear Home Media Storage</button><button onclick="auraClearStorageFolder('app-downloads')" class="w-full bg-red-900/40 border border-red-500/30 text-red-200 p-2 rounded-xl font-bold">Clear APK Storage</button></div>`)};
@@ -3059,6 +3197,37 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/f
 </script>
 
 
+<script id="imgbb-progress-upload-helper">
+(function(){
+  'use strict';
+  const IMGBB_API_KEY = '8edd89599e2ee6c32e119c6f147ba6f4';
+  let activeUploads = 0;
+  function paintProgress(target, percent, label){
+    if(!target) return;
+    const p=Math.max(0,Math.min(100,Math.round(percent||0)));
+    const safeLabel=String(label||'Uploading image...').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+    target.innerHTML='<div class="space-y-1.5"><div class="flex justify-between gap-2 text-xs"><span class="imgbb-status-label">'+safeLabel+'</span><b class="imgbb-percent">'+p+'%</b></div><div style="height:7px;background:var(--ui-surface-2,#1e293b);border-radius:99px;overflow:hidden"><div class="imgbb-progress-fill" style="height:100%;width:'+p+'%;background:linear-gradient(90deg,#7c3aed,#22d3ee);border-radius:99px;transition:width .12s linear"></div></div></div>';
+  }
+  window.uploadImageToImgBB = function(file, statusTarget){
+    return new Promise((resolve,reject)=>{
+      if(!(file instanceof File) || !file.type.startsWith('image/')) return reject(new Error('একটি valid image file নির্বাচন করুন।'));
+      if(file.size > 32*1024*1024) return reject(new Error('Image 32MB-এর কম হতে হবে।'));
+      if(activeUploads>0) return reject(new Error('একটি upload চলছে। শেষ হলে আবার চেষ্টা করুন।'));
+      activeUploads++;
+      paintProgress(statusTarget,0,'ছবি প্রস্তুত হচ্ছে...');
+      const form=new FormData(); form.append('image',file);
+      const xhr=new XMLHttpRequest(); xhr.open('POST','https://api.imgbb.com/1/upload?key='+encodeURIComponent(IMGBB_API_KEY),true); xhr.timeout=120000;
+      xhr.upload.onprogress=e=>{if(e.lengthComputable)paintProgress(statusTarget,e.loaded/e.total*100,'ImgBB-তে আপলোড হচ্ছে...');};
+      xhr.onload=()=>{activeUploads=Math.max(0,activeUploads-1);try{const data=JSON.parse(xhr.responseText||'{}');if(xhr.status>=200&&xhr.status<300&&data.success&&data.data&&data.data.url){paintProgress(statusTarget,100,'আপলোড সম্পন্ন ✓');resolve(data.data.url);}else{const message=data?.error?.message||'ImgBB upload ব্যর্থ হয়েছে।';paintProgress(statusTarget,0,message);reject(new Error(message));}}catch(e){paintProgress(statusTarget,0,'Upload response পড়া যায়নি।');reject(new Error('ImgBB response invalid।'));}};
+      xhr.onerror=()=>{activeUploads=Math.max(0,activeUploads-1);paintProgress(statusTarget,0,'Network error — আবার চেষ্টা করুন');reject(new Error('Network error: ImgBB-তে সংযোগ করা যায়নি।'));};
+      xhr.ontimeout=()=>{activeUploads=Math.max(0,activeUploads-1);paintProgress(statusTarget,0,'Upload timeout — আবার চেষ্টা করুন');reject(new Error('Upload timeout হয়েছে।'));};
+      xhr.onabort=()=>{activeUploads=Math.max(0,activeUploads-1);paintProgress(statusTarget,0,'Upload বাতিল হয়েছে');reject(new Error('Upload বাতিল হয়েছে।'));};
+      xhr.send(form);
+    });
+  };
+})();
+</script>
+
 <script id="gamechanger-premium-dashboard-features">
 (function(){
   const $=id=>document.getElementById(id);
@@ -3071,8 +3240,8 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/f
   const api=()=>window.__adminProfileApi;
   function profileDocRef(){const a=api();if(!a||(!window.currentStaffUid && !window.currentStaffEmail))return null;const key=window.currentStaffUid||window.currentStaffEmail;return a.doc(a.db,'adminProfiles',key);}
   async function loadProfile(){const a=api(),ref=profileDocRef();if(!a||!ref)return;try{const snap=await a.getDoc(ref);if(!snap.exists())return;const d=snap.data()||{};if(d.displayName){window.__resolveRequiredAdminProfileGate?.();$('adminProfileNameDisplay').textContent=d.displayName;$('adminProfileEmailDisplay').textContent=window.currentStaffEmail||'';$('adminProfileSaved').classList.remove('hidden');$('adminProfileSaved').classList.add('flex');$('adminProfileForm').classList.add('hidden');}if(d.logoUrl){$('adminProfileLogo').src=d.logoUrl;$('adminProfileLogo').style.display='block';}}catch(e){console.warn('Admin profile read failed; check adminProfiles Firestore rules.',e);}}
-  window.saveAdminProfileOnce=async function(){const a=api(),ref=profileDocRef();if(!a||!ref)return window.showToast?.('Admin login যাচাই হচ্ছে, একটু পরে চেষ্টা করো।','error');const btn=$('saveAdminProfileBtn');const name=String($('adminDisplayNameInput')?.value||'').trim();if(name.length<2)return window.showToast?.('কমপক্ষে ২ অক্ষরের display name দাও।','error');if(name.length>32)return window.showToast?.('Display name ৩২ অক্ষরের মধ্যে রাখো।','error');if(btn){btn.disabled=true;btn.textContent='Saving...';}try{let logoUrl=chosenLogoUrl;if(chosenLogoFile){const uid=window.currentStaffUid||window.currentStaffEmail;const r=a.storageRef(a.auraStorage,'adminProfileLogos/'+encodeURIComponent(uid)+'_'+Date.now()+'_'+chosenLogoFile.name.replace(/[^a-zA-Z0-9._-]/g,'_'));await a.uploadBytes(r,chosenLogoFile);logoUrl=await a.getDownloadURL(r);}const existing=await a.getDoc(ref);if(existing.exists()&&existing.data()?.displayName)throw new Error('Display name একবার সেট করা হয়েছে; পরিবর্তন করা যাবে না।');await a.setDoc(ref,{uid:window.currentStaffUid||'',email:window.currentStaffEmail||'',displayName:name,logoUrl:logoUrl||'',role:window.currentStaffRole||'',createdAt:Date.now(),updatedAt:Date.now()},{merge:true});$('adminProfileNameDisplay').textContent=name;$('adminProfileEmailDisplay').textContent=window.currentStaffEmail||'';$('adminProfileSaved').classList.remove('hidden');$('adminProfileSaved').classList.add('flex');$('adminProfileForm').classList.add('hidden');window.__resolveRequiredAdminProfileGate?.();if(logoUrl){$('adminProfileLogo').src=logoUrl;$('adminProfileLogo').style.display='block';}window.showToast?.('Admin profile save হয়েছে','success');}catch(e){console.error(e);window.showToast?.(e.message||'Profile save হয়নি। Firestore/Storage Rules পরীক্ষা করুন।','error');}finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk mr-2"></i>Save Profile';}}};
-  window.loadAdminLeaderboard=async function(){const a=api(),root=$('adminLeaderboardList');if(!a)return;if(!root)return;root.innerHTML='<div class="ui-skeleton h-12 rounded-xl"></div><div class="ui-skeleton h-12 rounded-xl"></div>';try{const snap=await a.getDocs(a.collection(a.db,'adminProfiles'));const rows=snap.docs.map(d=>({id:d.id,...(d.data()||{})})).filter(x=>x.displayName).sort((a,b)=>Number(b.activityScore||0)-Number(a.activityScore||0));if(!rows.length){root.innerHTML='<p class="text-xs ui-muted py-3">এখনও কোনো Admin/Staff display name সেট করেনি।</p>';return;}root.innerHTML=rows.map((x,i)=>`<div class="leaderboard-row flex items-center gap-3 rounded-xl border p-3" style="border-color:var(--ui-border);background:var(--ui-surface-2)"><span class="font-black text-sm ${i===0?'text-amber-500':i===1?'text-slate-500':i===2?'text-orange-600':'ui-muted'}">#${i+1}</span>${x.logoUrl?`<img src="${safeText(x.logoUrl)}" alt="" class="w-10 h-10 rounded-xl object-cover">`:`<span class="w-10 h-10 rounded-xl flex items-center justify-center font-black" style="background:var(--ui-border)">${safeText((x.displayName||'?').slice(0,1).toUpperCase())}</span>`}<div class="min-w-0 flex-1"><p class="font-bold text-sm truncate">${safeText(x.displayName)}</p><p class="text-[10px] ui-muted">${safeText(String(x.role||'staff').replaceAll('_',' '))}</p></div><span class="ui-status other">${Number(x.activityScore||0)} pts</span></div>`).join('');}catch(e){console.warn('Leaderboard load failed; check adminProfiles read rules.',e);root.innerHTML='<p class="text-xs text-amber-700">Leaderboard load হয়নি। Firestore Rules-এ adminProfiles read permission দিতে হবে।</p>';}};
+  let profileSaveBusy=false;
+  window.saveAdminProfileOnce=async function(){if(profileSaveBusy)return;const a=api(),ref=profileDocRef();if(!a||!ref)return window.showToast?.('Admin login যাচাই হচ্ছে, একটু পরে চেষ্টা করো।','error');const btn=$('saveAdminProfileBtn');const name=String($('adminDisplayNameInput')?.value||'').trim();if(name.length<2)return window.showToast?.('কমপক্ষে ২ অক্ষরের display name দাও।','error');if(name.length>32)return window.showToast?.('Display name ৩২ অক্ষরের মধ্যে রাখো।','error');profileSaveBusy=true;if(btn){btn.disabled=true;btn.textContent='Saving...';}try{let logoUrl=chosenLogoUrl;if(chosenLogoFile){logoUrl=await window.uploadImageToImgBB(chosenLogoFile,$('adminLogoUploadStatus'));}const existing=await a.getDoc(ref);if(existing.exists()&&existing.data()?.displayName)throw new Error('Display name একবার সেট করা হয়েছে; পরিবর্তন করা যাবে না।');await a.setDoc(ref,{uid:window.currentStaffUid||'',email:window.currentStaffEmail||'',displayName:name,logoUrl:logoUrl||'',role:window.currentStaffRole||'',createdAt:Date.now(),updatedAt:Date.now()},{merge:true});$('adminProfileNameDisplay').textContent=name;$('adminProfileEmailDisplay').textContent=window.currentStaffEmail||'';$('adminProfileSaved').classList.remove('hidden');$('adminProfileSaved').classList.add('flex');$('adminProfileForm').classList.add('hidden');window.__resolveRequiredAdminProfileGate?.();if(logoUrl){$('adminProfileLogo').src=logoUrl;$('adminProfileLogo').style.display='block';}window.showToast?.('Admin profile save হয়েছে','success');}catch(e){console.error(e);window.showToast?.(e.message||'Profile save হয়নি। Firestore/Storage Rules পরীক্ষা করুন।','error');}finally{profileSaveBusy=false;if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk mr-2"></i>Save Profile';}}};
   // Smooth count-up for numeric dashboard values.
   const animateValue=(el,target)=>{if(!el)return;const text=String(target);if(!/^\d+$/.test(text)){el.textContent=text;return;}const end=Number(text),start=0,duration=650,t0=performance.now();function tick(now){const p=Math.min(1,(now-t0)/duration);el.textContent=Math.round(end*(1-Math.pow(1-p,3))).toLocaleString();if(p<1)requestAnimationFrame(tick);}requestAnimationFrame(tick);};
   const observer=new MutationObserver(()=>document.querySelectorAll('#dashboard-stats .stat-value').forEach(el=>{if(el.dataset.counted==='1')return;el.dataset.counted='1';animateValue(el,el.textContent.trim());}));const stats=$('dashboard-stats');if(stats)observer.observe(stats,{childList:true,subtree:true});
@@ -3087,13 +3256,13 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/f
   window.renderDashboardAnalytics=function(){const mode=$('dashboardDateRange')?.value||'7',now=new Date();let start=new Date(now);start.setHours(0,0,0,0);let end=new Date(now);end.setHours(23,59,59,999);if(mode==='7')start.setDate(start.getDate()-6);if(mode==='30')start.setDate(start.getDate()-29);if(mode==='custom'){if($('dashboardDateStart')?.value)start=new Date($('dashboardDateStart').value+'T00:00:00');if($('dashboardDateEnd')?.value)end=new Date($('dashboardDateEnd').value+'T23:59:59');}const inside=x=>stamp(x)>=start.getTime()&&stamp(x)<=end.getTime();const ds=(window.allDeposits||[]).filter(x=>inside(x)&&approvedRow(x)),ws=(window.allWithdraws||[]).filter(x=>inside(x)&&approvedRow(x));const sum=a=>a.reduce((n,x)=>n+Number(x.amount||0),0),fmt=n=>'৳'+Number(n||0).toLocaleString('en-BD',{maximumFractionDigits:2});const dv=sum(ds),wv=sum(ws);if($('dashRevenueDeposit'))$('dashRevenueDeposit').textContent=fmt(dv);if($('dashRevenueWithdraw'))$('dashRevenueWithdraw').textContent=fmt(wv);const max=Math.max(dv,wv,1);if($('dashRevenueChart'))$('dashRevenueChart').innerHTML=[['Deposits',dv,'#16a34a'],['Withdrawals',wv,'#e11d48']].map(([n,v,c])=>`<div><div class="flex justify-between text-xs mb-1"><span>${n}</span><b>${fmt(v)}</b></div><div class="h-3 rounded-full overflow-hidden" style="background:var(--ui-surface-2)"><div class="h-full rounded-full" style="width:${v?Math.max(2,v/max*100):0}%;background:${c};transition:width .5s ease"></div></div></div>`).join('');const pd=(window.allDeposits||[]).filter(x=>!x.status||String(x.status).toLowerCase()==='pending').length,pw=(window.allWithdraws||[]).filter(x=>!x.status||String(x.status).toLowerCase()==='pending').length,ts=window.allTournaments||[];if($('dashboardPendingWork'))$('dashboardPendingWork').innerHTML=[['Pending Deposits',pd,'deposits'],['Pending Withdrawals',pw,'withdraws'],['Active Tournaments',ts.filter(x=>/live|active|ongoing/i.test(String(x.status||''))).length,'tournaments'],['Total Tournaments',ts.length,'tournaments']].map(([n,v,t])=>`<button onclick="switchTab('${t}')" class="rounded-xl p-3 text-left" style="background:var(--ui-surface-2)"><p class="text-xs ui-muted">${n}</p><p class="text-xl font-black">${v}</p></button>`).join('');const alerts=[];if(pd>=10)alerts.push(`Pending deposits অনেক বেশি: ${pd}`);if(pw>=10)alerts.push(`Pending withdrawals অনেক বেশি: ${pw}`);const am=(window.allDeposits||[]).filter(x=>!x.status||String(x.status).toLowerCase()==='pending').map(x=>Number(x.amount||0)).filter(n=>n>0);if(am.length>=3){const avg=am.reduce((a,b)=>a+b,0)/am.length;if(am.some(n=>n>=avg*3))alerts.push('একটি বা একাধিক pending deposit amount স্বাভাবিক গড়ের ৩ গুণ বা বেশি—ম্যানুয়ালি যাচাই করুন।');}if($('dashboardAnomalyAlerts'))$('dashboardAnomalyAlerts').innerHTML=alerts.length?alerts.map(a=>`<div class="rounded-lg border p-2 text-xs" style="border-color:#f59e0b;background:rgba(245,158,11,.1)"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${safeText(a)}</div>`).join(''):'<p class="text-xs ui-muted">Loaded data-তে কোনো basic warning trigger হয়নি। এটি fraud detection নয়।</p>';const recent=[...(window.allDeposits||[]).map(x=>({...x,_kind:'Deposit'})),...(window.allWithdraws||[]).map(x=>({...x,_kind:'Withdraw'}))].sort((a,b)=>stamp(b)-stamp(a)).slice(0,5);if($('dashboardRecentActivities'))$('dashboardRecentActivities').innerHTML=recent.length?recent.map(x=>`<div class="flex items-center gap-2 rounded-lg p-2" style="background:var(--ui-surface-2)"><span class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--ui-border)"><i class="fa-solid ${x._kind==='Deposit'?'fa-arrow-down text-emerald-600':'fa-arrow-up text-rose-600'}"></i></span><div class="min-w-0 flex-1"><p class="text-xs font-bold">${x._kind} · ${safeText(x.status||'pending')}</p><p class="text-[10px] ui-muted truncate">${safeText(x.uid||x.userId||x.email||x.id||'Transaction')}</p></div><b class="text-xs">${fmt(x.amount)}</b></div>`).join(''):'<p class="text-xs ui-muted">এখনও transaction data নেই।</p>';if($('dashboardTopPlayers'))$('dashboardTopPlayers').innerHTML=ts.length?ts.slice(0,5).map((x,i)=>`<div class="flex items-center gap-2 rounded-lg p-2" style="background:var(--ui-surface-2)"><b class="text-xs text-violet-600">#${i+1}</b><span class="text-xs font-bold flex-1">${safeText(x.name||x.title||x.tournamentName||'Tournament')}</span><span class="text-[10px] ui-muted">${Number(x.playerCount||x.registeredPlayersCount||x.playersCount||0)} players</span></div>`).join(''):'<p class="text-xs ui-muted">Tournament registration data পাওয়া যায়নি।</p>';};
   $('dashboardDateRange')?.addEventListener('change',()=>{const c=$('dashboardDateRange').value==='custom';$('dashboardDateStart')?.classList.toggle('hidden',!c);$('dashboardDateEnd')?.classList.toggle('hidden',!c);});
   const oldSummary=window.renderSummaryDashboard;window.renderSummaryDashboard=function(){oldSummary?.();const root=$('dashboard-stats');if(root){const chosen=readDashboardPrefs();root.querySelectorAll('.stat-card').forEach(c=>{const label=c.querySelector('.stat-label')?.textContent?.trim();c.style.display=chosen.includes(label)?'':'none';});}window.renderDashboardAnalytics?.();};renderDashboardPrefs();
-  document.addEventListener('DOMContentLoaded',()=>{loadProfile();window.loadAdminLeaderboard();});
-  window.addEventListener('admin-profile-ready',()=>{loadProfile();window.loadAdminLeaderboard();});
-  const oldLoad=window.loadAllAdminData;if(typeof oldLoad==='function'){window.loadAllAdminData=async function(){const result=await oldLoad.apply(this,arguments);loadProfile();window.loadAdminLeaderboard();return result;};}
+  document.addEventListener('DOMContentLoaded',loadProfile);
+  window.addEventListener('admin-profile-ready',loadProfile);
+  
 })();
 </script>
 <style id="gamechanger-premium-motion-css">
-.ui-skeleton{background:linear-gradient(100deg,var(--ui-surface-2) 20%,rgba(148,163,184,.25) 40%,var(--ui-surface-2) 60%);background-size:200% 100%;animation:gcShimmer 1.35s linear infinite}.ui-page-enter{animation:gcPageEnter .28s ease both}.ui-tap-pop{animation:gcTapPop .26s ease}.admin-menu-item i{transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s ease}.admin-menu-item:hover i{transform:translateY(-2px) rotate(-5deg) scale(1.12);filter:drop-shadow(0 3px 5px rgba(34,197,94,.25))}.leaderboard-row{animation:gcPageEnter .3s ease both;transition:transform .2s ease,box-shadow .2s ease}.leaderboard-row:hover{transform:translateY(-2px);box-shadow:var(--ui-shadow)}.ui-theme-toggle{transition:all .32s ease}.ui-theme-toggle:active{transform:scale(.96)}@keyframes gcShimmer{to{background-position:-200% 0}}@keyframes gcPageEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes gcTapPop{0%{transform:scale(1)}45%{transform:scale(.96)}100%{transform:scale(1)}}body[data-theme="light"] #maintenanceModal>div,body[data-theme="light"] #appUpdateModal>div{background:#fff!important;color:#163324!important}body[data-theme="light"] #maintenanceModal h3,body[data-theme="light"] #appUpdateModal h3{color:#163324!important}body[data-theme="light"] #maintenanceModal textarea,body[data-theme="light"] #appUpdateModal textarea,body[data-theme="light"] #appUpdateModal input{background:#fff!important;color:#163324!important;border-color:#dce9df!important}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+.ui-skeleton{background:linear-gradient(100deg,var(--ui-surface-2) 20%,rgba(148,163,184,.25) 40%,var(--ui-surface-2) 60%);background-size:200% 100%;animation:gcShimmer 1.35s linear infinite}.ui-page-enter{animation:gcPageEnter .28s ease both}.ui-tap-pop{animation:gcTapPop .26s ease}.admin-menu-item i{transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s ease}.admin-menu-item:hover i{transform:translateY(-2px) rotate(-5deg) scale(1.12);filter:drop-shadow(0 3px 5px rgba(34,197,94,.25))}.ui-theme-toggle{transition:all .32s ease}.ui-theme-toggle:active{transform:scale(.96)}@keyframes gcShimmer{to{background-position:-200% 0}}@keyframes gcPageEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes gcTapPop{0%{transform:scale(1)}45%{transform:scale(.96)}100%{transform:scale(1)}}body[data-theme="light"] #maintenanceModal>div,body[data-theme="light"] #appUpdateModal>div{background:#fff!important;color:#163324!important}body[data-theme="light"] #maintenanceModal h3,body[data-theme="light"] #appUpdateModal h3{color:#163324!important}body[data-theme="light"] #maintenanceModal textarea,body[data-theme="light"] #appUpdateModal textarea,body[data-theme="light"] #appUpdateModal input{background:#fff!important;color:#163324!important;border-color:#dce9df!important}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
 
 <div id="requiredAdminProfileGate" role="dialog" aria-modal="true" aria-labelledby="requiredAdminProfileTitle" style="display:none">
@@ -3117,14 +3286,16 @@ body.profile-gate-open{overflow:hidden!important}body.profile-gate-open>header,b
 </style>
 <script id="required-admin-profile-gate-script">
 (function(){
- const $=id=>document.getElementById(id);let card=null,originParent=null,originNext=null,gateResolved=false;
- function openGate(){if(gateResolved)return;const gate=$('requiredAdminProfileGate');if(!gate)return;gate.classList.add('is-open');gate.style.display='flex';document.body.classList.add('profile-gate-open');if(card&&$('requiredAdminProfileSlot')&&card.parentElement!==$('requiredAdminProfileSlot'))$('requiredAdminProfileSlot').appendChild(card);setTimeout(()=> $('adminDisplayNameInput')?.focus({preventScroll:true}),80);}
+ const $=id=>document.getElementById(id);let card=null,originParent=null,originNext=null,gateResolved=false,checkStarted=false;
+ function openGate(){if(gateResolved)return;const gate=$('requiredAdminProfileGate');if(!gate)return;gate.classList.add('is-open');gate.style.display='flex';document.body.classList.add('profile-gate-open');if(card&&$('requiredAdminProfileSlot')&&card.parentElement!==$('requiredAdminProfileSlot'))$('requiredAdminProfileSlot').appendChild(card);}
  function closeGate(){if(gateResolved)return;gateResolved=true;const gate=$('requiredAdminProfileGate');if(card&&originParent){if(originNext&&originNext.parentElement===originParent)originParent.insertBefore(card,originNext);else originParent.appendChild(card);}if(gate){gate.classList.remove('is-open');gate.style.display='none';}document.body.classList.remove('profile-gate-open');}
  window.__resolveRequiredAdminProfileGate=closeGate;
- function initGate(){card=$('adminProfileCard');if(!card)return;originParent=card.parentElement;originNext=card.nextElementSibling;if(!gateResolved)openGate();}initGate();
- window.addEventListener('admin-profile-ready',()=>{setTimeout(()=>{if(typeof window.loadRequiredAdminProfileGate==='function')window.loadRequiredAdminProfileGate();},0)});
- window.loadRequiredAdminProfileGate=async function(){const a=window.__adminProfileApi,uid=window.currentStaffUid||window.currentStaffEmail;if(!a||!uid)return;try{const ref=a.doc(a.db,'adminProfiles',uid),snap=await a.getDoc(ref);if(snap.exists()&&String(snap.data()?.displayName||'').trim()){closeGate();}}catch(e){console.warn('Required profile check failed; profile gate stays locked until saved.',e);}};
- const oldSave=window.saveAdminProfileOnce;document.addEventListener('click',e=>{if(e.target.closest('#saveAdminProfileBtn')){setTimeout(()=>{const name=$('adminProfileNameDisplay')?.textContent?.trim();if(name&&$('adminProfileForm')?.classList.contains('hidden'))closeGate();},100);}});
+ async function checkProfile(){if(checkStarted||gateResolved)return;const a=window.__adminProfileApi,uid=window.currentStaffUid||window.currentStaffEmail;if(!a||!uid)return;checkStarted=true;try{const ref=a.doc(a.db,'adminProfiles',uid),snap=await a.getDoc(ref);if(snap.exists()&&String(snap.data()?.displayName||'').trim()){closeGate();return;}openGate();}catch(e){console.warn('Admin profile check failed; showing profile setup only once.',e);openGate();}}
+ function initGate(){card=$('adminProfileCard');if(!card)return;originParent=card.parentElement;originNext=card.nextElementSibling;checkProfile();}
+ window.addEventListener('admin-profile-ready',()=>{checkStarted=false;checkProfile();});
+ window.loadRequiredAdminProfileGate=checkProfile;
+ document.addEventListener('click',e=>{if(e.target.closest('#saveAdminProfileBtn')){setTimeout(()=>{const name=$('adminProfileNameDisplay')?.textContent?.trim();if(name&&$('adminProfileForm')?.classList.contains('hidden'))closeGate();},100);}});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initGate,{once:true});else initGate();
 })();
 </script>
 
@@ -3187,13 +3358,14 @@ button:active:not(:disabled){filter:brightness(.96)}
 @media(max-width:600px){#toast-container{left:12px!important;right:12px!important;max-width:none!important}#toast-container .toast{width:100%;font-size:12px!important;padding:12px!important}#adminMenu{right:10px!important;top:calc(env(safe-area-inset-top,0px) + 70px)!important;width:min(360px,calc(100vw - 20px))!important;max-height:calc(100dvh - 90px)!important}#adminMenuButtons .admin-menu-item{min-height:54px!important;padding:11px 9px!important;font-size:11px!important}#menuToggleBtn::after{font-size:8px;right:calc(100% + 5px)}}
 @media(min-width:601px){#adminMenu{max-height:calc(100dvh - 100px)!important}}
 @media(prefers-reduced-motion:reduce){body,body *,#adminMenu,#adminMenuButtons .admin-menu-item i,#menuToggleBtn i,#adminConfirmModal>div,#toast-container .toast,.ui-skeleton,.ui-skeleton-line{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+#adminMenuButtons .admin-menu-item[hidden],#adminMenuButtons [hidden]{display:none!important;visibility:hidden!important;pointer-events:none!important}
 </style>
 <script id="gamechanger-v8-toast-confirm-menu">
 (function(){
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   // Accessible menu labels: clear title and staggered entrance when the three-dot menu opens.
   const menu=document.getElementById('adminMenu'),launcher=document.getElementById('menuToggleBtn');
-  if(launcher){launcher.title='Admin Menu খুলুন — সব পেজ এখানে';launcher.setAttribute('aria-label','Admin Menu খুলুন — Dashboard, Categories, Tournaments, Deposits, Staff ও Logout');}
+  if(launcher){launcher.title='অনুমোদিত মেনু খুলুন';launcher.setAttribute('aria-label','অনুমোদিত মেনু খুলুন');}
   if(menu){menu.querySelectorAll('.admin-menu-item').forEach((b,i)=>{if(!b.title)b.title=(b.innerText||'').trim();b.addEventListener('click',()=>{b.classList.add('ui-menu-selected');});});
     const mo=new MutationObserver(()=>{if(document.body.classList.contains('admin-menu-open'))menu.querySelectorAll('.admin-menu-item').forEach((b,i)=>{b.style.animationDelay=(Math.min(i,12)*22)+'ms';});});mo.observe(document.body,{attributes:true,attributeFilter:['class']});}
   // Replace toast rendering with semantic icon colors, including warning/info.
