@@ -1011,20 +1011,21 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
             try {
                 const snap = await getDocs(collection(db, 'withdraws'));
                 const now = Date.now();
-                const oneDay = 24 * 60 * 60 * 1000;
+                const thirtyMinutes = 30 * 60 * 1000;
                 const jobs = [];
                 snap.forEach(d => {
                     const data = d.data() || {};
                     const status = String(data.status || 'pending').toLowerCase();
-                    // Older rejected requests without deleteAfter are also cleaned up using their reject/review timestamp.
-                    const rejectedAt = Number(data.rejectedAt || data.reviewedAt || data.updatedAt || data.timestamp || data.createdAt || 0);
-                    const deleteAfter = Number(data.deleteAfter || (rejectedAt ? rejectedAt + oneDay : 0));
-                    if (status === 'rejected' && deleteAfter > 0 && deleteAfter <= now) {
+                    if (status !== 'approved' && status !== 'rejected') return;
+                    // Use review time for older records too, so already-processed records older than 30 minutes are cleaned up.
+                    const reviewedAt = Number(data.reviewedAt || data.approvedAt || data.rejectedAt || data.updatedAt || 0);
+                    const deleteAfter = reviewedAt ? reviewedAt + thirtyMinutes : Number(data.deleteAfter || 0);
+                    if (deleteAfter > 0 && deleteAfter <= now) {
                         jobs.push(deleteDoc(doc(db, 'withdraws', d.id)));
                     }
                 });
                 if (jobs.length) await Promise.allSettled(jobs);
-            } catch (e) { console.warn('Expired rejected withdraw cleanup failed:', e); }
+            } catch (e) { console.warn('Expired processed withdraw cleanup failed:', e); }
         }
 
         window.loadAllAdminData = async function() {
@@ -2533,6 +2534,7 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                     const status = String(r.status || 'pending').toLowerCase();
                     if(status !== 'pending') throw new Error(`এই request ইতিমধ্যে ${r.status || 'processed'} হয়েছে।`);
                     const now = Date.now();
+                    const deleteAfter = now + 30 * 60 * 1000;
                     const historyRef = doc(db,'withdrawHistory',`${id}_approved_${now}`);
                     transaction.set(historyRef,{
                         ...r,
@@ -2543,10 +2545,10 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                         historyType:'withdraw',
                         historyCreatedAt:now
                     });
-                    transaction.delete(ref);
+                    transaction.update(ref,{status:'approved',reviewedAt:now,approvedAt:now,deleteAfter});
                 });
-                await window.logAdminActivity('withdraw','approve',`Withdraw ${id} approved`,{requestId:id});
-                showToast('Withdraw approved এবং history-তে চলে গেছে।');
+                await window.logAdminActivity('withdraw','approve',`Withdraw ${id} approved; request will be removed after 30 minutes`,{requestId:id});
+                showToast('Withdraw approved। ৩০ মিনিট পর request মুছে যাবে, history থাকবে।');
                 await loadAllAdminData();
                 renderWithdrawsList();
             }catch(e){showToast(e.message||'Approve failed','error');}
@@ -2573,7 +2575,7 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                     if(!userSnap.exists()) throw new Error('User পাওয়া যায়নি।');
                     const currentBalance = Number(userSnap.data().balance || 0);
                     const now = Date.now();
-                    const deleteAfter = now + 24 * 60 * 60 * 1000;
+                    const deleteAfter = now + 30 * 60 * 1000;
                     const historyRef = doc(db,'withdrawHistory',`${id}_rejected_${now}`);
                     transaction.update(userRef,{balance:currentBalance+amount});
                     transaction.update(ref,{
@@ -2594,8 +2596,8 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                         deleteAfter
                     });
                 });
-                await window.logAdminActivity('withdraw','reject',`Withdraw ${id} rejected and refunded; scheduled for deletion after 24 hours`,{requestId:id,reason});
-                showToast('Withdraw reject হয়েছে, টাকা refund ও history save হয়েছে। ১ দিন পর request মুছে যাবে।');
+                await window.logAdminActivity('withdraw','reject',`Withdraw ${id} rejected and refunded; scheduled for deletion after 30 minutes`,{requestId:id,reason});
+                showToast('Withdraw reject হয়েছে, টাকা refund ও history save হয়েছে। ৩০ মিনিট পর request মুছে যাবে।');
                 await loadAllAdminData();
                 renderWithdrawsList();
             }catch(e){showToast(e.message||'Reject failed','error');}
