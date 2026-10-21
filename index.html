@@ -600,7 +600,7 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input id="depositSearchInput" oninput="renderDepositsList()" placeholder="Search user / TrxID / request ID..." class="ui-control w-full p-3 text-xs">
-                <select id="depositStatusFilter" onchange="refreshDepositStatus()" class="ui-control w-full p-3 text-xs"><option value="pending">Pending only</option><option value="all">All statuses</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+                <select id="depositStatusFilter" onchange="refreshDepositStatus()" class="ui-control w-full p-3 text-xs"><option value="pending" selected>Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
             </div>
             <div id="admin-deposits-list" class="space-y-3"></div>
         </div>
@@ -625,7 +625,7 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input id="withdrawSearchInput" oninput="renderWithdrawsList()" placeholder="Search user / UID / request ID..." class="ui-control w-full p-3 text-xs">
-                <select id="withdrawStatusFilter" onchange="refreshWithdrawStatus()" class="ui-control w-full p-3 text-xs"><option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+                <select id="withdrawStatusFilter" onchange="refreshWithdrawStatus()" class="ui-control w-full p-3 text-xs"><option value="pending" selected>Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
             </div>
             <div id="admin-withdraws-list" class="space-y-3"></div>
         </div>
@@ -1007,12 +1007,33 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
             const canDeleteLogs=['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole); box.innerHTML=rows.length?rows.map(x=>`<div class="ui-activity-row rounded-xl border border-slate-800 bg-[#080d18] p-3" style="background:var(--ui-surface);border-color:var(--ui-border)"><div class="flex flex-wrap items-center justify-between gap-2"><b class="text-xs" style="color:var(--ui-text)">${String(x.action||'activity').replace(/[<>&]/g,'')}</b><div class="flex items-center gap-2"><span class="text-[10px]" style="color:var(--ui-muted)">${x.createdAt?new Date(x.createdAt).toLocaleString():'—'}</span>${canDeleteLogs?`<button onclick="deleteAdminActivityLog('${String(x.id).replace(/['\\]/g,'')}')" class="rounded-lg border border-red-300 bg-red-50 px-2.5 py-1.5 text-[10px] font-bold text-red-700 hover:bg-red-100" title="Delete log"><i class="fa-solid fa-trash"></i> Delete</button>`:''}</div></div><p class="mt-1 text-xs break-words" style="color:var(--ui-text)">${String(x.message||'').replace(/[<>&]/g,'')}</p><p class="mt-1 text-[10px]" style="color:var(--ui-muted)">${String(x.actorEmail||'Unknown').replace(/[<>&]/g,'')} · ${String(x.actorRole||'').replace(/[<>&]/g,'')} · ${String(x.id||'').slice(0,10)}</p></div>`).join(''):'<p class="py-4 text-center text-xs text-slate-500">কোনো matching activity নেই।</p>';
         };
 
+        async function cleanupExpiredRejectedWithdraws() {
+            try {
+                const snap = await getDocs(collection(db, 'withdraws'));
+                const now = Date.now();
+                const oneDay = 24 * 60 * 60 * 1000;
+                const jobs = [];
+                snap.forEach(d => {
+                    const data = d.data() || {};
+                    const status = String(data.status || 'pending').toLowerCase();
+                    // Older rejected requests without deleteAfter are also cleaned up using their reject/review timestamp.
+                    const rejectedAt = Number(data.rejectedAt || data.reviewedAt || data.updatedAt || data.timestamp || data.createdAt || 0);
+                    const deleteAfter = Number(data.deleteAfter || (rejectedAt ? rejectedAt + oneDay : 0));
+                    if (status === 'rejected' && deleteAfter > 0 && deleteAfter <= now) {
+                        jobs.push(deleteDoc(doc(db, 'withdraws', d.id)));
+                    }
+                });
+                if (jobs.length) await Promise.allSettled(jobs);
+            } catch (e) { console.warn('Expired rejected withdraw cleanup failed:', e); }
+        }
+
         window.loadAllAdminData = async function() {
             if (!window.currentStaffRole) return;
             try {
                 const role = window.currentStaffRole;
                 const isOwner = ['owner','main_admin','admin','full_admin'].includes(role);
                 if (isOwner) await cleanupExpiredCompletedTournaments();
+                if (isOwner || role === 'withdraw_admin') await cleanupExpiredRejectedWithdraws();
                 const emptySnap = { size: 0, empty: true, forEach: function(){} };
                 const [secSnap, groupSnap, tourSnap, bannerSnap, depSnap, depositRequestSnap, wdSnap, wdHistorySnap, usersSnap] = await Promise.all([
                     isOwner ? getDocs(collection(db, "sections")) : Promise.resolve(emptySnap),
@@ -2327,6 +2348,22 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
             }
         };
 
+        function adminFormatDateTime(value) {
+            if (value == null || value === '') return 'সময় পাওয়া যায়নি';
+            let date;
+            if (typeof value === 'number' || /^\d+$/.test(String(value))) {
+                let n = Number(value);
+                if (n > 0 && n < 1e12) n *= 1000;
+                date = new Date(n);
+            } else if (typeof value?.toDate === 'function') {
+                date = value.toDate();
+            } else {
+                date = new Date(value);
+            }
+            if (!date || Number.isNaN(date.getTime())) return 'সময় পাওয়া যায়নি';
+            return date.toLocaleString('en-BD', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
+        }
+
         function renderDepositsList() {
             const list = document.getElementById('admin-deposits-list');
             if(!list) return;
@@ -2352,16 +2389,16 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                 const user=dep.userName||dep.userEmail||dep.email||'User', trx=dep.trxId||dep.transactionId||'N/A';
                 const uid=dep.userId||dep.uid||'', amount=Number(dep.amount)||0, id=escAttr(dep.id);
                 const actions=pending?`<div class="flex items-center gap-2"><button onclick="approveDeposit('${id}','${escAttr(uid)}',${amount})" class="ui-btn-primary px-3 py-2 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i>Approve</button><button onclick="rejectDeposit('${id}')" class="ui-btn-danger px-3 py-2 text-xs font-bold"><i class="fa-solid fa-xmark mr-1"></i>Reject</button></div>`:'<span class="text-xs ui-muted">Processed</span>';
-                return `<tr><td><div class="font-bold text-sm ui-request-title">${escAttr(user)}</div><div class="text-[10px] ui-muted mt-1">UID: ${escAttr(uid||'—')}</div></td><td class="text-sm font-extrabold">৳${amount.toLocaleString('en-BD')}</td><td><div class="text-xs ui-request-title">${escAttr(trx)}</div><button class="ui-copy-btn mt-1" onclick="copyAdminText('${escAttr(trx)}','Transaction ID')"><i class="fa-regular fa-copy mr-1"></i>Copy</button></td><td>${adminStatusBadge(status)}</td><td class="text-xs ui-muted">${escAttr(dep.gateway||dep.method||currentDepGateway).toUpperCase()}</td><td>${actions}</td></tr>`;
+                return `<tr><td><div class="font-bold text-sm ui-request-title">${escAttr(user)}</div><div class="text-[10px] ui-muted mt-1">UID: ${escAttr(uid||'—')}</div><div class="text-[11px] ui-request-meta mt-2"><i class="fa-regular fa-calendar mr-1"></i>${escAttr(adminFormatDateTime(dep.timestamp||dep.createdAt||dep.requestedAt||dep.date))}</div></td><td class="text-sm font-extrabold">৳${amount.toLocaleString('en-BD')}</td><td><div class="text-xs ui-request-title break-all">${escAttr(trx)}</div><button class="ui-copy-btn mt-2" onclick="copyAdminText('${escAttr(trx)}','Transaction ID')"><i class="fa-regular fa-copy mr-1"></i>Copy TrxID</button></td><td>${adminStatusBadge(status)}</td><td class="text-xs ui-muted">${escAttr(dep.gateway||dep.method||currentDepGateway).toUpperCase()}</td><td>${actions}</td></tr>`;
             }).join('');
             const mobileCards=pageRows.map(dep=>{
                 const status=String(dep.status||'pending').toLowerCase(), pending=status==='pending';
                 const user=dep.userName||dep.userEmail||dep.email||'User', trx=dep.trxId||dep.transactionId||'N/A';
                 const uid=dep.userId||dep.uid||'', amount=Number(dep.amount)||0, id=escAttr(dep.id);
                 const action=pending?`<div class="grid grid-cols-2 gap-2"><button onclick="approveDeposit('${id}','${escAttr(uid)}',${amount})" class="ui-btn-primary px-3 py-2 font-bold text-xs"><i class="fa-solid fa-check mr-1"></i>Approve</button><button onclick="rejectDeposit('${id}')" class="ui-btn-danger px-3 py-2 font-bold text-xs"><i class="fa-solid fa-xmark mr-1"></i>Reject</button></div>`:'<span class="text-xs ui-muted">Processed</span>';
-                return `<article class="ui-request-card p-4"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><h4 class="font-extrabold text-sm ui-request-title break-words">${escAttr(user)}</h4><p class="text-xs ui-request-meta mt-2">${escAttr(dep.gateway||dep.method||currentDepGateway).toUpperCase()} • <b>৳${amount.toLocaleString('en-BD')}</b></p></div>${adminStatusBadge(status)}</div><div class="flex flex-wrap items-center gap-2 mt-3"><span class="text-[11px] ui-muted break-all">TrxID: <b class="ui-request-title">${escAttr(trx)}</b></span><button class="ui-copy-btn" onclick="copyAdminText('${escAttr(trx)}','Transaction ID')"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div><div class="flex flex-wrap items-center gap-2 mt-2"><span class="text-[10px] ui-muted break-all">Request ID: ${id}</span><button class="ui-copy-btn" onclick="copyAdminText('${id}','Request ID')">Copy ID</button></div><div class="mt-4">${action}</div></article>`;
+                return `<article class="ui-request-card p-4"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><h4 class="font-extrabold text-sm ui-request-title break-words">${escAttr(user)}</h4><p class="text-xs ui-request-meta mt-2">${escAttr(dep.gateway||dep.method||currentDepGateway).toUpperCase()} • <b>৳${amount.toLocaleString('en-BD')}</b></p><p class="text-[11px] ui-request-meta mt-2"><i class="fa-regular fa-calendar mr-1"></i>${escAttr(adminFormatDateTime(dep.timestamp||dep.createdAt||dep.requestedAt||dep.date))}</p></div>${adminStatusBadge(status)}</div><div class="flex flex-wrap items-center gap-2 mt-3"><span class="text-xs ui-muted break-all">Transaction ID: <b class="ui-request-title">${escAttr(trx)}</b></span><button class="ui-copy-btn" onclick="copyAdminText('${escAttr(trx)}','Transaction ID')"><i class="fa-regular fa-copy mr-1"></i>Copy TrxID</button></div><div class="flex flex-wrap items-center gap-2 mt-2"><span class="text-[10px] ui-muted break-all">Request ID: ${id}</span><button class="ui-copy-btn" onclick="copyAdminText('${id}','Request ID')">Copy ID</button></div><div class="mt-4">${action}</div></article>`;
             }).join('');
-            list.innerHTML=`<div class="hidden md:block overflow-x-auto ui-request-card"><table class="ui-data-table w-full text-left"><thead><tr><th>User</th><th>Amount</th><th>Transaction ID</th><th>Status</th><th>Method</th><th>Actions</th></tr></thead><tbody>${desktopRows}</tbody></table></div><div class="md:hidden space-y-3">${mobileCards}</div>${adminPaginationMarkup('deposits',filtered.length)}`;
+            list.innerHTML=`<div class="hidden md:block overflow-x-auto ui-request-card"><table class="ui-data-table w-full text-left"><thead><tr><th>User / Date &amp; Time</th><th>Amount</th><th>Transaction ID</th><th>Status</th><th>Method</th><th>Actions</th></tr></thead><tbody>${desktopRows}</tbody></table></div><div class="md:hidden space-y-3">${mobileCards}</div>${adminPaginationMarkup('deposits',filtered.length)}`;
         }
 
         window.approveDeposit = async function(id, userId, amount) {
@@ -2456,7 +2493,7 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
             if(!list) return;
             try {
                 const search = String(document.getElementById('withdrawSearchInput')?.value || '').trim().toLowerCase();
-                const statusFilter = document.getElementById('withdrawStatusFilter')?.value || 'all';
+                const statusFilter = document.getElementById('withdrawStatusFilter')?.value || 'pending';
                 const rows = allWithdraws.filter(r => {
                     const method = String(r.method || 'bkash').toLowerCase(), status = String(r.status || 'pending').toLowerCase();
                     const haystack = [r.id,r.uid,r.userId,r.userEmail,r.email,r.username,r.number,r.accountNumber,r.trxId,r.transactionId].join(' ').toLowerCase();
@@ -2472,16 +2509,16 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                     const user=r.userEmail||r.email||r.username||uid||'Unknown user', amount=Number(r.amount||0), method=r.method||currentWdGateway;
                     const number=r.number||r.accountNumber||'', trx=r.trxId||r.transactionId||'N/A', id=escAttr(r.id);
                     const actions=pending?`<div class="flex items-center gap-2"><button onclick="adminApproveWithdraw('${id}')" class="ui-btn-primary px-3 py-2 text-xs font-bold">Approve</button><button onclick="adminRejectWithdraw('${id}')" class="ui-btn-danger px-3 py-2 text-xs font-bold">Reject + Refund</button></div>`:'<span class="text-xs ui-muted">Processed</span>';
-                    return `<tr><td><div class="font-bold text-sm ui-request-title break-all">${escAttr(user)}</div><div class="text-[10px] ui-muted mt-1">UID: ${escAttr(uid||'—')}</div></td><td><div class="text-sm font-extrabold">৳${amount.toLocaleString('en-BD')}</div><div class="text-[10px] ui-muted mt-1">${escAttr(method).toUpperCase()} • ${escAttr(number)}</div></td><td><div class="text-xs ui-request-title">${escAttr(trx)}</div><button class="ui-copy-btn mt-1" onclick="copyAdminText('${escAttr(trx)}','Transaction ID')"><i class="fa-regular fa-copy mr-1"></i>Copy</button></td><td>${adminStatusBadge(status)}</td><td>${actions}</td></tr>`;
+                    return `<tr><td><div class="font-bold text-sm ui-request-title break-all">${escAttr(user)}</div><div class="text-[10px] ui-muted mt-1">UID: ${escAttr(uid||'—')}</div><div class="text-[11px] ui-request-meta mt-2"><i class="fa-regular fa-calendar mr-1"></i>${escAttr(adminFormatDateTime(r.timestamp||r.createdAt||r.requestedAt||r.date))}</div></td><td><div class="text-sm font-extrabold">৳${amount.toLocaleString('en-BD')}</div><div class="text-xs font-black ui-request-title mt-2 break-all">${escAttr(method).toUpperCase()} Number: ${escAttr(number||'Not provided')}</div><button class="ui-copy-btn mt-1" onclick="copyAdminText('${escAttr(number)}','Withdraw number')"><i class="fa-regular fa-copy mr-1"></i>Copy Number</button></td><td><div class="text-xs ui-request-title break-all">${escAttr(trx)}</div><button class="ui-copy-btn mt-1" onclick="copyAdminText('${escAttr(trx)}','Transaction ID')"><i class="fa-regular fa-copy mr-1"></i>Copy TrxID</button></td><td>${adminStatusBadge(status)}</td><td>${actions}</td></tr>`;
                 }).join('');
                 const mobileCards=pageRows.map(r=>{
                     const status=String(r.status||'pending').toLowerCase(), pending=status==='pending', uid=r.uid||r.userId||'';
                     const user=r.userEmail||r.email||r.username||uid||'Unknown user', amount=Number(r.amount||0), method=r.method||currentWdGateway;
                     const number=r.number||r.accountNumber||'', trx=r.trxId||r.transactionId||'N/A', id=escAttr(r.id);
                     const action=pending?`<div class="grid grid-cols-2 gap-2"><button onclick="adminApproveWithdraw('${id}')" class="ui-btn-primary py-2.5 text-xs font-bold">Approve</button><button onclick="adminRejectWithdraw('${id}')" class="ui-btn-danger py-2.5 text-xs font-bold">Reject + Refund</button></div>`:'<span class="text-xs ui-muted">Processed</span>';
-                    return `<article class="ui-request-card p-4"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="font-extrabold text-sm ui-request-title break-all">${escAttr(user)}</div><div class="text-[10px] ui-request-meta mt-2 break-all">UID: ${escAttr(uid||'—')}</div></div>${adminStatusBadge(status)}</div><div class="text-xs ui-request-meta mt-2">${escAttr(method).toUpperCase()} • ${escAttr(number||'Account not provided')}</div><div class="text-xl font-black text-emerald-500 mt-2">৳${amount.toLocaleString('en-BD')}</div><div class="flex flex-wrap items-center gap-2 mt-3"><span class="text-[11px] ui-muted break-all">TrxID: <b class="ui-request-title">${escAttr(trx)}</b></span><button class="ui-copy-btn" onclick="copyAdminText('${escAttr(trx)}','Transaction ID')">Copy</button></div><div class="flex flex-wrap items-center gap-2 mt-2"><span class="text-[10px] ui-muted break-all">Request ID: ${id}</span><button class="ui-copy-btn" onclick="copyAdminText('${id}','Request ID')">Copy ID</button></div><div class="mt-4">${action}</div></article>`;
+                    return `<article class="ui-request-card p-4"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="font-extrabold text-sm ui-request-title break-all">${escAttr(user)}</div><div class="text-[10px] ui-request-meta mt-2 break-all">UID: ${escAttr(uid||'—')}</div></div>${adminStatusBadge(status)}</div><div class="mt-3 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3"><div class="text-[10px] ui-request-meta font-bold mb-1">WITHDRAW NUMBER</div><div class="flex flex-wrap items-center justify-between gap-2"><b class="text-base ui-request-title break-all">${escAttr(number||'Account not provided')}</b><button class="ui-copy-btn" onclick="copyAdminText('${escAttr(number)}','Withdraw number')"><i class="fa-regular fa-copy mr-1"></i>Copy Number</button></div><div class="text-xs ui-request-meta mt-2">${escAttr(method).toUpperCase()}</div></div><div class="text-xl font-black text-emerald-500 mt-3">৳${amount.toLocaleString('en-BD')}</div><div class="text-[11px] ui-request-meta mt-2"><i class="fa-regular fa-calendar mr-1"></i>Requested: ${escAttr(adminFormatDateTime(r.timestamp||r.createdAt||r.requestedAt||r.date))}</div><div class="flex flex-wrap items-center gap-2 mt-3"><span class="text-[11px] ui-muted break-all">TrxID: <b class="ui-request-title">${escAttr(trx)}</b></span><button class="ui-copy-btn" onclick="copyAdminText('${escAttr(trx)}','Transaction ID')"><i class="fa-regular fa-copy mr-1"></i>Copy TrxID</button></div><div class="flex flex-wrap items-center gap-2 mt-2"><span class="text-[10px] ui-muted break-all">Request ID: ${id}</span><button class="ui-copy-btn" onclick="copyAdminText('${id}','Request ID')">Copy ID</button></div><div class="mt-4">${action}</div></article>`;
                 }).join('');
-                list.innerHTML=`<div class="hidden md:block overflow-x-auto ui-request-card"><table class="ui-data-table w-full text-left"><thead><tr><th>User</th><th>Amount / Method</th><th>Transaction ID</th><th>Status</th><th>Actions</th></tr></thead><tbody>${desktopRows}</tbody></table></div><div class="md:hidden space-y-3">${mobileCards}</div>${adminPaginationMarkup('withdraws',rows.length)}`;
+                list.innerHTML=`<div class="hidden md:block overflow-x-auto ui-request-card"><table class="ui-data-table w-full text-left"><thead><tr><th>User / Date &amp; Time</th><th>Amount / Number</th><th>Transaction ID</th><th>Status</th><th>Actions</th></tr></thead><tbody>${desktopRows}</tbody></table></div><div class="md:hidden space-y-3">${mobileCards}</div>${adminPaginationMarkup('withdraws',rows.length)}`;
             } catch(e){list.innerHTML=`<p class="text-rose-400 text-xs">Withdraw load failed: ${e.message}</p>`;}
         };
 
@@ -2536,8 +2573,13 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                     if(!userSnap.exists()) throw new Error('User পাওয়া যায়নি।');
                     const currentBalance = Number(userSnap.data().balance || 0);
                     const now = Date.now();
+                    const deleteAfter = now + 24 * 60 * 60 * 1000;
                     const historyRef = doc(db,'withdrawHistory',`${id}_rejected_${now}`);
                     transaction.update(userRef,{balance:currentBalance+amount});
+                    transaction.update(ref,{
+                        status:'rejected', reviewedAt:now, rejectedAt:now,
+                        reason, reviewReason:reason, deleteAfter
+                    });
                     transaction.set(historyRef,{
                         ...r,
                         originalWithdrawId:id,
@@ -2548,12 +2590,12 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                         reviewReason:reason,
                         historyType:'withdraw',
                         historyCreatedAt:now,
-                        refundedAmount:amount
+                        refundedAmount:amount,
+                        deleteAfter
                     });
-                    transaction.delete(ref);
                 });
-                await window.logAdminActivity('withdraw','reject',`Withdraw ${id} rejected and refunded`,{requestId:id,reason});
-                showToast('Withdraw reject, refund এবং history save হয়েছে।');
+                await window.logAdminActivity('withdraw','reject',`Withdraw ${id} rejected and refunded; scheduled for deletion after 24 hours`,{requestId:id,reason});
+                showToast('Withdraw reject হয়েছে, টাকা refund ও history save হয়েছে। ১ দিন পর request মুছে যাবে।');
                 await loadAllAdminData();
                 renderWithdrawsList();
             }catch(e){showToast(e.message||'Reject failed','error');}
