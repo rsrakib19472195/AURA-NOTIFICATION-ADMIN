@@ -1,0 +1,4196 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>AURA ARMAN TOUR - Ban Control</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:#fff;
+
+    background:
+        radial-gradient(circle at 8% 8%,rgba(124,58,237,.30),transparent 28%),
+        radial-gradient(circle at 92% 8%,rgba(6,182,212,.22),transparent 25%),
+        radial-gradient(circle at 90% 90%,rgba(236,72,153,.20),transparent 28%),
+        radial-gradient(circle at 15% 85%,rgba(34,197,94,.10),transparent 25%),
+        #05050d;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:-1;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,.025),
+            transparent 35%,
+            rgba(255,255,255,.015)
+        );
+}
+
+button,
+input,
+select,
+textarea{
+    font:inherit;
+}
+
+button{
+    -webkit-tap-highlight-color:transparent;
+}
+
+.glass{
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.085),
+            rgba(255,255,255,.035)
+        );
+
+    border:1px solid rgba(255,255,255,.12);
+
+    backdrop-filter:blur(24px);
+    -webkit-backdrop-filter:blur(24px);
+
+    box-shadow:
+        0 30px 90px rgba(0,0,0,.42),
+        inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.glass-soft{
+    background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.input{
+    width:100%;
+    padding:14px 15px;
+
+    border-radius:15px;
+
+    border:1px solid rgba(255,255,255,.11);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,0,0,.30),
+            rgba(255,255,255,.025)
+        );
+
+    color:#fff;
+
+    outline:none;
+
+    transition:.2s;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.input::placeholder{
+    color:#6b7280;
+}
+
+.input:focus{
+    border-color:rgba(139,92,246,.75);
+
+    box-shadow:
+        0 0 0 3px rgba(139,92,246,.11),
+        0 0 30px rgba(139,92,246,.08);
+}
+
+textarea.input{
+    resize:vertical;
+}
+
+select.input{
+    appearance:auto;
+}
+
+.btn{
+    border:0;
+
+    border-radius:15px;
+
+    padding:13px 18px;
+
+    font-weight:850;
+
+    cursor:pointer;
+
+    transition:
+        transform .18s,
+        filter .18s,
+        box-shadow .18s;
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+
+.btn:hover{
+    filter:brightness(1.08);
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.20);
+}
+
+.btn:active{
+    transform:scale(.965);
+}
+
+.btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.purple{
+    color:#fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #8b5cf6,
+            #6366f1,
+            #7c3aed
+        );
+
+    box-shadow:
+        0 10px 30px rgba(124,58,237,.20);
+}
+
+.green{
+    color:#02140a;
+
+    background:
+        linear-gradient(
+            135deg,
+            #22c55e,
+            #10b981,
+            #06b6d4
+        );
+}
+
+.red{
+    color:#fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ef4444,
+            #ec4899,
+            #db2777
+        );
+}
+
+.yellow{
+    color:#171000;
+
+    background:
+        linear-gradient(
+            135deg,
+            #facc15,
+            #fb923c
+        );
+}
+
+.blue{
+    color:#fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #06b6d4,
+            #3b82f6
+        );
+}
+
+.gray{
+    color:#fff;
+    background:rgba(255,255,255,.08);
+}
+
+.logo{
+    width:74px;
+    height:74px;
+
+    object-fit:cover;
+
+    border-radius:22px;
+
+    border:2px solid rgba(139,92,246,.75);
+
+    box-shadow:
+        0 0 45px rgba(139,92,246,.22),
+        0 15px 40px rgba(0,0,0,.30);
+}
+
+.login-overlay{
+    position:fixed;
+    inset:0;
+
+    z-index:10000;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:20px;
+
+    background:
+        radial-gradient(circle at 15% 10%,rgba(124,58,237,.25),transparent 30%),
+        radial-gradient(circle at 85% 15%,rgba(6,182,212,.20),transparent 28%),
+        radial-gradient(circle at 80% 90%,rgba(236,72,153,.18),transparent 30%),
+        rgba(3,3,12,.97);
+}
+
+.login-card{
+    width:100%;
+    max-width:430px;
+
+    padding:30px;
+
+    border-radius:30px;
+}
+
+.login-security{
+    padding:12px;
+
+    border-radius:14px;
+
+    background:rgba(6,182,212,.06);
+
+    border:1px solid rgba(6,182,212,.12);
+
+    color:#94a3b8;
+
+    font-size:12px;
+}
+
+.error-box{
+    display:none;
+
+    padding:12px 14px;
+
+    border-radius:14px;
+
+    background:rgba(239,68,68,.10);
+
+    border:1px solid rgba(239,68,68,.20);
+
+    color:#fca5a5;
+
+    font-size:13px;
+
+    margin-bottom:14px;
+}
+
+.loader{
+    width:19px;
+    height:19px;
+
+    border:2px solid rgba(255,255,255,.25);
+
+    border-top-color:#fff;
+
+    border-radius:50%;
+
+    animation:spin .7s linear infinite;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+.app-hidden{
+    display:none!important;
+}
+
+.topbar{
+    display:flex;
+
+    align-items:center;
+    justify-content:space-between;
+
+    gap:12px;
+
+    margin-bottom:22px;
+
+    padding:12px 14px;
+
+    border-radius:20px;
+
+    background:rgba(255,255,255,.035);
+
+    border:1px solid rgba(255,255,255,.07);
+}
+
+.logout-btn{
+    border:1px solid rgba(255,255,255,.10);
+
+    background:rgba(255,255,255,.065);
+
+    color:#fff;
+
+    padding:10px 13px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    font-weight:750;
+
+    transition:.2s;
+}
+
+.logout-btn:hover{
+    color:#fda4af;
+
+    background:rgba(239,68,68,.10);
+}
+
+.badge{
+    display:inline-flex;
+
+    align-items:center;
+    gap:5px;
+
+    padding:6px 10px;
+
+    border-radius:999px;
+
+    font-size:11px;
+
+    font-weight:850;
+
+    white-space:nowrap;
+}
+
+.active{
+    color:#fb7185;
+
+    background:rgba(239,68,68,.12);
+
+    border:1px solid rgba(239,68,68,.16);
+}
+
+.inactive{
+    color:#4ade80;
+
+    background:rgba(34,197,94,.12);
+
+    border:1px solid rgba(34,197,94,.16);
+}
+
+.expired{
+    color:#fbbf24;
+
+    background:rgba(245,158,11,.10);
+
+    border:1px solid rgba(245,158,11,.14);
+}
+
+.toast{
+    position:fixed;
+
+    left:50%;
+    bottom:24px;
+
+    transform:
+        translateX(-50%)
+        translateY(100px);
+
+    opacity:0;
+
+    transition:.3s;
+
+    z-index:99999;
+
+    padding:13px 18px;
+
+    border-radius:15px;
+
+    background:rgba(15,23,42,.96);
+
+    border:1px solid rgba(255,255,255,.12);
+
+    box-shadow:0 20px 50px rgba(0,0,0,.45);
+
+    max-width:92%;
+
+    text-align:center;
+
+    font-size:13px;
+}
+
+.toast.show{
+    transform:
+        translateX(-50%)
+        translateY(0);
+
+    opacity:1;
+}
+
+.stat-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(3,minmax(0,1fr));
+
+    gap:10px;
+
+    margin-bottom:18px;
+}
+
+.stat-card{
+    padding:15px;
+
+    border-radius:18px;
+
+    background:rgba(255,255,255,.045);
+
+    border:1px solid rgba(255,255,255,.075);
+}
+
+.stat-icon{
+    width:36px;
+    height:36px;
+
+    border-radius:11px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    margin-bottom:9px;
+
+    background:rgba(139,92,246,.12);
+
+    color:#a78bfa;
+}
+
+.stat-number{
+    font-size:23px;
+    font-weight:900;
+}
+
+.stat-label{
+    font-size:11px;
+    color:#6b7280;
+    margin-top:2px;
+}
+
+.tab-bar{
+    display:grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap:8px;
+
+    margin-bottom:18px;
+
+    padding:6px;
+
+    border-radius:17px;
+
+    background:rgba(255,255,255,.04);
+
+    border:1px solid rgba(255,255,255,.07);
+}
+
+.tab-btn{
+    border:0;
+
+    padding:12px;
+
+    border-radius:12px;
+
+    background:transparent;
+
+    color:#9ca3af;
+
+    font-weight:800;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.tab-btn.active-tab{
+    color:#fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(139,92,246,.35),
+            rgba(6,182,212,.18)
+        );
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.tab-panel{
+    display:none;
+}
+
+.tab-panel.show{
+    display:block;
+}
+
+.user-card{
+    padding:17px;
+
+    border-radius:20px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.055),
+            rgba(255,255,255,.025)
+        );
+
+    border:1px solid rgba(255,255,255,.08);
+
+    transition:.2s;
+}
+
+.user-card:hover{
+    border-color:rgba(139,92,246,.20);
+}
+
+.user-avatar{
+    width:44px;
+    height:44px;
+
+    border-radius:14px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(139,92,246,.30),
+            rgba(6,182,212,.18)
+        );
+
+    color:#c4b5fd;
+
+    font-weight:900;
+
+    flex-shrink:0;
+}
+
+.mono{
+    font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace;
+}
+
+.banned-list{
+    display:grid;
+    gap:11px;
+}
+
+.empty-state{
+    text-align:center;
+
+    padding:45px 20px;
+
+    border-radius:20px;
+
+    background:rgba(255,255,255,.035);
+
+    border:1px dashed rgba(255,255,255,.10);
+
+    color:#6b7280;
+}
+
+.empty-icon{
+    font-size:34px;
+
+    margin-bottom:10px;
+
+    color:#64748b;
+}
+
+
+/* =========================================================
+   NEW PREMIUM BAN MESSAGE
+========================================================= */
+
+.admin-ban-notice{
+    margin-top:16px;
+
+    padding:16px;
+
+    border-radius:18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(239,68,68,.12),
+            rgba(139,92,246,.08)
+        );
+
+    border:1px solid rgba(239,68,68,.20);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.04),
+        0 12px 35px rgba(0,0,0,.18);
+}
+
+.admin-ban-notice .notice-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    color:#fda4af;
+
+    font-size:12px;
+    font-weight:900;
+
+    letter-spacing:.03em;
+
+    text-transform:uppercase;
+
+    margin-bottom:9px;
+}
+
+.admin-ban-notice .notice-main{
+    color:#fff;
+
+    font-size:15px;
+
+    line-height:1.55;
+
+    font-weight:850;
+}
+
+.admin-ban-notice .notice-bangla{
+    color:#cbd5e1;
+
+    font-size:12px;
+
+    line-height:1.65;
+
+    margin-top:7px;
+}
+
+.admin-ban-notice.permanent{
+    background:
+        linear-gradient(
+            135deg,
+            rgba(239,68,68,.16),
+            rgba(190,24,93,.10)
+        );
+
+    border-color:rgba(239,68,68,.28);
+}
+
+.admin-ban-notice.permanent .notice-title{
+    color:#fb7185;
+}
+
+.no-ban-time{
+    margin-top:10px;
+
+    padding:10px 12px;
+
+    border-radius:12px;
+
+    background:rgba(255,255,255,.045);
+
+    border:1px solid rgba(255,255,255,.07);
+
+    color:#fbbf24;
+
+    font-size:12px;
+
+    font-weight:750;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:520px){
+
+    .stat-grid{
+        grid-template-columns:1fr;
+    }
+
+    .login-card{
+        padding:23px;
+    }
+
+    .topbar{
+        align-items:flex-start;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+
+<!-- =========================================================
+     LOGIN
+========================================================= -->
+
+<div id="loginOverlay" class="login-overlay">
+
+    <div class="glass login-card">
+
+        <div class="text-center">
+
+            <img
+                class="logo mx-auto mb-4"
+                src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
+                alt="AURA">
+
+            <h1 class="text-2xl font-black">
+                AURA ARMAN TOUR
+            </h1>
+
+            <p class="text-gray-400 text-sm mt-2">
+                Secure Ban Control Center
+            </p>
+
+        </div>
+
+
+        <div class="mt-6">
+
+            <div id="loginError"
+                 class="error-box">
+            </div>
+
+
+            <label class="block text-sm font-bold mb-2">
+                Admin Gmail
+            </label>
+
+            <div class="relative mb-4">
+
+                <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+
+                <input
+                    id="loginEmail"
+                    type="email"
+                    class="input pl-11"
+                    value="auraskill19@gmail.com"
+                    readonly>
+
+            </div>
+
+
+            <label class="block text-sm font-bold mb-2">
+                Password
+            </label>
+
+            <div class="relative">
+
+                <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+
+                <input
+                    id="loginPassword"
+                    type="password"
+                    class="input pl-11 pr-12"
+                    placeholder="Admin password"
+                    autocomplete="current-password">
+
+                <button
+                    type="button"
+                    onclick="togglePassword()"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 p-2">
+
+                    <i id="eyeIcon"
+                       class="fa-solid fa-eye">
+                    </i>
+
+                </button>
+
+            </div>
+
+
+            <button
+                id="loginButton"
+                onclick="adminLogin()"
+                class="btn purple w-full mt-5">
+
+                <span id="loginText">
+
+                    <i class="fa-solid fa-shield-halved"></i>
+
+                    LOGIN TO CONTROL PANEL
+
+                </span>
+
+
+                <span
+                    id="loginLoading"
+                    class="hidden items-center justify-center gap-2">
+
+                    <span class="loader"></span>
+
+                    Checking...
+
+                </span>
+
+            </button>
+
+
+            <div class="login-security mt-5 text-center">
+
+                <i class="fa-solid fa-lock mr-1 text-cyan-400"></i>
+
+                Authorized administrator access only
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     MAIN APP
+========================================================= -->
+
+<div id="mainApp" class="app-hidden">
+
+    <div id="toast" class="toast"></div>
+
+
+    <main class="max-w-4xl mx-auto px-4 py-6 md:py-8">
+
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="flex items-center gap-3">
+
+          <img
+    src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
+    style="
+        width:46px;
+        height:46px;
+        border-radius:14px;
+        object-fit:cover;
+    "
+    alt="AURA">
+
+                <div>
+
+                    <div class="font-black">
+                        AURA ARMAN TOUR
+                    </div>
+
+                    <div class="text-xs text-gray-500">
+                        Admin Control Center
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                onclick="logoutAdmin()"
+                class="logout-btn">
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
+                Logout
+
+            </button>
+
+        </div>
+
+
+
+        <!-- HEADER -->
+
+        <div class="text-center mb-6">
+
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                        bg-purple-500/10 border border-purple-400/15
+                        text-purple-300 text-xs font-bold mb-4">
+
+                <i class="fa-solid fa-user-shield"></i>
+
+                ADMIN SECURITY CENTER
+
+            </div>
+
+
+<img
+    class="logo mx-auto mb-4"
+    src="https://videotourl.com/images/1789792991627-2a906ffa-fbc0-4f79-9d9b-8dddb80ca667.jpg"
+    alt="AURA">
+
+
+            <h1 class="text-3xl md:text-4xl font-black">
+
+                Ban Control
+
+            </h1>
+
+
+            <p class="text-gray-400 mt-2 text-sm">
+
+                Manage tournament users, temporary bans and permanent restrictions.
+
+            </p>
+
+        </div>
+
+
+
+        <!-- STATS -->
+
+        <div class="stat-grid">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+
+                    <i class="fa-solid fa-users"></i>
+
+                </div>
+
+                <div
+                    id="totalBannedStat"
+                    class="stat-number">
+
+                    0
+
+                </div>
+
+                <div class="stat-label">
+                    Total Banned
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon"
+                     style="
+                        background:rgba(239,68,68,.10);
+                        color:#fb7185;
+                     ">
+
+                    <i class="fa-solid fa-ban"></i>
+
+                </div>
+
+                <div
+                    id="activeBannedStat"
+                    class="stat-number">
+
+                    0
+
+                </div>
+
+                <div class="stat-label">
+                    Active Bans
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon"
+                     style="
+                        background:rgba(6,182,212,.10);
+                        color:#67e8f9;
+                     ">
+
+                    <i class="fa-solid fa-clock"></i>
+
+                </div>
+
+                <div
+                    id="temporaryBannedStat"
+                    class="stat-number">
+
+                    0
+
+                </div>
+
+                <div class="stat-label">
+                    Temporary Bans
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- TABS -->
+
+        <div class="tab-bar">
+
+            <button
+                id="banTabBtn"
+                class="tab-btn active-tab"
+                onclick="openTab('banTab')">
+
+                <i class="fa-solid fa-user-lock mr-1"></i>
+
+                Ban User
+
+            </button>
+
+
+            <button
+                id="listTabBtn"
+                class="tab-btn"
+                onclick="openTab('listTab')">
+
+                <i class="fa-solid fa-users-slash mr-1"></i>
+
+                Banned Users
+
+                <span
+                    id="banCountBadge"
+                    class="ml-1 text-xs opacity-70">
+
+                    0
+
+                </span>
+
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             BAN TAB
+        ================================================== -->
+
+        <div
+            id="banTab"
+            class="tab-panel show">
+
+            <section class="glass rounded-3xl p-5 md:p-7">
+
+
+                <div class="mb-5">
+
+                    <div class="flex items-center justify-between gap-2 mb-2">
+
+                        <label class="block text-sm font-bold">
+
+                            Find User
+
+                        </label>
+
+                        <span class="text-xs text-gray-500">
+
+                            UID / Gmail / Username
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="flex gap-2">
+
+                        <input
+                            id="userSearchInput"
+                            class="input"
+                            placeholder="UID, Gmail or Username">
+
+
+                        <button
+                            onclick="searchUser()"
+                            class="btn purple whitespace-nowrap">
+
+                            <i class="fa-solid fa-magnifying-glass"></i>
+
+                            SEARCH
+
+                        </button>
+
+                    </div>
+
+
+                    <div class="text-xs text-gray-500 mt-2">
+
+                        Example:
+                        <span class="text-gray-400">
+                            rakibpro63 / example@gmail.com / Firebase UID
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+
+                <div
+                    id="searchResults"
+                    class="hidden mb-6">
+
+                </div>
+
+
+
+                <div
+                    id="userBox"
+                    class="hidden">
+
+                    <div class="user-card">
+
+
+                        <div class="flex items-center justify-between gap-3 mb-5">
+
+                            <div class="flex items-center gap-3 min-w-0">
+
+                                <div
+                                    id="selectedAvatar"
+                                    class="user-avatar">
+
+                                    <i class="fa-solid fa-user"></i>
+
+                                </div>
+
+
+                                <div class="min-w-0">
+
+                                    <div class="text-xs text-gray-500">
+                                        Selected User
+                                    </div>
+
+                                    <div
+                                        id="userName"
+                                        class="font-black text-lg break-all">
+
+                                        -
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                id="statusBadge"
+                                class="badge inactive">
+
+                                <i class="fa-solid fa-circle-check"></i>
+
+                                NOT BANNED
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="grid gap-3 text-sm">
+
+
+                            <div class="glass-soft rounded-xl p-3">
+
+                                <div class="text-gray-500 text-xs mb-1">
+                                    Firebase UID
+                                </div>
+
+                                <div class="flex items-center justify-between gap-2">
+
+                                    <div
+                                        id="userUID"
+                                        class="break-all mono text-xs">
+
+                                        -
+
+                                    </div>
+
+
+                                    <button
+                                        onclick="copySelectedUID()"
+                                        class="text-cyan-400 p-2">
+
+                                        <i class="fa-regular fa-copy"></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="glass-soft rounded-xl p-3">
+
+                                <div class="text-gray-500 text-xs mb-1">
+                                    Email
+                                </div>
+
+                                <div
+                                    id="userEmail"
+                                    class="break-all">
+
+                                    -
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                id="currentBanBox"
+                                class="hidden mt-1 p-4 rounded-xl
+                                       bg-red-500/10
+                                       border border-red-500/20">
+
+
+                                <div class="font-black text-red-300 mb-3">
+
+                                    <i class="fa-solid fa-ban"></i>
+
+                                    Current Ban
+
+                                </div>
+
+
+                                <div class="text-sm">
+
+                                    <div>
+
+                                        <span class="text-gray-500">
+                                            Reason:
+                                        </span>
+
+                                        <span id="currentReason">
+                                            -
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="mt-2">
+
+                                        <span class="text-gray-500">
+                                            Ends:
+                                        </span>
+
+                                        <span id="currentEnd">
+                                            -
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="mt-2">
+
+                                        <span class="text-gray-500">
+                                            Remaining:
+                                        </span>
+
+                                        <span
+                                            id="currentRemaining"
+                                            class="font-bold text-yellow-300">
+
+                                            -
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <!-- =================================
+                                         PREMIUM ADMIN BAN MESSAGE
+                                    ================================== -->
+
+                                    <div
+                                        id="adminBanNotice"
+                                        class="admin-ban-notice">
+
+                                        <div class="notice-title">
+
+                                            <i class="fa-solid fa-shield-halved"></i>
+
+                                            Admin Security Notice
+
+                                        </div>
+
+
+                                        <div
+                                            id="adminBanMain"
+                                            class="notice-main">
+
+                                            Your Tour Account has been banned by the Admin.
+
+                                        </div>
+
+
+                                        <div
+                                            id="adminBanBangla"
+                                            class="notice-bangla">
+
+                                            অ্যাডমিনের সিদ্ধান্ত অনুযায়ী আপনার Tour Account বর্তমানে নিষিদ্ধ রয়েছে।
+
+                                        </div>
+
+
+                                        <div
+                                            id="noBanTimeMessage"
+                                            class="no-ban-time hidden">
+
+                                            <i class="fa-solid fa-infinity mr-1"></i>
+
+                                            এই নিষেধাজ্ঞার কোনো নির্ধারিত সময়সীমা নেই।
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- BAN FORM -->
+
+                    <div class="mt-6">
+
+
+                        <h2 class="font-black text-xl mb-4">
+
+                            <i class="fa-solid fa-gavel text-pink-400 mr-1"></i>
+
+                            Ban User
+
+                        </h2>
+
+
+                        <label class="block text-sm font-bold mb-2">
+
+                            Ban Duration
+
+                        </label>
+
+
+                        <select
+                            id="durationSelect"
+                            class="input mb-3"
+                            onchange="durationChanged()">
+
+                            <option value="5">
+                                5 Minutes
+                            </option>
+
+                            <option value="10">
+                                10 Minutes
+                            </option>
+
+                            <option value="30">
+                                30 Minutes
+                            </option>
+
+                            <option value="60">
+                                1 Hour
+                            </option>
+
+                            <option value="360">
+                                6 Hours
+                            </option>
+
+                            <option value="1440">
+                                24 Hours
+                            </option>
+
+                            <option value="10080">
+                                7 Days
+                            </option>
+
+                            <option value="custom">
+                                Custom Minutes
+                            </option>
+
+                            <option value="permanent">
+                                Permanent Ban
+                            </option>
+
+                        </select>
+
+
+
+                        <div
+                            id="customBox"
+                            class="hidden mb-4">
+
+                            <label class="block text-sm font-bold mb-2">
+
+                                Custom Minutes
+
+                            </label>
+
+                            <input
+                                id="customMinutes"
+                                type="number"
+                                min="1"
+                                max="525600"
+                                class="input"
+                                placeholder="Example: 15">
+
+                        </div>
+
+
+
+                        <label class="block text-sm font-bold mb-2">
+
+                            Ban Reason
+
+                        </label>
+
+
+                        <textarea
+                            id="banReason"
+                            class="input"
+                            rows="4"
+                            maxlength="500"
+                            placeholder="Example: Tournament rules violation"></textarea>
+
+
+                        <div class="text-right text-xs text-gray-500 mt-1">
+
+                            Maximum 500 characters
+
+                        </div>
+
+
+
+                        <button
+                            onclick="banUser()"
+                            class="btn red w-full mt-4">
+
+                            <i class="fa-solid fa-ban"></i>
+
+                            BAN USER
+
+                        </button>
+
+
+                        <button
+                            onclick="unbanUser()"
+                            class="btn green w-full mt-3">
+
+                            <i class="fa-solid fa-unlock"></i>
+
+                            UNBAN USER
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <div
+                    id="banHelp"
+                    class="empty-state mt-6">
+
+                    <div class="empty-icon">
+
+                        <i class="fa-solid fa-user-shield"></i>
+
+                    </div>
+
+                    <div class="font-bold text-gray-300">
+
+                        Search a user to manage their ban
+
+                    </div>
+
+                    <div class="text-xs mt-2">
+
+                        UID, Gmail অথবা Username দিয়ে search করুন।
+
+                    </div>
+
+                </div>
+
+
+            </section>
+
+        </div>
+
+
+
+        <!-- =================================================
+             BANNED USERS TAB
+        ================================================== -->
+
+        <div
+            id="listTab"
+            class="tab-panel">
+
+
+            <section class="glass rounded-3xl p-5 md:p-7">
+
+
+                <div class="flex items-center justify-between gap-3 mb-5">
+
+                    <div>
+
+                        <h2 class="font-black text-xl">
+
+                            <i class="fa-solid fa-users-slash text-red-400 mr-1"></i>
+
+                            Banned Users
+
+                        </h2>
+
+                        <p class="text-xs text-gray-500 mt-1">
+
+                            Currently restricted users
+
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        onclick="loadBannedUsers()"
+                        class="btn blue">
+
+                        <i class="fa-solid fa-rotate"></i>
+
+                        Refresh
+
+                    </button>
+
+                </div>
+
+
+
+                <div class="mb-5">
+
+                    <div class="relative">
+
+                        <i class="fa-solid fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+
+                        <input
+                            id="bannedSearch"
+                            class="input pl-11"
+                            placeholder="Search banned users...">
+
+                    </div>
+
+                </div>
+
+
+
+                <div
+                    id="bannedLoading"
+                    class="hidden text-center py-8">
+
+                    <div
+                        class="loader mx-auto mb-3"
+                        style="
+                            width:28px;
+                            height:28px;
+                        ">
+                    </div>
+
+                    <div class="text-gray-500 text-sm">
+
+                        Loading banned users...
+
+                    </div>
+
+                </div>
+
+
+
+                <div
+                    id="bannedList"
+                    class="banned-list">
+
+                </div>
+
+
+            </section>
+
+        </div>
+
+
+
+        <p class="text-center text-xs text-gray-600 mt-7">
+
+            AURA ARMAN TOUR • Secure User Ban Control
+
+        </p>
+
+
+    </main>
+
+</div>
+
+
+
+<script type="module">
+
+import {
+    auth,
+    db
+} from "./firebase.js";
+
+
+import {
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    signOut,
+    setPersistence,
+    browserLocalPersistence
+}
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    where,
+    updateDoc,
+    serverTimestamp,
+    limit
+}
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+/* =========================================================
+   ADMIN CONFIG
+========================================================= */
+
+const ADMIN_EMAIL =
+    "auraskill19@gmail.com";
+
+
+const ADMIN_UIDS = [
+    "PUT_YOUR_ADMIN_UID_HERE"
+];
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+let selectedUID = "";
+
+let currentUserData = null;
+
+let remainingTimer = null;
+
+let allBannedUsers = [];
+
+let selectedUserSnapshot = null;
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const loginOverlay =
+    document.getElementById(
+        "loginOverlay"
+    );
+
+const mainApp =
+    document.getElementById(
+        "mainApp"
+    );
+
+const loginError =
+    document.getElementById(
+        "loginError"
+    );
+
+const loginButton =
+    document.getElementById(
+        "loginButton"
+    );
+
+const loginText =
+    document.getElementById(
+        "loginText"
+    );
+
+const loginLoading =
+    document.getElementById(
+        "loginLoading"
+    );
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+window.showToast = function(message){
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+    if(!toast) return;
+
+    toast.textContent =
+        message;
+
+    toast.classList.add(
+        "show"
+    );
+
+    setTimeout(()=>{
+
+        toast.classList.remove(
+            "show"
+        );
+
+    },3000);
+
+};
+
+
+/* =========================================================
+   LOGIN ERROR
+========================================================= */
+
+function showLoginError(message){
+
+    loginError.textContent =
+        message;
+
+    loginError.style.display =
+        "block";
+
+}
+
+
+function clearLoginError(){
+
+    loginError.textContent =
+        "";
+
+    loginError.style.display =
+        "none";
+
+}
+
+
+/* =========================================================
+   PASSWORD TOGGLE
+========================================================= */
+
+window.togglePassword = function(){
+
+    const input =
+        document.getElementById(
+            "loginPassword"
+        );
+
+    const icon =
+        document.getElementById(
+            "eyeIcon"
+        );
+
+    if(input.type === "password"){
+
+        input.type =
+            "text";
+
+        icon.className =
+            "fa-solid fa-eye-slash";
+
+    }else{
+
+        input.type =
+            "password";
+
+        icon.className =
+            "fa-solid fa-eye";
+
+    }
+
+};
+
+
+/* =========================================================
+   LOGIN LOADING
+========================================================= */
+
+function setLoginLoading(loading){
+
+    loginButton.disabled =
+        loading;
+
+    if(loading){
+
+        loginText.classList.add(
+            "hidden"
+        );
+
+        loginLoading.classList.remove(
+            "hidden"
+        );
+
+        loginLoading.classList.add(
+            "flex"
+        );
+
+    }else{
+
+        loginText.classList.remove(
+            "hidden"
+        );
+
+        loginLoading.classList.add(
+            "hidden"
+        );
+
+        loginLoading.classList.remove(
+            "flex"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   PANEL
+========================================================= */
+
+function showPanel(){
+
+    loginOverlay.classList.add(
+        "app-hidden"
+    );
+
+    mainApp.classList.remove(
+        "app-hidden"
+    );
+
+}
+
+
+function showLogin(){
+
+    mainApp.classList.add(
+        "app-hidden"
+    );
+
+    loginOverlay.classList.remove(
+        "app-hidden"
+    );
+
+}
+
+
+/* =========================================================
+   ADMIN LOGIN
+========================================================= */
+
+window.adminLogin =
+async function(){
+
+    clearLoginError();
+
+    const email =
+        document.getElementById(
+            "loginEmail"
+        )
+        .value
+        .trim()
+        .toLowerCase();
+
+    const password =
+        document.getElementById(
+            "loginPassword"
+        )
+        .value;
+
+    if(email !== ADMIN_EMAIL){
+
+        showLoginError(
+            "এই email দিয়ে admin panel-এ login করা যাবে না।"
+        );
+
+        return;
+
+    }
+
+    if(!password){
+
+        showLoginError(
+            "Admin password দিন।"
+        );
+
+        return;
+
+    }
+
+    setLoginLoading(true);
+
+    try{
+
+        await setPersistence(
+            auth,
+            browserLocalPersistence
+        );
+
+        const credential =
+            await signInWithEmailAndPassword(
+                auth,
+                ADMIN_EMAIL,
+                password
+            );
+
+        const user =
+            credential.user;
+
+        if(
+            !user.email ||
+            user.email.toLowerCase()
+                !== ADMIN_EMAIL
+        ){
+
+            await signOut(auth);
+
+            showLoginError(
+                "Unauthorized admin account."
+            );
+
+            setLoginLoading(false);
+
+            return;
+
+        }
+
+        const hasRealAdminUID =
+            ADMIN_UIDS.length > 0 &&
+            !ADMIN_UIDS.includes(
+                "PUT_YOUR_ADMIN_UID_HERE"
+            );
+
+        if(
+            hasRealAdminUID &&
+            !ADMIN_UIDS.includes(
+                user.uid
+            )
+        ){
+
+            await signOut(auth);
+
+            showLoginError(
+                "এই account admin হিসেবে অনুমোদিত নয়।"
+            );
+
+            setLoginLoading(false);
+
+            return;
+
+        }
+
+        showPanel();
+
+        showToast(
+            "Admin login successful"
+        );
+
+        loadBannedUsers();
+
+    }catch(error){
+
+        console.error(error);
+
+        let message =
+            "Login failed। আবার চেষ্টা করুন।";
+
+        if(
+            error.code ===
+                "auth/invalid-credential" ||
+
+            error.code ===
+                "auth/wrong-password" ||
+
+            error.code ===
+                "auth/user-not-found"
+        ){
+
+            message =
+                "Email অথবা password ভুল।";
+
+        }
+
+        else if(
+            error.code ===
+            "auth/too-many-requests"
+        ){
+
+            message =
+                "অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে চেষ্টা করুন।";
+
+        }
+
+        else if(
+            error.code ===
+            "auth/network-request-failed"
+        ){
+
+            message =
+                "Internet connection check করুন।";
+
+        }
+
+        showLoginError(
+            message
+        );
+
+    }
+
+    setLoginLoading(false);
+
+};
+
+
+/* =========================================================
+   ENTER LOGIN
+========================================================= */
+
+document
+.getElementById(
+    "loginPassword"
+)
+.addEventListener(
+    "keydown",
+    event=>{
+
+        if(event.key === "Enter"){
+
+            adminLogin();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   AUTH STATE
+========================================================= */
+
+onAuthStateChanged(
+    auth,
+    async user=>{
+
+        if(!user){
+
+            showLogin();
+
+            return;
+
+        }
+
+        const email =
+            (user.email || "")
+            .toLowerCase();
+
+        if(email !== ADMIN_EMAIL){
+
+            await signOut(auth);
+
+            showLogin();
+
+            showLoginError(
+                "এই account দিয়ে admin panel ব্যবহার করা যাবে না।"
+            );
+
+            return;
+
+        }
+
+        const hasRealAdminUID =
+            ADMIN_UIDS.length > 0 &&
+            !ADMIN_UIDS.includes(
+                "PUT_YOUR_ADMIN_UID_HERE"
+            );
+
+        if(
+            hasRealAdminUID &&
+            !ADMIN_UIDS.includes(
+                user.uid
+            )
+        ){
+
+            await signOut(auth);
+
+            showLogin();
+
+            showLoginError(
+                "এই account admin হিসেবে অনুমোদিত নয়।"
+            );
+
+            return;
+
+        }
+
+        showPanel();
+
+        loadBannedUsers();
+
+    }
+);
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+window.logoutAdmin =
+async function(){
+
+    try{
+
+        await signOut(auth);
+
+        showLogin();
+
+        document
+        .getElementById(
+            "loginPassword"
+        )
+        .value = "";
+
+        clearLoginError();
+
+        showToast(
+            "Logged out successfully"
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Logout failed"
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+window.openTab =
+function(tab){
+
+    const banTab =
+        document.getElementById(
+            "banTab"
+        );
+
+    const listTab =
+        document.getElementById(
+            "listTab"
+        );
+
+    const banBtn =
+        document.getElementById(
+            "banTabBtn"
+        );
+
+    const listBtn =
+        document.getElementById(
+            "listTabBtn"
+        );
+
+    banTab.classList.remove(
+        "show"
+    );
+
+    listTab.classList.remove(
+        "show"
+    );
+
+    banBtn.classList.remove(
+        "active-tab"
+    );
+
+    listBtn.classList.remove(
+        "active-tab"
+    );
+
+    if(tab === "banTab"){
+
+        banTab.classList.add(
+            "show"
+        );
+
+        banBtn.classList.add(
+            "active-tab"
+        );
+
+    }else{
+
+        listTab.classList.add(
+            "show"
+        );
+
+        listBtn.classList.add(
+            "active-tab"
+        );
+
+        loadBannedUsers();
+
+    }
+
+};
+
+
+/* =========================================================
+   SEARCH USER
+========================================================= */
+
+window.searchUser =
+async function(){
+
+    const term =
+        document
+        .getElementById(
+            "userSearchInput"
+        )
+        .value
+        .trim();
+
+    if(!term){
+
+        showToast(
+            "UID, Gmail অথবা Username দিন"
+        );
+
+        return;
+
+    }
+
+    const results =
+        document.getElementById(
+            "searchResults"
+        );
+
+    results.innerHTML = `
+        <div class="text-center py-5 text-gray-500 text-sm">
+            <div class="loader mx-auto mb-2"></div>
+            Searching user...
+        </div>
+    `;
+
+    results.classList.remove(
+        "hidden"
+    );
+
+    try{
+
+        const uidSnap =
+            await getDoc(
+                doc(
+                    db,
+                    "users",
+                    term
+                )
+            );
+
+        if(uidSnap.exists()){
+
+            showSearchResult(
+                term,
+                uidSnap.data()
+            );
+
+            selectUser(
+                term,
+                uidSnap.data()
+            );
+
+            return;
+
+        }
+
+    }catch(error){
+
+        console.warn(
+            "UID lookup failed",
+            error
+        );
+
+    }
+
+    const lower =
+        term.toLowerCase();
+
+    let found = null;
+
+
+    /* EMAIL LOWER */
+
+    try{
+
+        const emailQuery =
+            query(
+                collection(
+                    db,
+                    "users"
+                ),
+                where(
+                    "emailLower",
+                    "==",
+                    lower
+                ),
+                limit(5)
+            );
+
+        const emailSnap =
+            await getDocs(
+                emailQuery
+            );
+
+        if(!emailSnap.empty){
+
+            const d =
+                emailSnap.docs[0];
+
+            found = {
+                uid:d.id,
+                data:d.data()
+            };
+
+        }
+
+    }catch(error){
+
+        console.warn(
+            "emailLower lookup failed",
+            error
+        );
+
+    }
+
+
+    /* EXACT EMAIL */
+
+    if(!found){
+
+        try{
+
+            const q =
+                query(
+                    collection(db,"users"),
+                    where(
+                        "email",
+                        "==",
+                        term
+                    ),
+                    limit(5)
+                );
+
+            const snap =
+                await getDocs(q);
+
+            if(!snap.empty){
+
+                const d =
+                    snap.docs[0];
+
+                found = {
+                    uid:d.id,
+                    data:d.data()
+                };
+
+            }
+
+        }catch(error){
+
+            console.warn(
+                "email lookup failed",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* USERNAME LOWER */
+
+    if(!found){
+
+        try{
+
+            const q =
+                query(
+                    collection(db,"users"),
+                    where(
+                        "usernameLower",
+                        "==",
+                        lower
+                    ),
+                    limit(5)
+                );
+
+            const snap =
+                await getDocs(q);
+
+            if(!snap.empty){
+
+                const d =
+                    snap.docs[0];
+
+                found = {
+                    uid:d.id,
+                    data:d.data()
+                };
+
+            }
+
+        }catch(error){
+
+            console.warn(
+                "usernameLower lookup failed",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* EXACT USERNAME */
+
+    if(!found){
+
+        try{
+
+            const q =
+                query(
+                    collection(db,"users"),
+                    where(
+                        "username",
+                        "==",
+                        term
+                    ),
+                    limit(5)
+                );
+
+            const snap =
+                await getDocs(q);
+
+            if(!snap.empty){
+
+                const d =
+                    snap.docs[0];
+
+                found = {
+                    uid:d.id,
+                    data:d.data()
+                };
+
+            }
+
+        }catch(error){
+
+            console.warn(
+                "username lookup failed",
+                error
+            );
+
+        }
+
+    }
+
+
+    if(found){
+
+        showSearchResult(
+            found.uid,
+            found.data
+        );
+
+        selectUser(
+            found.uid,
+            found.data
+        );
+
+    }else{
+
+        results.innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    <i class="fa-solid fa-user-slash"></i>
+                </div>
+
+                <div class="font-bold text-gray-300">
+                    User পাওয়া যায়নি
+                </div>
+
+                <div class="text-xs mt-2">
+                    UID, exact Gmail অথবা username check করুন।
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+};
+
+
+/* =========================================================
+   SEARCH RESULT
+========================================================= */
+
+function showSearchResult(
+    uid,
+    data
+){
+
+    const results =
+        document.getElementById(
+            "searchResults"
+        );
+
+    const name =
+        data.username ||
+        data.name ||
+        "Unknown User";
+
+    const email =
+        data.email ||
+        "-";
+
+    results.innerHTML = `
+
+        <div class="glass-soft rounded-2xl p-4">
+
+            <div class="flex items-center gap-3">
+
+                <div class="user-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div class="min-w-0 flex-1">
+
+                    <div class="font-black break-all">
+                        ${escapeHTML(name)}
+                    </div>
+
+                    <div class="text-xs text-gray-500 break-all mt-1">
+                        ${escapeHTML(email)}
+                    </div>
+
+                    <div class="text-xs text-gray-600 mono break-all mt-1">
+                        ${escapeHTML(uid)}
+                    </div>
+
+                </div>
+
+                <div class="text-green-400">
+                    <i class="fa-solid fa-check-circle"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   SELECT USER
+========================================================= */
+
+function selectUser(
+    uid,
+    data
+){
+
+    selectedUID =
+        uid;
+
+    currentUserData =
+        data;
+
+    selectedUserSnapshot =
+        data;
+
+    document
+        .getElementById(
+            "userBox"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+    document
+        .getElementById(
+            "banHelp"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+    document
+        .getElementById(
+            "userUID"
+        )
+        .textContent =
+            uid;
+
+    document
+        .getElementById(
+            "userName"
+        )
+        .textContent =
+            data.username ||
+            data.name ||
+            "Unknown User";
+
+    document
+        .getElementById(
+            "userEmail"
+        )
+        .textContent =
+            data.email ||
+            "-";
+
+    const name =
+        data.username ||
+        data.name ||
+        "U";
+
+    document
+        .getElementById(
+            "selectedAvatar"
+        )
+        .textContent =
+            name
+            .charAt(0)
+            .toUpperCase();
+
+    updateBanUI();
+
+}
+
+
+/* =========================================================
+   COPY UID
+========================================================= */
+
+window.copySelectedUID =
+async function(){
+
+    if(!selectedUID){
+
+        showToast(
+            "UID পাওয়া যায়নি"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        await navigator.clipboard.writeText(
+            selectedUID
+        );
+
+        showToast(
+            "UID copied"
+        );
+
+    }catch(error){
+
+        showToast(
+            "Copy failed"
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   BAN STATUS
+========================================================= */
+
+function isCurrentlyBanned(data){
+
+    if(!data)
+        return false;
+
+    const until =
+        Number(
+            data.banUntil || 0
+        );
+
+    if(until){
+
+        return Date.now() < until;
+
+    }
+
+    return (
+        data.banned === true ||
+        data.isBanned === true ||
+        data.blocked === true
+    );
+
+}
+
+
+/* =========================================================
+   UPDATE SELECTED USER UI
+========================================================= */
+
+function updateBanUI(){
+
+    if(!currentUserData)
+        return;
+
+    const banned =
+        isCurrentlyBanned(
+            currentUserData
+        );
+
+    const badge =
+        document.getElementById(
+            "statusBadge"
+        );
+
+    const box =
+        document.getElementById(
+            "currentBanBox"
+        );
+
+    const notice =
+        document.getElementById(
+            "adminBanNotice"
+        );
+
+    const noticeMain =
+        document.getElementById(
+            "adminBanMain"
+        );
+
+    const noticeBangla =
+        document.getElementById(
+            "adminBanBangla"
+        );
+
+    const noBanTime =
+        document.getElementById(
+            "noBanTimeMessage"
+        );
+
+
+    if(banned){
+
+        badge.innerHTML =
+            `
+            <i class="fa-solid fa-ban"></i>
+            BANNED
+            `;
+
+        badge.className =
+            "badge active";
+
+        box.classList.remove(
+            "hidden"
+        );
+
+
+        document
+            .getElementById(
+                "currentReason"
+            )
+            .textContent =
+                currentUserData.banReason ||
+                currentUserData.reason ||
+                "No reason";
+
+
+        const end =
+            Number(
+                currentUserData.banUntil || 0
+            );
+
+
+        /*
+         * =========================================
+         * PERMANENT BAN
+         * =========================================
+         */
+
+        if(
+            end === 0 ||
+            currentUserData.banPermanent === true
+        ){
+
+            document
+                .getElementById(
+                    "currentEnd"
+                )
+                .textContent =
+                    "Permanent";
+
+
+            document
+                .getElementById(
+                    "currentRemaining"
+                )
+                .textContent =
+                    "Permanent";
+
+
+            notice.classList.add(
+                "permanent"
+            );
+
+
+            noticeMain.textContent =
+                "Your Tour Account has been banned by the Admin.";
+
+
+            noticeBangla.textContent =
+                "অ্যাডমিনের সিদ্ধান্ত অনুযায়ী আপনার অ্যাকাউন্টটি এই অ্যাপ থেকে স্থায়ীভাবে নিষিদ্ধ করা হয়েছে।";
+
+
+            noBanTime.classList.remove(
+                "hidden"
+            );
+
+
+            stopRemainingCountdown();
+
+        }
+
+        /*
+         * =========================================
+         * TEMPORARY BAN
+         * =========================================
+         */
+
+        else{
+
+            document
+                .getElementById(
+                    "currentEnd"
+                )
+                .textContent =
+                    new Date(end)
+                    .toLocaleString(
+                        "en-BD",
+                        {
+                            dateStyle:"medium",
+                            timeStyle:"short"
+                        }
+                    );
+
+
+            notice.classList.remove(
+                "permanent"
+            );
+
+
+            noticeMain.textContent =
+                "Your Tour Account has been banned by the Admin.";
+
+
+            noticeBangla.textContent =
+                "অ্যাডমিনের সিদ্ধান্ত অনুযায়ী আপনার Tour Account বর্তমানে নিষিদ্ধ রয়েছে।";
+
+
+            noBanTime.classList.add(
+                "hidden"
+            );
+
+
+            startRemainingCountdown(
+                end
+            );
+
+        }
+
+
+    }else{
+
+        badge.innerHTML =
+            `
+            <i class="fa-solid fa-circle-check"></i>
+            NOT BANNED
+            `;
+
+        badge.className =
+            "badge inactive";
+
+        box.classList.add(
+            "hidden"
+        );
+
+        stopRemainingCountdown();
+
+    }
+
+}
+
+
+/* =========================================================
+   DURATION CHANGE
+========================================================= */
+
+window.durationChanged =
+function(){
+
+    const value =
+        document
+        .getElementById(
+            "durationSelect"
+        )
+        .value;
+
+    document
+        .getElementById(
+            "customBox"
+        )
+        .classList.toggle(
+            "hidden",
+            value !== "custom"
+        );
+
+};
+
+
+/* =========================================================
+   COUNTDOWN
+========================================================= */
+
+function startRemainingCountdown(end){
+
+    stopRemainingCountdown();
+
+    if(!end)
+        return;
+
+    const update =
+    async()=>{
+
+        const remaining =
+            end -
+            Date.now();
+
+        if(remaining <= 0){
+
+            stopRemainingCountdown();
+
+            await refreshUser();
+
+            loadBannedUsers();
+
+            return;
+
+        }
+
+        document
+            .getElementById(
+                "currentRemaining"
+            )
+            .textContent =
+                formatRemaining(
+                    remaining
+                );
+
+    };
+
+    update();
+
+    remainingTimer =
+        setInterval(
+            update,
+            1000
+        );
+
+}
+
+
+function stopRemainingCountdown(){
+
+    if(remainingTimer){
+
+        clearInterval(
+            remainingTimer
+        );
+
+        remainingTimer =
+            null;
+
+    }
+
+}
+
+
+function formatRemaining(ms){
+
+    let seconds =
+        Math.max(
+            0,
+            Math.floor(
+                ms / 1000
+            )
+        );
+
+    const days =
+        Math.floor(
+            seconds / 86400
+        );
+
+    seconds %=
+        86400;
+
+    const hours =
+        Math.floor(
+            seconds / 3600
+        );
+
+    seconds %=
+        3600;
+
+    const minutes =
+        Math.floor(
+            seconds / 60
+        );
+
+    seconds %=
+        60;
+
+    const parts = [];
+
+    if(days)
+        parts.push(
+            days + "d"
+        );
+
+    if(hours)
+        parts.push(
+            hours + "h"
+        );
+
+    if(minutes)
+        parts.push(
+            minutes + "m"
+        );
+
+    parts.push(
+        seconds + "s"
+    );
+
+    return parts.join(" ");
+
+}
+
+
+/* =========================================================
+   REFRESH SELECTED USER
+========================================================= */
+
+async function refreshUser(){
+
+    if(!selectedUID)
+        return;
+
+    try{
+
+        const snap =
+            await getDoc(
+                doc(
+                    db,
+                    "users",
+                    selectedUID
+                )
+            );
+
+        if(snap.exists()){
+
+            currentUserData =
+                snap.data();
+
+            selectedUserSnapshot =
+                currentUserData;
+
+            updateBanUI();
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+}
+
+
+/* =========================================================
+   BAN USER
+========================================================= */
+
+window.banUser =
+async function(){
+
+    if(!selectedUID){
+
+        showToast(
+            "আগে user search করুন"
+        );
+
+        return;
+
+    }
+
+    const duration =
+        document
+        .getElementById(
+            "durationSelect"
+        )
+        .value;
+
+    let minutes =
+        0;
+
+    let permanent =
+        false;
+
+    if(duration === "permanent"){
+
+        permanent =
+            true;
+
+    }
+
+    else if(duration === "custom"){
+
+        minutes =
+            Number(
+                document
+                .getElementById(
+                    "customMinutes"
+                )
+                .value
+            );
+
+        if(
+            !minutes ||
+            minutes < 1
+        ){
+
+            showToast(
+                "Valid custom minutes দিন"
+            );
+
+            return;
+
+        }
+
+        if(minutes > 525600){
+
+            showToast(
+                "Maximum 525600 minutes"
+            );
+
+            return;
+
+        }
+
+    }
+
+    else{
+
+        minutes =
+            Number(
+                duration
+            );
+
+    }
+
+    const reason =
+        document
+        .getElementById(
+            "banReason"
+        )
+        .value
+        .trim();
+
+    if(!reason){
+
+        showToast(
+            "Ban reason দিন"
+        );
+
+        return;
+
+    }
+
+    const now =
+        Date.now();
+
+    const banUntil =
+        permanent
+            ? 0
+            : now +
+              minutes *
+              60 *
+              1000;
+
+    try{
+
+        await updateDoc(
+            doc(
+                db,
+                "users",
+                selectedUID
+            ),
+            {
+
+                banned:true,
+
+                isBanned:true,
+
+                blocked:true,
+
+                banReason:
+                    reason,
+
+                banStartedAt:
+                    now,
+
+                banUntil:
+                    banUntil,
+
+                banDurationMinutes:
+                    permanent
+                        ? 0
+                        : minutes,
+
+                banPermanent:
+                    permanent,
+
+                banUpdatedAt:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        await refreshUser();
+
+        await loadBannedUsers();
+
+
+        if(permanent){
+
+            showToast(
+                "User permanently banned"
+            );
+
+        }else{
+
+            showToast(
+                `User ${minutes} মিনিটের জন্য banned`
+            );
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Ban failed: " +
+            error.message
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   UNBAN SELECTED
+========================================================= */
+
+window.unbanUser =
+async function(){
+
+    if(!selectedUID){
+
+        showToast(
+            "আগে user search করুন"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        await updateDoc(
+            doc(
+                db,
+                "users",
+                selectedUID
+            ),
+            {
+
+                banned:false,
+
+                isBanned:false,
+
+                blocked:false,
+
+                banReason:"",
+
+                banStartedAt:null,
+
+                banUntil:0,
+
+                banDurationMinutes:0,
+
+                banPermanent:false,
+
+                banUpdatedAt:
+                    serverTimestamp()
+
+            }
+        );
+
+
+        await refreshUser();
+
+        await loadBannedUsers();
+
+        showToast(
+            "User successfully unbanned"
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Unban failed: " +
+            error.message
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   LOAD BANNED USERS
+========================================================= */
+
+window.loadBannedUsers =
+async function(){
+
+    const loading =
+        document.getElementById(
+            "bannedLoading"
+        );
+
+    const list =
+        document.getElementById(
+            "bannedList"
+        );
+
+    loading.classList.remove(
+        "hidden"
+    );
+
+    try{
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "users"
+                ),
+                where(
+                    "banned",
+                    "==",
+                    true
+                ),
+                limit(500)
+            );
+
+        const snap =
+            await getDocs(q);
+
+        allBannedUsers =
+            snap.docs.map(
+                d=>({
+
+                    uid:d.id,
+
+                    data:d.data()
+
+                })
+            );
+
+        renderBannedUsers();
+
+        updateStats();
+
+    }catch(error){
+
+        console.error(error);
+
+        list.innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-icon text-red-400">
+
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                </div>
+
+                <div class="font-bold text-gray-300">
+                    Banned users load করা যায়নি
+                </div>
+
+                <div class="text-xs mt-2 break-all">
+                    ${escapeHTML(error.message)}
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+    loading.classList.add(
+        "hidden"
+    );
+
+};
+
+
+/* =========================================================
+   RENDER BANNED USERS
+========================================================= */
+
+function renderBannedUsers(){
+
+    const list =
+        document.getElementById(
+            "bannedList"
+        );
+
+    const search =
+        document
+        .getElementById(
+            "bannedSearch"
+        )
+        .value
+        .trim()
+        .toLowerCase();
+
+    const filtered =
+        allBannedUsers.filter(
+            item=>{
+
+                if(!search)
+                    return true;
+
+                const d =
+                    item.data;
+
+                const name =
+                    String(
+                        d.username ||
+                        d.name ||
+                        ""
+                    )
+                    .toLowerCase();
+
+                const email =
+                    String(
+                        d.email ||
+                        ""
+                    )
+                    .toLowerCase();
+
+                const uid =
+                    item.uid
+                    .toLowerCase();
+
+                const reason =
+                    String(
+                        d.banReason ||
+                        ""
+                    )
+                    .toLowerCase();
+
+                return (
+                    name.includes(search) ||
+                    email.includes(search) ||
+                    uid.includes(search) ||
+                    reason.includes(search)
+                );
+
+            }
+        );
+
+
+    if(!filtered.length){
+
+        list.innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+
+                    <i class="fa-solid fa-user-check"></i>
+
+                </div>
+
+                <div class="font-bold text-gray-300">
+                    No active banned users
+                </div>
+
+                <div class="text-xs mt-2">
+                    Search result অনুযায়ী কোনো user পাওয়া যায়নি।
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    list.innerHTML =
+        filtered
+        .map(
+            item=>
+                createBannedCard(
+                    item.uid,
+                    item.data
+                )
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   CREATE BANNED CARD
+========================================================= */
+
+function createBannedCard(
+    uid,
+    data
+){
+
+    const name =
+        data.username ||
+        data.name ||
+        "Unknown User";
+
+    const email =
+        data.email ||
+        "-";
+
+    const reason =
+        data.banReason ||
+        data.reason ||
+        "No reason";
+
+    const until =
+        Number(
+            data.banUntil || 0
+        );
+
+    const active =
+        isCurrentlyBanned(
+            data
+        );
+
+    let statusHTML = "";
+
+    if(!active){
+
+        statusHTML = `
+
+            <span class="badge expired">
+
+                <i class="fa-solid fa-clock"></i>
+
+                EXPIRED
+
+            </span>
+
+        `;
+
+    }
+
+    else if(!until){
+
+        statusHTML = `
+
+            <span class="badge active">
+
+                <i class="fa-solid fa-infinity"></i>
+
+                PERMANENT
+
+            </span>
+
+        `;
+
+    }
+
+    else{
+
+        statusHTML = `
+
+            <span class="badge active">
+
+                <i class="fa-solid fa-ban"></i>
+
+                BANNED
+
+            </span>
+
+        `;
+
+    }
+
+
+    const remaining =
+        active && until
+            ? formatRemaining(
+                until - Date.now()
+            )
+            : until
+                ? "Expired"
+                : "Permanent";
+
+
+    const initial =
+        String(name)
+        .charAt(0)
+        .toUpperCase();
+
+
+    return `
+
+        <div
+            class="user-card"
+            data-uid="${escapeHTML(uid)}">
+
+            <div class="flex gap-3">
+
+                <div class="user-avatar">
+                    ${escapeHTML(initial)}
+                </div>
+
+
+                <div class="min-w-0 flex-1">
+
+                    <div class="flex items-start justify-between gap-2">
+
+                        <div class="min-w-0">
+
+                            <div class="font-black break-all">
+
+                                ${escapeHTML(name)}
+
+                            </div>
+
+                            <div class="text-xs text-gray-500 break-all mt-1">
+
+                                ${escapeHTML(email)}
+
+                            </div>
+
+                        </div>
+
+
+                        ${statusHTML}
+
+                    </div>
+
+
+                    <div class="mt-3 text-xs">
+
+                        <div class="text-gray-500">
+                            Reason
+                        </div>
+
+                        <div class="text-gray-300 break-words mt-1">
+
+                            ${escapeHTML(reason)}
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
+
+                        <div class="glass-soft rounded-xl p-2.5">
+
+                            <div class="text-[10px] text-gray-600">
+                                UID
+                            </div>
+
+                            <div class="mono text-[11px] break-all mt-1">
+                                ${escapeHTML(uid)}
+                            </div>
+
+                        </div>
+
+
+                        <div class="glass-soft rounded-xl p-2.5">
+
+                            <div class="text-[10px] text-gray-600">
+                                Remaining
+                            </div>
+
+                            <div class="text-yellow-300 text-xs font-bold mt-1">
+
+                                ${escapeHTML(remaining)}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="flex gap-2 mt-3">
+
+                        <button
+                            class="btn gray flex-1"
+                            onclick="openUserFromList('${escapeJS(uid)}')">
+
+                            <i class="fa-solid fa-eye"></i>
+
+                            Manage
+
+                        </button>
+
+
+                        <button
+                            class="btn green flex-1"
+                            onclick="quickUnban('${escapeJS(uid)}')">
+
+                            <i class="fa-solid fa-unlock"></i>
+
+                            Unban
+
+                        </button>
+
+
+                        <button
+                            class="btn blue"
+                            onclick="copyUID('${escapeJS(uid)}')">
+
+                            <i class="fa-regular fa-copy"></i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   OPEN USER FROM LIST
+========================================================= */
+
+window.openUserFromList =
+async function(uid){
+
+    const item =
+        allBannedUsers.find(
+            x=>x.uid === uid
+        );
+
+    if(!item)
+        return;
+
+    selectUser(
+        uid,
+        item.data
+    );
+
+    document
+        .getElementById(
+            "userSearchInput"
+        )
+        .value =
+            uid;
+
+    openTab(
+        "banTab"
+    );
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+};
+
+
+/* =========================================================
+   QUICK UNBAN
+========================================================= */
+
+window.quickUnban =
+async function(uid){
+
+    if(!confirm(
+        "এই user-কে unban করতে চান?"
+    )){
+
+        return;
+
+    }
+
+    try{
+
+        await updateDoc(
+            doc(
+                db,
+                "users",
+                uid
+            ),
+            {
+
+                banned:false,
+
+                isBanned:false,
+
+                blocked:false,
+
+                banReason:"",
+
+                banStartedAt:null,
+
+                banUntil:0,
+
+                banDurationMinutes:0,
+
+                banPermanent:false,
+
+                banUpdatedAt:
+                    serverTimestamp()
+
+            }
+        );
+
+        showToast(
+            "User unbanned"
+        );
+
+        await loadBannedUsers();
+
+        if(selectedUID === uid){
+
+            await refreshUser();
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Unban failed: " +
+            error.message
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   COPY UID
+========================================================= */
+
+window.copyUID =
+async function(uid){
+
+    try{
+
+        await navigator.clipboard.writeText(
+            uid
+        );
+
+        showToast(
+            "UID copied"
+        );
+
+    }catch(error){
+
+        showToast(
+            "Copy failed"
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   BANNED SEARCH
+========================================================= */
+
+document
+.getElementById(
+    "bannedSearch"
+)
+.addEventListener(
+    "input",
+    ()=>{
+        renderBannedUsers();
+    }
+);
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+function updateStats(){
+
+    const total =
+        allBannedUsers.length;
+
+    const active =
+        allBannedUsers.filter(
+            item =>
+                isCurrentlyBanned(
+                    item.data
+                )
+        ).length;
+
+    const temporary =
+        allBannedUsers.filter(
+            item => {
+
+                const d =
+                    item.data;
+
+                const until =
+                    Number(
+                        d.banUntil || 0
+                    );
+
+                return (
+                    until > Date.now() &&
+                    d.banPermanent !== true
+                );
+
+            }
+        ).length;
+
+    document
+        .getElementById(
+            "totalBannedStat"
+        )
+        .textContent =
+            total;
+
+    document
+        .getElementById(
+            "activeBannedStat"
+        )
+        .textContent =
+            active;
+
+    document
+        .getElementById(
+            "temporaryBannedStat"
+        )
+        .textContent =
+            temporary;
+
+    document
+        .getElementById(
+            "banCountBadge"
+        )
+        .textContent =
+            active;
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(value){
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+function escapeJS(value){
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /\\/g,
+        "\\\\"
+    )
+    .replace(
+        /'/g,
+        "\\'"
+    )
+    .replace(
+        /"/g,
+        '\\"'
+    )
+    .replace(
+        /\n/g,
+        "\\n"
+    )
+    .replace(
+        /\r/g,
+        "\\r"
+    );
+
+}
+
+
+/* =========================================================
+   INITIAL
+========================================================= */
+
+openTab(
+    "banTab"
+);
+
+</script>
+
+</body>
+</html>
