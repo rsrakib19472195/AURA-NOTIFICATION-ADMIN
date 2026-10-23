@@ -1249,6 +1249,222 @@ app.post(
 );
 
 
+
+/* =========================================================
+   FREE FIRE UID / PLAYER NAME CHECK (GAMESKINBO)
+   Environment:
+   NAME_CHECK_URL=https://api.gameskinbo.com/ff-info/get
+   NAME_CHECK_1 ... NAME_CHECK_10
+========================================================= */
+
+const NAME_CHECK_URL = String(
+  process.env.NAME_CHECK_URL ||
+  "https://api.gameskinbo.com/ff-info/get"
+).trim();
+
+const NAME_CHECK_KEYS = Array.from(
+  { length: 10 },
+  (_, index) => ({
+    name: `NAME_CHECK_${index + 1}`,
+    value: String(
+      process.env[`NAME_CHECK_${index + 1}`] || ""
+    ).trim()
+  })
+).filter(item => item.value);
+
+const nameCheckUsage = new Map();
+const nameCheckCache = new Map();
+let nameCheckInProgress = false;
+
+function getNameCheckKeyState(key) {
+  const now = Date.now();
+  let state = nameCheckUsage.get(key);
+
+  if (!state || now - state.windowStart >= 60_000) {
+    state = {
+      windowStart: now,
+      count: 0,
+      blockedUntil: 0
+    };
+    nameCheckUsage.set(key, state);
+  }
+
+  return state;
+}
+
+function reserveNameCheckKey(key) {
+  const state = getNameCheckKeyState(key);
+
+  if (state.blockedUntil > Date.now()) return false;
+  if (state.count >= 5) return false;
+
+  state.count += 1;
+  return true;
+}
+
+function getPlayerName(apiData) {
+  const candidates = [
+    apiData?.AccountInfo?.AccountName,
+    apiData?.accountInfo?.accountName,
+    apiData?.accountName,
+    apiData?.playerName,
+    apiData?.name
+  ];
+
+  return candidates.find(
+    value => typeof value === "string" && value.trim()
+  )?.trim() || "";
+}
+
+app.post("/api/check-uid", async (req, res) => {
+  const uid = String(req.body?.uid || "").trim();
+
+  if (!/^\d{5,20}$/.test(uid)) {
+    return res.status(400).json({
+      success: false,
+      error: "Please enter a valid Free Fire UID."
+    });
+  }
+
+  const cached = nameCheckCache.get(uid);
+  if (cached && cached.expiresAt > Date.now()) {
+    return res.json({
+      success: true,
+      uid,
+      name: cached.name,
+      cached: true
+    });
+  }
+
+  // Keep the provider API from being hit by parallel requests.
+  if (nameCheckInProgress) {
+    return res.status(429).json({
+      success: false,
+      error: "A UID check is already running. Please wait."
+    });
+  }
+
+  if (!NAME_CHECK_KEYS.length) {
+    return res.status(503).json({
+      success: false,
+      error: "UID check API keys are not configured on the server."
+    });
+  }
+
+  nameCheckInProgress = true;
+
+  try {
+    let lastStatus = 502;
+    let lastError = "Unable to check this UID right now.";
+
+    for (const key of NAME_CHECK_KEYS) {
+      if (!reserveNameCheckKey(key.name)) continue;
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
+      try {
+        const apiUrl = new URL(NAME_CHECK_URL);
+        apiUrl.searchParams.set("uid", uid);
+
+        const response = await fetch(apiUrl.toString(), {
+          method: "GET",
+          headers: {
+            "x-api-key": key.value,
+            "Accept": "application/json"
+          },
+          signal: controller.signal
+        });
+
+        const rawText = await response.text();
+        let data = {};
+        try {
+          data = rawText ? JSON.parse(rawText) : {};
+        } catch {
+          data = { error: rawText || "Invalid API response." };
+        }
+
+        if (response.ok) {
+          const name = getPlayerName(data);
+
+          if (!name) {
+            lastStatus = 502;
+            lastError = "API response did not contain a player name.";
+            continue;
+          }
+
+          nameCheckCache.set(uid, {
+            name,
+            expiresAt: Date.now() + 60_000
+          });
+
+          return res.json({
+            success: true,
+            uid,
+            name,
+            cached: false
+          });
+        }
+
+        lastStatus = response.status;
+        lastError = String(
+          data?.error || "Player name lookup failed."
+        );
+
+        // Try the next key for authentication/rate/plan-limit errors.
+        if ([401, 403, 429].includes(response.status)) {
+          const state = getNameCheckKeyState(key.name);
+          state.blockedUntil = Date.now() + 60_000;
+          continue;
+        }
+
+        // A 402 from this API means invalid UID/server lookup failure.
+        if (response.status === 402) {
+          return res.status(400).json({
+            success: false,
+            error: "Invalid UID or player information is unavailable."
+          });
+        }
+
+        // Other API errors can be temporary; try the next configured key.
+      } catch (error) {
+        lastStatus = 502;
+        lastError = error.name === "AbortError"
+          ? "Player lookup timed out."
+          : "Could not connect to the player lookup API.";
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    const anyKeyHasRoom = NAME_CHECK_KEYS.some(key => {
+      const state = getNameCheckKeyState(key.name);
+      return state.blockedUntil <= Date.now() && state.count < 5;
+    });
+
+    if (!anyKeyHasRoom) {
+      return res.status(429).json({
+        success: false,
+        error: "All UID check API keys have reached their per-minute limit. Please try again shortly."
+      });
+    }
+
+    return res.status(lastStatus >= 400 ? lastStatus : 502).json({
+      success: false,
+      error: lastError
+    });
+  } catch (error) {
+    console.error("UID CHECK ERROR:", error.message);
+    return res.status(500).json({
+      success: false,
+      error: "Unexpected UID check error."
+    });
+  } finally {
+    nameCheckInProgress = false;
+  }
+});
+
+
 /* =========================================================
    404
 ========================================================= */
