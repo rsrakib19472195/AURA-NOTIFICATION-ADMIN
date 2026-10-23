@@ -507,6 +507,9 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
                 <button data-tab="staff" id="staffMenuButton" onclick="switchTab('staff')" class="admin-menu-item"><i class="fa-solid fa-user-shield"></i> Staff Management</button>
                 <button data-tab="activity" id="activityMenuButton" onclick="switchTab('activity')" class="admin-menu-item"><i class="fa-solid fa-clipboard-list"></i> Activity & Errors</button>
                 <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('notifications'))){window.location.assign('./notification.html')}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item"><i class="fa-solid fa-bell"></i> Notifications</button>
+                <button onclick="openNoticeManager()" class="admin-menu-item"><i class="fa-solid fa-bullhorn"></i> Notice Manager</button>
+                <button onclick="window.location.assign('./top-up.html')" class="admin-menu-item"><i class="fa-solid fa-gem"></i> TOP-UP</button>
+                <button onclick="window.location.assign('./ban.html')" class="admin-menu-item"><i class="fa-solid fa-ban"></i> BAN</button>
                 <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('app_update'))){openAppUpdateModalSafe()}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item"><i class="fa-solid fa-mobile-screen-button"></i> App Update</button>
                 <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('maintenance'))){openMaintenanceModalSafe()}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</button>
                 <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('aura_features'))){openAuraLegacyFeatures();toggleAdminMenu(false)}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item col-span-2"><i class="fa-solid fa-shield-halved"></i> AURA ARMAN FEATURES</button>
@@ -1215,6 +1218,8 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                 const t = (btn.textContent || '').trim();
                 let visible = false;
                 if (t.includes('Notifications')) visible = privileged || (role === 'custom_admin' && granted.includes('notifications'));
+                else if (t.includes('Notice Manager')) visible = privileged || (role === 'custom_admin' && granted.includes('notifications'));
+                else if (t.includes('TOP-UP') || t.includes('BAN')) visible = privileged;
                 else if (t.includes('App Update')) visible = privileged || (role === 'custom_admin' && granted.includes('app_update'));
                 else if (t.includes('Maintenance')) visible = privileged || (role === 'custom_admin' && granted.includes('maintenance'));
                 else if (t.includes('AURA ARMAN')) visible = privileged || (role === 'custom_admin' && granted.includes('aura_features'));
@@ -3434,5 +3439,145 @@ button:active:not(:disabled){filter:brightness(.96)}
 })();
 </script>
 
+
+<script type="module" id="notice-manager-module">
+import { db } from "./firebase.js";
+import { collection, getDocs, addDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const noticeRoles = ['owner','main_admin','admin','full_admin'];
+const escNotice = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let noticeRows = [];
+let selectedNoticeId = '';
+
+window.openNoticeManager = async function() {
+  const role = window.currentStaffRole || '';
+  const permissions = Array.isArray(window.currentStaffPermissions) ? window.currentStaffPermissions : [];
+  if (!noticeRoles.includes(role) && !(role === 'custom_admin' && permissions.includes('notifications'))) {
+    window.showToast?.('এই পেজ ব্যবহারের অনুমতি নেই।','error'); return;
+  }
+  let modal = document.getElementById('noticeManagerModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'noticeManagerModal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.76);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:12px;';
+    modal.innerHTML = `<div style="width:min(100%,850px);max-height:94dvh;overflow:auto;background:var(--ui-surface,#111827);color:var(--ui-text,#f1f5f9);border:1px solid var(--ui-border,#28344b);border-radius:22px;padding:18px;box-shadow:0 24px 80px #0008">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px"><div><h2 style="font-size:20px;font-weight:900">📢 Notice Manager</h2><p style="font-size:12px;opacity:.7">Firestore notice collection · লেখা + ছবির লিংক + Live Preview</p></div><button id="noticeCloseBtn" class="ui-btn-secondary" style="padding:9px 13px">✕</button></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px">
+       <section style="display:flex;flex-direction:column;gap:10px">
+        <label style="font-size:12px;font-weight:800">আগের Notice নির্বাচন</label><select id="noticeExistingSelect" class="ui-control" style="padding:10px"><option value="">＋ নতুন Notice তৈরি</option></select>
+        <label style="font-size:12px;font-weight:800">Notice Title (ঐচ্ছিক)</label><input id="noticeTitleInput" class="ui-control" style="padding:10px" placeholder="যেমন: গুরুত্বপূর্ণ ঘোষণা">
+        <label style="font-size:12px;font-weight:800">Notice Message</label><textarea id="noticeMessageInput" class="ui-control" rows="5" style="padding:10px;resize:vertical" placeholder="নোটিশের লেখা এখানে লিখুন..."></textarea>
+        <label style="font-size:12px;font-weight:800">Picture URL (ঐচ্ছিক)</label><input id="noticeImageInput" class="ui-control" style="padding:10px" type="url" placeholder="https://example.com/image.jpg">
+        <label style="font-size:12px;font-weight:800">Button Link (ঐচ্ছিক)</label><input id="noticeLinkInput" class="ui-control" style="padding:10px" type="url" placeholder="https://...">
+        <label style="display:flex;gap:9px;align-items:center;font-size:12px"><input id="noticeActiveInput" type="checkbox" checked> Notice active</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button id="noticeResetBtn" class="ui-btn-secondary" style="padding:12px">নতুন Notice</button><button id="noticeSaveBtn" class="ui-btn-primary" style="padding:12px">Save Notice</button></div>
+        <p id="noticeStatusText" style="font-size:11px;opacity:.75"></p>
+       </section>
+       <section style="min-width:0"><h3 style="font-size:13px;font-weight:900;margin-bottom:9px">Live Preview</h3>
+        <div id="noticeLivePreview" style="background:var(--ui-surface-2,#182235);border:1px solid var(--ui-border,#28344b);border-radius:18px;padding:15px;min-height:180px;overflow-wrap:anywhere">
+         <div style="font-size:10px;font-weight:900;letter-spacing:.12em;color:#22c55e;margin-bottom:8px">📢 NOTICE</div><h4 id="noticePreviewTitle" style="font-size:17px;font-weight:900;margin-bottom:8px">নোটিশের শিরোনাম</h4><img id="noticePreviewImage" alt="Notice image preview" style="display:none;width:100%;max-height:220px;object-fit:contain;border-radius:12px;margin:8px 0"><p id="noticePreviewMessage" style="font-size:13px;white-space:pre-wrap;line-height:1.7">এখানে নোটিশের লেখা দেখা যাবে।</p><a id="noticePreviewLink" href="#" target="_blank" rel="noopener noreferrer" style="display:none;margin-top:12px;background:#16a34a;color:#fff;padding:9px 13px;border-radius:10px;text-decoration:none;font-size:12px;font-weight:800">আরও দেখুন ↗</a>
+        </div><div style="margin-top:12px"><h3 style="font-size:12px;font-weight:900;margin-bottom:7px">Saved Notices</h3><div id="noticeSavedList" style="display:flex;flex-direction:column;gap:7px;font-size:12px"><p style="opacity:.65">লোড হচ্ছে...</p></div></div>
+       </section>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    const close = () => modal.remove();
+    modal.querySelector('#noticeCloseBtn').onclick = close;
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+    modal.querySelector('#noticeResetBtn').onclick = () => resetNoticeForm();
+    ['noticeTitleInput','noticeMessageInput','noticeImageInput','noticeLinkInput','noticeActiveInput'].forEach(id => {
+      modal.querySelector('#'+id).addEventListener('input', updateNoticePreview);
+      modal.querySelector('#'+id).addEventListener('change', updateNoticePreview);
+    });
+    modal.querySelector('#noticeExistingSelect').addEventListener('change', e => loadNoticeIntoForm(e.target.value));
+    modal.querySelector('#noticeSaveBtn').onclick = saveNotice;
+  } else modal.style.display = 'flex';
+  await loadNoticeRows();
+};
+
+function updateNoticePreview() {
+  const $ = id => document.getElementById(id);
+  const title = $('noticeTitleInput')?.value.trim() || 'নোটিশের শিরোনাম';
+  const message = $('noticeMessageInput')?.value.trim() || 'এখানে নোটিশের লেখা দেখা যাবে।';
+  $('noticePreviewTitle').textContent = title;
+  $('noticePreviewMessage').textContent = message;
+  const imageUrl = $('noticeImageInput')?.value.trim() || '';
+  const img = $('noticePreviewImage');
+  if (imageUrl) { img.src = imageUrl; img.style.display = 'block'; img.onerror = () => { img.style.display='none'; }; img.onload = () => { img.style.display='block'; }; }
+  else { img.removeAttribute('src'); img.style.display='none'; }
+  const link = $('noticePreviewLink'), url = $('noticeLinkInput')?.value.trim() || '';
+  if (url) { link.href = url; link.style.display = 'inline-block'; } else { link.removeAttribute('href'); link.style.display='none'; }
+}
+function resetNoticeForm() {
+  selectedNoticeId = '';
+  const $ = id => document.getElementById(id);
+  $('noticeExistingSelect').value = '';
+  $('noticeTitleInput').value = ''; $('noticeMessageInput').value = '';
+  $('noticeImageInput').value = ''; $('noticeLinkInput').value = ''; $('noticeActiveInput').checked = true;
+  $('noticeStatusText').textContent = 'নতুন Notice তৈরি হবে।';
+  updateNoticePreview();
+}
+async function loadNoticeRows() {
+  const select = document.getElementById('noticeExistingSelect');
+  const list = document.getElementById('noticeSavedList');
+  const status = document.getElementById('noticeStatusText');
+  try {
+    const snap = await getDocs(collection(db,'notice'));
+    noticeRows = snap.docs.map(d => ({id:d.id,...(d.data()||{})}));
+    select.innerHTML = '<option value="">＋ নতুন Notice তৈরি</option>' + noticeRows.map((n,i)=>`<option value="${escNotice(n.id)}">${escNotice(n.title||n.noticeTitle||n.message||n.noticeText||n.content||n.description||n.text||('Notice '+(i+1)))}</option>`).join('');
+    list.innerHTML = noticeRows.length ? noticeRows.map(n => `<button type="button" data-notice-id="${escNotice(n.id)}" style="text-align:left;padding:10px;border:1px solid var(--ui-border);border-radius:11px;background:var(--ui-surface-2);color:var(--ui-text)"><b>${escNotice(n.title||n.noticeTitle||'Notice')}</b><div style="opacity:.7;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escNotice(n.message||n.noticeText||n.content||n.description||n.text||'ছবি/লেখা নেই')}</div></button>`).join('') : '<p style="opacity:.65">notice collection-এ এখনো কোনো Notice নেই।</p>';
+    list.querySelectorAll('[data-notice-id]').forEach(btn=>btn.onclick=()=>{select.value=btn.dataset.noticeId;loadNoticeIntoForm(btn.dataset.noticeId);});
+    if(status) status.textContent = `${noticeRows.length}টি Notice পাওয়া গেছে।`;
+  } catch(e) {
+    console.error('Notice collection read failed:',e);
+    if(list) list.innerHTML='<p style="color:#f87171">notice collection পড়া যায়নি। Firestore Rules-এ read permission পরীক্ষা করুন।</p>';
+    if(status) status.textContent='Firestore notice collection access error: '+(e.message||e);
+  }
+}
+function loadNoticeIntoForm(id) {
+  selectedNoticeId = id || '';
+  const n = noticeRows.find(x=>x.id===id);
+  const $ = id => document.getElementById(id);
+  if (!n) { resetNoticeForm(); return; }
+  $('noticeTitleInput').value = n.title || n.noticeTitle || '';
+  $('noticeMessageInput').value = n.message || n.noticeText || n.content || n.description || n.text || '';
+  $('noticeImageInput').value = n.imageUrl || n.imageURL || n.image || n.pictureUrl || n.photoUrl || n.picUrl || '';
+  $('noticeLinkInput').value = n.link || n.url || n.buttonLink || '';
+  $('noticeActiveInput').checked = n.active !== false && n.enabled !== false && n.status !== false;
+  $('noticeStatusText').textContent = 'নির্বাচিত Notice ID: '+id;
+  updateNoticePreview();
+}
+async function saveNotice() {
+  const $ = id => document.getElementById(id);
+  const title = $('noticeTitleInput').value.trim();
+  const message = $('noticeMessageInput').value.trim();
+  const imageUrl = $('noticeImageInput').value.trim();
+  const link = $('noticeLinkInput').value.trim();
+  const active = $('noticeActiveInput').checked;
+  if (!message && !imageUrl) { window.showToast?.('Notice-এর লেখা অথবা ছবি দিন।','error'); return; }
+  for (const u of [imageUrl,link].filter(Boolean)) { try { const parsed = new URL(u); if (!['http:','https:'].includes(parsed.protocol)) throw new Error(); } catch { window.showToast?.('ছবি/লিংকের সঠিক http বা https URL দিন।','error'); return; } }
+  const btn = $('noticeSaveBtn'); btn.disabled = true; btn.textContent='Saving...';
+  const payload = {
+    title, noticeTitle:title,
+    message, noticeText:message, content:message, description:message, text:message,
+    imageUrl, imageURL:imageUrl, image:imageUrl, pictureUrl:imageUrl, photoUrl:imageUrl, picUrl:imageUrl,
+    link, url:link, buttonLink:link,
+    active, enabled:active, status:active,
+    updatedAt:serverTimestamp(), updatedAtMs:Date.now()
+  };
+  try {
+    if (selectedNoticeId) await updateDoc(doc(db,'notice',selectedNoticeId),payload);
+    else { payload.createdAt=serverTimestamp(); payload.createdAtMs=Date.now(); const created=await addDoc(collection(db,'notice'),payload); selectedNoticeId=created.id; }
+    window.showToast?.('Notice সফলভাবে Save হয়েছে।','success');
+    await loadNoticeRows();
+    $('noticeExistingSelect').value=selectedNoticeId;
+    $('noticeStatusText').textContent='Saved · Document ID: '+selectedNoticeId;
+  } catch(e) {
+    console.error('Notice save failed:',e);
+    window.showToast?.('Notice Save হয়নি। Firestore Rules/notice collection permission পরীক্ষা করুন।','error');
+    $('noticeStatusText').textContent='Save error: '+(e.message||e);
+  } finally { btn.disabled=false; btn.textContent='Save Notice'; }
+}
+</script>
 </body>
 </html>
