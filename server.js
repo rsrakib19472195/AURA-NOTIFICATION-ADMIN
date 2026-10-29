@@ -300,27 +300,27 @@ async function sendAdminPush({
   const externalId = await getAdminExternalId();
 
   const isDeposit = type === "deposit";
-  const amount = Number(data.amount || 0);
+  const isOrder = type === "order";
+  const amount = Number(data.amount || data.price || 0);
 
   const user =
-    data.userName ||
-    data.username ||
-    data.userEmail ||
-    data.email ||
-    data.userId ||
-    data.uid ||
-    "User";
+    data.userName || data.username || data.name || data.userEmail ||
+    data.email || data.userId || data.uid || "User";
+  const method = data.gateway || data.paymentMethod || data.method || "";
+  const product = data.productName || data.product || data.itemName || "";
+  const orderNumber = data.orderNumber || requestId;
 
-  const method = data.gateway || data.method || "";
+  const title = isOrder
+    ? "FFX-এ নতুন অর্ডার!"
+    : isDeposit
+      ? "নতুন Deposit Request"
+      : "নতুন Withdraw Request";
 
-  const title = isDeposit
-    ? "নতুন Deposit Request"
-    : "নতুন Withdraw Request";
-
-  const message =
-    `${user} ${isDeposit ? "ডিপোজিট" : "উইথড্র"} রিকোয়েস্ট করেছে` +
-    (amount ? ` — ৳${amount}` : "") +
-    (method ? ` (${method})` : "");
+  const message = isOrder
+    ? `${user} নতুন অর্ডার করেছে${product ? ` — ${product}` : ""}` +
+      (amount ? ` — ৳${amount}` : "") + ` | Order: ${orderNumber}`
+    : `${user} ${isDeposit ? "ডিপোজিট" : "উইথড্র"} রিকোয়েস্ট করেছে` +
+      (amount ? ` — ৳${amount}` : "") + (method ? ` (${method})` : "");
 
   const payload = makeManualNotificationPayload({
     target: "specific",
@@ -328,8 +328,13 @@ async function sendAdminPush({
     title,
     message,
     icon: DEFAULT_ICON,
-    url: "/notification.html"
+    url: isOrder ? (process.env.FFX_ADMIN_URL || "/notification.html") : "/notification.html"
   });
+
+  // If the FFX admin URL is configured, let OneSignal open that page on tap.
+  if (isOrder && process.env.FFX_ADMIN_URL) {
+    payload.url = process.env.FFX_ADMIN_URL;
+  }
 
   const result = await oneSignalRequest(
     "/notifications",
@@ -797,7 +802,8 @@ function startFirestoreWatchers() {
   const sourceReady = {
     deposits: false,
     transactions: false,
-    withdraws: false
+    withdraws: false,
+    orders: false
   };
 
   function handleDepositSnapshot(
@@ -883,6 +889,26 @@ function startFirestoreWatchers() {
       error =>
         console.error("Withdraw listener error:", error)
     );
+
+  // FFX orders: send a single push for each newly added order.
+  // Ignore the initial snapshot to avoid alerting for every historical order.
+  firestore
+    .collection("orders")
+    .onSnapshot(
+      snapshot => {
+        if (!sourceReady.orders) {
+          sourceReady.orders = true;
+          console.log("✅ FFX orders listener ready.");
+          return;
+        }
+        snapshot.docChanges().forEach(change => {
+          if (change.type !== "added") return;
+          claimAndSend("order", change.doc.id, change.doc.data() || {})
+            .catch(console.error);
+        });
+      },
+      error => console.error("FFX orders listener error:", error)
+    );
 }
 
 
@@ -937,6 +963,20 @@ async function catchUpRecentRequests() {
       );
     }
   }
+
+  // Recover recent FFX orders created while the service was restarting.
+  try {
+    const orderCutoff = admin.firestore.Timestamp.fromMillis(cutoff);
+    const recentOrders = await firestore
+      .collection("orders")
+      .where("createdAt", ">=", orderCutoff)
+      .get();
+    for (const docSnap of recentOrders.docs) {
+      await claimAndSend("order", docSnap.id, docSnap.data() || {});
+    }
+  } catch (error) {
+    console.error("Catch-up order error:", error.message);
+  }
 }
 
 
@@ -963,7 +1003,7 @@ app.get("/health", (req, res) => {
       ONESIGNAL_REST_API_KEY
     ),
     message:
-      "AURA ARMAN TOUR Notification Server is running."
+      "AURA / FFX Notification Server is running."
   });
 });
 
@@ -1483,7 +1523,7 @@ app.use((req, res) => {
 
 app.listen(PORT, async () => {
   console.log(
-    `AURA ARMAN TOUR Notification Server running on port ${PORT}`
+    `AURA / FFX Notification Server running on port ${PORT}`
   );
 
   if (!ONESIGNAL_REST_API_KEY) {
