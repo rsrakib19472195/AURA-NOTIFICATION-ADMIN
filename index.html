@@ -434,7 +434,23 @@ body[data-theme="light"] #adminMenu .admin-menu-item[onclick="adminLogout()"] i 
 body[data-theme="light"] #admin-tournaments-list .glass-card,body[data-theme="light"] #admin-sections-list .glass-card,body[data-theme="light"] #admin-groups-list .glass-card,body[data-theme="light"] #admin-banners-list .glass-card{color:#17251d!important;background:#fff!important;border-color:#d5e2d8!important}
 body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #admin-sections-list h4,body[data-theme="light"] #admin-groups-list h4,body[data-theme="light"] #admin-banners-list h4{color:#17251d!important}
 @media(prefers-reduced-motion:reduce){#tournament-status-filters button{transition:none!important}}
-</style></head>
+</style>
+
+<style id="fast-render-performance">
+/* Low-end Android / slower network rendering optimisations */
+html{scroll-behavior:auto!important}
+.glass-card,.stat-card,.ui-request-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;animation:none!important}
+body:before{animation:none!important;opacity:.18!important}
+button,.admin-menu-item,.ui-theme-toggle{transition:background-color .12s ease,color .12s ease,border-color .12s ease!important}
+button:hover,.admin-menu-item:hover{transform:none!important;box-shadow:none!important}
+button i,.admin-menu-item i{animation:none!important;filter:none!important}
+img{content-visibility:auto}
+#admin-sections-list,#admin-groups-list,#admin-tournaments-list,#admin-banners-list{contain:content}
+@media(max-width:900px){#adminMenu{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+</head>
 <body class="min-h-screen flex flex-col pb-20">
     <!-- Fail-closed gate: never expose admin UI before role/permissions are verified. -->
     <div id="adminAccessLoading" role="status" aria-live="polite"
@@ -735,6 +751,8 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
         import { auth, db, ADMIN_EMAIL, linkOneSignalUser } from "./firebase.js";
         import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, orderBy, limit, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        const escapeAdminText = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const escapeAdminAttr = escapeAdminText;
         const auraStorage = getStorage();
         window.__adminProfileApi = { db, doc, getDoc, getDocs, setDoc, collection, storageRef, uploadBytes, getDownloadURL, auraStorage };
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -1444,22 +1462,17 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                 list.innerHTML = `<p class="text-slate-500 text-xs">কোনো ক্যাটাগরি নেই।</p>`;
                 return;
             }
-            allSections.forEach(sec => {
-                list.innerHTML += `
-                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400"><i class="${sec.icon || 'fa-solid fa-gamepad'}"></i></div>
-                            <div>
-                                <h4 class="font-bold text-white text-sm">${sec.name}</h4>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="editSection('${sec.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteDocItem('sections', '${sec.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+            list.innerHTML = allSections.map(sec => `
+                <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        ${sec.imageUrl ? `<img src="${escapeAdminAttr(sec.imageUrl)}" loading="lazy" decoding="async" class="w-11 h-11 object-cover rounded-xl" alt="">` : `<div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400"><i class="${escapeAdminAttr(sec.icon || 'fa-solid fa-gamepad')}"></i></div>`}
+                        <div class="min-w-0"><h4 class="font-bold text-white text-sm truncate">${escapeAdminText(sec.name || '')}</h4></div>
                     </div>
-                `;
-            });
+                    <div class="flex space-x-2 shrink-0">
+                        <button onclick="editSection('${sec.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteDocItem('sections', '${sec.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`).join('');
         }
 
         window.openSectionModal = function(editData = null) {
@@ -1467,16 +1480,25 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
             document.getElementById('generic-modal').style.display = 'flex';
             document.getElementById('modal-body').innerHTML = `
                 <input type="hidden" id="sec-id" value="${editData ? editData.id : ''}">
-                <div>
-                    <label class="text-slate-400 block mb-1">Category Name</label>
-                    <input type="text" id="sec-name" value="${editData ? editData.name : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                <div><label class="text-slate-400 block mb-1">Category Name</label>
+                    <input type="text" id="sec-name" value="${escapeAdminAttr(editData?.name || '')}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white" maxlength="60">
                 </div>
-                <div>
-                    <label class="text-slate-400 block mb-1">FontAwesome Icon Class (e.g. fa-solid fa-gamepad)</label>
-                    <input type="text" id="sec-icon" value="${editData ? (editData.icon || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                <div><label class="text-slate-400 block mb-1">FontAwesome Icon Class (optional)</label>
+                    <input type="text" id="sec-icon" value="${escapeAdminAttr(editData?.icon || '')}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
                 </div>
-                <div class="flex gap-2 mt-2"><button onclick="closeGenericModal()" class="flex-1 ui-btn-secondary font-bold py-2.5 rounded-xl">Cancel</button><button onclick="saveSection()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl">Save Category</button></div>
-            `;
+                <div class="space-y-2">
+                    <label class="text-slate-400 block mb-1">Category Image (optional)</label>
+                    <input type="file" id="sec-image-file" accept="image/*" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    <div id="sec-upload-status" aria-live="polite" class="text-xs ui-muted"></div>
+                    <label class="text-slate-400 block mb-1">Or Image URL</label>
+                    <input type="url" id="sec-image-url" value="${escapeAdminAttr(editData?.imageUrl || '')}" placeholder="https://..." class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    <img id="sec-image-preview" src="${escapeAdminAttr(editData?.imageUrl || '')}" alt="Category preview" loading="lazy" class="w-20 h-20 object-cover rounded-xl border" style="border-color:var(--ui-border);${editData?.imageUrl ? '' : 'display:none'}">
+                </div>
+                <div class="flex gap-2 mt-2"><button onclick="closeGenericModal()" class="flex-1 ui-btn-secondary font-bold py-2.5 rounded-xl">Cancel</button><button id="save-section-btn" onclick="saveSection()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl">Save Category</button></div>`;
+            const file=document.getElementById('sec-image-file'), url=document.getElementById('sec-image-url'), preview=document.getElementById('sec-image-preview');
+            const updatePreview=()=>{const v=url.value.trim();if(v){preview.src=v;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}};
+            url.addEventListener('input',updatePreview);
+            file.addEventListener('change',async()=>{const f=file.files?.[0];if(!f)return;if(!f.type.startsWith('image/')){showToast('Valid image নির্বাচন করুন','error');file.value='';return;}if(f.size>20*1024*1024){showToast('ছবি ২০MB-এর কম হতে হবে','error');file.value='';return;}const reader=new FileReader();reader.onload=()=>{preview.src=reader.result;preview.style.display='block';};reader.readAsDataURL(f);});
         }
 
         window.editSection = function(id) {
@@ -1486,21 +1508,23 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
 
         window.saveSection = async function() {
             const id = document.getElementById('sec-id').value;
-            const name = document.getElementById('sec-name').value;
-            const icon = document.getElementById('sec-icon').value;
+            const name = document.getElementById('sec-name').value.trim();
+            const icon = document.getElementById('sec-icon').value.trim();
+            const file = document.getElementById('sec-image-file')?.files?.[0];
+            const urlField = document.getElementById('sec-image-url');
             if(!name) { showToast('ক্যাটাগরির নাম দিন', 'error'); return; }
-
+            const btn=document.getElementById('save-section-btn');
+            if(btn){btn.disabled=true;btn.textContent='Saving...';}
             try {
-                if(id) {
-                    await updateDoc(doc(db, "sections", id), { name, icon });
-                    showToast('ক্যাটাগরি আপডেট হয়েছে!');
-                } else {
-                    await addDoc(collection(db, "sections"), { name, icon, status: true });
-                    showToast('নতুন ক্যাটাগরি তৈরি হয়েছে!');
-                }
+                let imageUrl=urlField?.value.trim() || '';
+                if(file) imageUrl=await window.uploadImageToImgBB(file,document.getElementById('sec-upload-status'));
+                const payload={name,icon,imageUrl};
+                if(id) { await updateDoc(doc(db, "sections", id), payload); showToast('ক্যাটাগরি আপডেট হয়েছে!'); }
+                else { await addDoc(collection(db, "sections"), {...payload,status:true,createdAt:Date.now()}); showToast('নতুন ক্যাটাগরি তৈরি হয়েছে!'); }
                 closeGenericModal();
-                loadAllAdminData();
-            } catch(e) { showToast('সমস্যা হয়েছে!', 'error'); }
+                await loadAllAdminData();
+            } catch(e) { console.error(e); showToast(e?.message || 'সমস্যা হয়েছে!', 'error'); }
+            finally {if(btn){btn.disabled=false;btn.textContent='Save Category';}}
         }
 
         function renderGroupsList() {
@@ -2186,17 +2210,14 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
             const list = document.getElementById('admin-banners-list');
             if(!list) return;
             list.innerHTML = "";
-            allBanners.forEach(b => {
-                list.innerHTML += `
-                    <div class="glass-card p-3 rounded-xl flex justify-between items-center shadow">
-                        <div class="flex items-center space-x-3">
-                            <img src="${b.imageUrl}" class="w-16 h-10 object-cover rounded-lg">
-                            <h4 class="font-bold text-white text-xs">${b.title || 'Banner'}</h4>
-                        </div>
-                        <button onclick="deleteDocItem('banners', '${b.id}')" class="bg-red-600/20 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+            list.innerHTML = allBanners.map(b => `
+                <div class="glass-card p-3 rounded-xl flex justify-between items-center shadow">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <img src="${escapeAdminAttr(b.imageUrl || '')}" loading="lazy" decoding="async" class="w-16 h-10 object-cover rounded-lg" alt="Banner">
+                        <h4 class="font-bold text-white text-xs">${escapeAdminText(b.title || 'Banner')}</h4>
                     </div>
-                `;
-            });
+                    <button onclick="deleteDocItem('banners', '${b.id}')" class="bg-red-600/20 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                </div>`).join('');
         }
 
         window.openBannerModal = function() {
