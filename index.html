@@ -434,7 +434,23 @@ body[data-theme="light"] #adminMenu .admin-menu-item[onclick="adminLogout()"] i 
 body[data-theme="light"] #admin-tournaments-list .glass-card,body[data-theme="light"] #admin-sections-list .glass-card,body[data-theme="light"] #admin-groups-list .glass-card,body[data-theme="light"] #admin-banners-list .glass-card{color:#17251d!important;background:#fff!important;border-color:#d5e2d8!important}
 body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #admin-sections-list h4,body[data-theme="light"] #admin-groups-list h4,body[data-theme="light"] #admin-banners-list h4{color:#17251d!important}
 @media(prefers-reduced-motion:reduce){#tournament-status-filters button{transition:none!important}}
-</style></head>
+</style>
+
+<style id="fast-render-performance">
+/* Low-end Android / slower network rendering optimisations */
+html{scroll-behavior:auto!important}
+.glass-card,.stat-card,.ui-request-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;animation:none!important}
+body:before{animation:none!important;opacity:.18!important}
+button,.admin-menu-item,.ui-theme-toggle{transition:background-color .12s ease,color .12s ease,border-color .12s ease!important}
+button:hover,.admin-menu-item:hover{transform:none!important;box-shadow:none!important}
+button i,.admin-menu-item i{animation:none!important;filter:none!important}
+img{content-visibility:auto}
+#admin-sections-list,#admin-groups-list,#admin-tournaments-list,#admin-banners-list{contain:content}
+@media(max-width:900px){#adminMenu{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+</head>
 <body class="min-h-screen flex flex-col pb-20">
     <!-- Fail-closed gate: never expose admin UI before role/permissions are verified. -->
     <div id="adminAccessLoading" role="status" aria-live="polite"
@@ -512,6 +528,7 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
                 <button onclick="window.location.assign('./ban.html')" class="admin-menu-item"><i class="fa-solid fa-ban"></i> BAN</button>
                 <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('app_update'))){openAppUpdateModalSafe()}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item"><i class="fa-solid fa-mobile-screen-button"></i> App Update</button>
                 <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('maintenance'))){openMaintenanceModalSafe()}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</button>
+                <button onclick="openSmsReaderManager()" class="admin-menu-item col-span-2"><i class="fa-solid fa-sms"></i> SMS READER</button>
                 <button onclick="if(['owner','main_admin','admin','full_admin'].includes(window.currentStaffRole)||(window.currentStaffRole==='custom_admin'&&(window.currentStaffPermissions||[]).includes('aura_features'))){openAuraLegacyFeatures();toggleAdminMenu(false)}else{showToast('এই পেজ ব্যবহারের অনুমতি নেই।','error')}" class="admin-menu-item col-span-2"><i class="fa-solid fa-shield-halved"></i> AURA ARMAN FEATURES</button>
                 <a href="index.html" class="admin-menu-item col-span-2"><i class="fa-solid fa-house"></i> Home View</a>
                 <button onclick="adminLogout()" class="admin-menu-item col-span-2 !border-rose-500/40 !text-rose-300"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
@@ -733,8 +750,11 @@ body[data-theme="light"] #admin-tournaments-list h4,body[data-theme="light"] #ad
 
     <script type="module">
         import { auth, db, ADMIN_EMAIL, linkOneSignalUser } from "./firebase.js";
+        import { getDatabase, ref as rtdbRef, set as rtdbSet, onValue as rtdbOnValue, update as rtdbUpdate, remove as rtdbRemove, query as rtdbQuery, limitToLast as rtdbLimitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, orderBy, limit, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        const escapeAdminText = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const escapeAdminAttr = escapeAdminText;
         const auraStorage = getStorage();
         window.__adminProfileApi = { db, doc, getDoc, getDocs, setDoc, collection, storageRef, uploadBytes, getDownloadURL, auraStorage };
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -1444,22 +1464,17 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                 list.innerHTML = `<p class="text-slate-500 text-xs">কোনো ক্যাটাগরি নেই।</p>`;
                 return;
             }
-            allSections.forEach(sec => {
-                list.innerHTML += `
-                    <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400"><i class="${sec.icon || 'fa-solid fa-gamepad'}"></i></div>
-                            <div>
-                                <h4 class="font-bold text-white text-sm">${sec.name}</h4>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="editSection('${sec.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteDocItem('sections', '${sec.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+            list.innerHTML = allSections.map(sec => `
+                <div class="glass-card p-4 rounded-xl flex justify-between items-center shadow">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        ${sec.imageUrl ? `<img src="${escapeAdminAttr(sec.imageUrl)}" loading="lazy" decoding="async" class="w-11 h-11 object-cover rounded-xl" alt="">` : `<div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400"><i class="${escapeAdminAttr(sec.icon || 'fa-solid fa-gamepad')}"></i></div>`}
+                        <div class="min-w-0"><h4 class="font-bold text-white text-sm truncate">${escapeAdminText(sec.name || '')}</h4></div>
                     </div>
-                `;
-            });
+                    <div class="flex space-x-2 shrink-0">
+                        <button onclick="editSection('${sec.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteDocItem('sections', '${sec.id}')" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`).join('');
         }
 
         window.openSectionModal = function(editData = null) {
@@ -1467,16 +1482,25 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
             document.getElementById('generic-modal').style.display = 'flex';
             document.getElementById('modal-body').innerHTML = `
                 <input type="hidden" id="sec-id" value="${editData ? editData.id : ''}">
-                <div>
-                    <label class="text-slate-400 block mb-1">Category Name</label>
-                    <input type="text" id="sec-name" value="${editData ? editData.name : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                <div><label class="text-slate-400 block mb-1">Category Name</label>
+                    <input type="text" id="sec-name" value="${escapeAdminAttr(editData?.name || '')}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white" maxlength="60">
                 </div>
-                <div>
-                    <label class="text-slate-400 block mb-1">FontAwesome Icon Class (e.g. fa-solid fa-gamepad)</label>
-                    <input type="text" id="sec-icon" value="${editData ? (editData.icon || '') : ''}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                <div><label class="text-slate-400 block mb-1">FontAwesome Icon Class (optional)</label>
+                    <input type="text" id="sec-icon" value="${escapeAdminAttr(editData?.icon || '')}" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
                 </div>
-                <div class="flex gap-2 mt-2"><button onclick="closeGenericModal()" class="flex-1 ui-btn-secondary font-bold py-2.5 rounded-xl">Cancel</button><button onclick="saveSection()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl">Save Category</button></div>
-            `;
+                <div class="space-y-2">
+                    <label class="text-slate-400 block mb-1">Category Image (optional)</label>
+                    <input type="file" id="sec-image-file" accept="image/*" class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    <div id="sec-upload-status" aria-live="polite" class="text-xs ui-muted"></div>
+                    <label class="text-slate-400 block mb-1">Or Image URL</label>
+                    <input type="url" id="sec-image-url" value="${escapeAdminAttr(editData?.imageUrl || '')}" placeholder="https://..." class="w-full bg-[#050811] border border-slate-800 rounded-xl p-2.5 text-white">
+                    <img id="sec-image-preview" src="${escapeAdminAttr(editData?.imageUrl || '')}" alt="Category preview" loading="lazy" class="w-20 h-20 object-cover rounded-xl border" style="border-color:var(--ui-border);${editData?.imageUrl ? '' : 'display:none'}">
+                </div>
+                <div class="flex gap-2 mt-2"><button onclick="closeGenericModal()" class="flex-1 ui-btn-secondary font-bold py-2.5 rounded-xl">Cancel</button><button id="save-section-btn" onclick="saveSection()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl">Save Category</button></div>`;
+            const file=document.getElementById('sec-image-file'), url=document.getElementById('sec-image-url'), preview=document.getElementById('sec-image-preview');
+            const updatePreview=()=>{const v=url.value.trim();if(v){preview.src=v;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}};
+            url.addEventListener('input',updatePreview);
+            file.addEventListener('change',async()=>{const f=file.files?.[0];if(!f)return;if(!f.type.startsWith('image/')){showToast('Valid image নির্বাচন করুন','error');file.value='';return;}if(f.size>20*1024*1024){showToast('ছবি ২০MB-এর কম হতে হবে','error');file.value='';return;}const reader=new FileReader();reader.onload=()=>{preview.src=reader.result;preview.style.display='block';};reader.readAsDataURL(f);});
         }
 
         window.editSection = function(id) {
@@ -1486,21 +1510,23 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
 
         window.saveSection = async function() {
             const id = document.getElementById('sec-id').value;
-            const name = document.getElementById('sec-name').value;
-            const icon = document.getElementById('sec-icon').value;
+            const name = document.getElementById('sec-name').value.trim();
+            const icon = document.getElementById('sec-icon').value.trim();
+            const file = document.getElementById('sec-image-file')?.files?.[0];
+            const urlField = document.getElementById('sec-image-url');
             if(!name) { showToast('ক্যাটাগরির নাম দিন', 'error'); return; }
-
+            const btn=document.getElementById('save-section-btn');
+            if(btn){btn.disabled=true;btn.textContent='Saving...';}
             try {
-                if(id) {
-                    await updateDoc(doc(db, "sections", id), { name, icon });
-                    showToast('ক্যাটাগরি আপডেট হয়েছে!');
-                } else {
-                    await addDoc(collection(db, "sections"), { name, icon, status: true });
-                    showToast('নতুন ক্যাটাগরি তৈরি হয়েছে!');
-                }
+                let imageUrl=urlField?.value.trim() || '';
+                if(file) imageUrl=await window.uploadImageToImgBB(file,document.getElementById('sec-upload-status'));
+                const payload={name,icon,imageUrl};
+                if(id) { await updateDoc(doc(db, "sections", id), payload); showToast('ক্যাটাগরি আপডেট হয়েছে!'); }
+                else { await addDoc(collection(db, "sections"), {...payload,status:true,createdAt:Date.now()}); showToast('নতুন ক্যাটাগরি তৈরি হয়েছে!'); }
                 closeGenericModal();
-                loadAllAdminData();
-            } catch(e) { showToast('সমস্যা হয়েছে!', 'error'); }
+                await loadAllAdminData();
+            } catch(e) { console.error(e); showToast(e?.message || 'সমস্যা হয়েছে!', 'error'); }
+            finally {if(btn){btn.disabled=false;btn.textContent='Save Category';}}
         }
 
         function renderGroupsList() {
@@ -2186,17 +2212,14 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
             const list = document.getElementById('admin-banners-list');
             if(!list) return;
             list.innerHTML = "";
-            allBanners.forEach(b => {
-                list.innerHTML += `
-                    <div class="glass-card p-3 rounded-xl flex justify-between items-center shadow">
-                        <div class="flex items-center space-x-3">
-                            <img src="${b.imageUrl}" class="w-16 h-10 object-cover rounded-lg">
-                            <h4 class="font-bold text-white text-xs">${b.title || 'Banner'}</h4>
-                        </div>
-                        <button onclick="deleteDocItem('banners', '${b.id}')" class="bg-red-600/20 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+            list.innerHTML = allBanners.map(b => `
+                <div class="glass-card p-3 rounded-xl flex justify-between items-center shadow">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <img src="${escapeAdminAttr(b.imageUrl || '')}" loading="lazy" decoding="async" class="w-16 h-10 object-cover rounded-lg" alt="Banner">
+                        <h4 class="font-bold text-white text-xs">${escapeAdminText(b.title || 'Banner')}</h4>
                     </div>
-                `;
-            });
+                    <button onclick="deleteDocItem('banners', '${b.id}')" class="bg-red-600/20 text-red-400 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                </div>`).join('');
         }
 
         window.openBannerModal = function() {
@@ -3007,7 +3030,112 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
         window.closeGenericModal = function() {
             document.getElementById('generic-modal').style.display = 'none';
         }
-    </script>
+    
+        // --- SMS READER MANAGER (Realtime Database; mirrors admin.html reader tools) ---
+        const smsReaderDb = getDatabase();
+        let smsReaderKeysUnsub = null;
+        let smsReaderLogsUnsub = null;
+        const smsReaderEsc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        window.openSmsReaderManager = function(){
+            toggleAdminMenu(false);
+            let modal=document.getElementById('smsReaderManagerModal');
+            if(!modal){
+                modal=document.createElement('div');
+                modal.id='smsReaderManagerModal';
+                modal.innerHTML=`
+                  <div class="sr-backdrop" onclick="closeSmsReaderManager()"></div>
+                  <section class="sr-panel" role="dialog" aria-modal="true" aria-label="SMS Reader Manager">
+                    <header class="sr-head"><div><div class="sr-kicker"><i class="fa-solid fa-sms"></i> DEVICE ACCESS</div><h2>SMS Reader Manager</h2><p>Generate, copy, activate or delete reader keys</p></div><button class="sr-close" onclick="closeSmsReaderManager()" aria-label="Close">×</button></header>
+                    <div class="sr-content">
+                      <div class="sr-card"><h3><i class="fa-solid fa-key"></i> Create Reader Key</h3><label for="sr-reader-name">Reader name</label><input id="sr-reader-name" class="sr-input" placeholder="e.g. My Phone" maxlength="60"><button id="sr-generate-btn" class="sr-primary" onclick="generateSmsReaderKey()"><i class="fa-solid fa-plus"></i> Generate Key</button></div>
+                      <div class="sr-section-title"><span>Reader Keys</span><span id="sr-key-count">0 keys</span></div><div id="sr-reader-list" class="sr-list"><div class="sr-empty">Loading reader keys…</div></div>
+                      <div class="sr-section-title"><span>Recent SMS Received</span><span>Latest 15</span></div><div id="sr-sms-log" class="sr-card sr-logs"><div class="sr-empty">Loading SMS…</div></div>
+                    </div>
+                  </section>`;
+                document.body.appendChild(modal);
+                const style=document.createElement('style');
+                style.textContent=`
+                  #smsReaderManagerModal{position:fixed;inset:0;z-index:10050;display:none;font-family:inherit}
+                  #smsReaderManagerModal.open{display:block}
+                  .sr-backdrop{position:absolute;inset:0;background:rgba(2,6,23,.78);backdrop-filter:blur(7px)}
+                  .sr-panel{position:absolute;inset: max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));margin:auto;width:min(720px,100%);max-height:calc(100dvh - 24px);overflow:hidden;display:flex;flex-direction:column;background:#0b1220;border:1px solid #29364d;border-radius:22px;box-shadow:0 25px 80px #0009;color:#f8fafc;animation:srIn .22s ease}
+                  @keyframes srIn{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+                  .sr-head{padding:18px 20px;display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #263449;background:linear-gradient(120deg,#111c30,#101827)}
+                  .sr-kicker{font-size:10px;letter-spacing:.14em;color:#67e8f9;font-weight:900}.sr-head h2{font-size:20px;font-weight:900;margin-top:5px}.sr-head p{font-size:11px;color:#94a3b8;margin-top:3px}
+                  .sr-close{width:38px;height:38px;border-radius:12px;background:#1e293b;color:#e2e8f0;font-size:25px}
+                  .sr-content{overflow:auto;padding:16px;display:grid;gap:14px}.sr-card{padding:16px;border:1px solid #263449;border-radius:16px;background:#111c2e}
+                  .sr-card h3{font-size:14px;font-weight:900;margin-bottom:12px}.sr-card h3 i{color:#67e8f9;margin-right:7px}
+                  .sr-card label{display:block;font-size:11px;color:#a5b4c8;margin-bottom:7px;font-weight:700}
+                  .sr-input{width:100%;height:44px;border:1px solid #34445e;border-radius:11px;background:#080f1d;color:#fff;padding:0 12px;outline:none;margin-bottom:10px}
+                  .sr-primary{width:100%;height:44px;border-radius:11px;background:linear-gradient(120deg,#0f766e,#0891b2);color:#fff;font-weight:900}
+                  .sr-section-title{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:900;padding:2px 2px}.sr-section-title span+span{font-size:10px;color:#94a3b8;font-weight:700}
+                  .sr-list{display:grid;gap:10px}.sr-key-card{background:#111c2e;border:1px solid #29364d;border-radius:15px;padding:14px}
+                  .sr-key-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.sr-name{font-weight:900;font-size:14px;overflow-wrap:anywhere}
+                  .sr-state{font-size:9px;font-weight:900;padding:5px 9px;border-radius:99px;background:#064e3b;color:#a7f3d0}.sr-state.off{background:#4c1d2a;color:#fecdd3}
+                  .sr-key{font:800 12px ui-monospace,monospace;letter-spacing:.04em;overflow-wrap:anywhere;margin:11px 0;color:#c4b5fd}
+                  .sr-meta{font-size:10px;color:#94a3b8;line-height:1.7;margin-bottom:12px}
+                  .sr-actions{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px}.sr-actions button{min-height:37px;border-radius:9px;font-size:11px;font-weight:900}
+                  .sr-copy{background:#1d4ed8;color:#fff}.sr-toggle{background:#854d0e;color:#fff}.sr-toggle.on{background:#047857}.sr-delete{background:#991b1b;color:#fff}
+                  .sr-empty{padding:22px;text-align:center;color:#94a3b8;font-size:12px}.sr-log-row{padding:10px 0;border-bottom:1px solid #29364d;display:flex;justify-content:space-between;gap:12px;font-size:11px}.sr-log-row:last-child{border:0}.sr-log-muted{color:#94a3b8;font-size:10px;margin-top:4px}
+                  @media(max-width:480px){.sr-panel{inset:8px;border-radius:17px;max-height:calc(100dvh - 16px)}.sr-head{padding:15px}.sr-content{padding:12px}.sr-head h2{font-size:18px}.sr-key-card{padding:12px}}
+                `;
+                document.head.appendChild(style);
+            }
+            modal.classList.add('open');
+            document.body.style.overflow='hidden';
+            if(!smsReaderKeysUnsub) smsReaderKeysUnsub=rtdbOnValue(rtdbRef(smsReaderDb,'readers'),snap=>renderSmsReaderKeys(snap.val()),err=>{document.getElementById('sr-reader-list').innerHTML='<div class="sr-empty">Reader keys load failed: '+smsReaderEsc(err.message)+'</div>';});
+            if(!smsReaderLogsUnsub) smsReaderLogsUnsub=rtdbOnValue(rtdbQuery(rtdbRef(smsReaderDb,'sms_inbox'),rtdbLimitToLast(15)),snap=>renderSmsReaderLogs(snap.val()),err=>{document.getElementById('sr-sms-log').innerHTML='<div class="sr-empty">SMS log load failed: '+smsReaderEsc(err.message)+'</div>';});
+        };
+        window.closeSmsReaderManager=function(){document.getElementById('smsReaderManagerModal')?.classList.remove('open');document.body.style.overflow='';};
+        function renderSmsReaderKeys(data){
+            const box=document.getElementById('sr-reader-list');if(!box)return;
+            const rows=Object.entries(data||{});document.getElementById('sr-key-count').textContent=rows.length+' keys';
+            if(!rows.length){box.innerHTML='<div class="sr-empty sr-card">No reader keys found</div>';return;}
+            box.innerHTML=rows.map(([key,r])=>`<article class="sr-key-card">
+              <div class="sr-key-top"><div class="sr-name">${smsReaderEsc(r.name||'Reader')}</div><span class="sr-state ${r.active?'':'off'}">${r.active?'ACTIVE':'DISABLED'}</span></div>
+              <div class="sr-key">${smsReaderEsc(key)}</div><div class="sr-meta">Created: ${smsReaderEsc(r.createdAt||'-')}<br>Last seen: ${smsReaderEsc(r.lastSeen||'never')}</div>
+              <div class="sr-actions"><button class="sr-copy" onclick="copySmsReaderKey('${smsReaderEsc(key)}')"><i class="fa-solid fa-copy"></i> Copy</button><button class="sr-toggle ${r.active?'':'on'}" onclick="toggleSmsReaderKey('${smsReaderEsc(key)}',${!r.active})">${r.active?'Deactivate':'Activate'}</button><button class="sr-delete" onclick="deleteSmsReaderKey('${smsReaderEsc(key)}')"><i class="fa-solid fa-trash"></i> Delete</button></div>
+            </article>`).join('');
+        }
+        function renderSmsReaderLogs(data){
+            const box=document.getElementById('sr-sms-log');if(!box)return;
+            const rows=Object.entries(data||{}).map(([id,v])=>({id,...(v||{})})).sort((x,y)=>Number(y.receivedAt||0)-Number(x.receivedAt||0));
+            box.innerHTML=rows.length?rows.map(v=>`<div class="sr-log-row"><div><b>${smsReaderEsc(v.method||'SMS')}</b> · ${smsReaderEsc(v.id)}<div class="sr-log-muted">${smsReaderEsc(v.sender||'')} · ${smsReaderEsc(v.time||'')}</div></div><div style="text-align:right;white-space:nowrap"><b>৳${smsReaderEsc(v.amount??'—')}</b><div class="sr-log-muted" style="color:${v.used?'#fca5a5':'#6ee7b7'}">${v.used?'Used':'Unused'}</div></div></div>`).join(''):'<div class="sr-empty">No SMS received yet</div>';
+        }
+        function createSmsReaderKey(){
+            const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const arr=new Uint32Array(20);crypto.getRandomValues(arr);let key='RH';arr.forEach((n,i)=>{if(i%5===0)key+='-';key+=chars[n%chars.length];});return key;
+        }
+        window.generateSmsReaderKey=async function(){
+            const input=document.getElementById('sr-reader-name');const name=(input?.value||'').trim()||'Reader';const btn=document.getElementById('sr-generate-btn');
+            if(btn)btn.disabled=true;
+            try{
+                const key=createSmsReaderKey();
+                await rtdbSet(rtdbRef(smsReaderDb,'readers/'+key),{name,active:true,createdAt:new Date().toLocaleString(),lastSeen:''});
+                input.value='';
+                await copySmsReaderKey(key);
+                if(window.showToast)window.showToast('নতুন Reader Key তৈরি হয়েছে এবং কপি হয়েছে','success');
+            }catch(e){console.error(e);window.showToast?.('Key তৈরি হয়নি: '+e.message,'error');}
+            finally{if(btn)btn.disabled=false;}
+        };
+        window.copySmsReaderKey=async function(key){
+            try{
+                if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(String(key));
+                else {const area=document.createElement('textarea');area.value=String(key);area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('Clipboard permission denied');}
+                window.showToast?.('Reader Key কপি হয়েছে','success');
+            }catch(e){console.error(e);window.showToast?.('Key কপি করা যায়নি। Browser clipboard permission পরীক্ষা করুন।','error');}
+        };
+        window.toggleSmsReaderKey=async function(key,active){
+            try{await rtdbUpdate(rtdbRef(smsReaderDb,'readers/'+key),{active:!!active});window.showToast?.(active?'Reader সক্রিয় হয়েছে':'Reader বন্ধ হয়েছে','success');}
+            catch(e){window.showToast?.('Status পরিবর্তন হয়নি: '+e.message,'error');}
+        };
+        window.deleteSmsReaderKey=async function(key){
+            const yes=window.adminConfirm?await window.adminConfirm('Reader Key Delete করবেন?','এই key দিয়ে যুক্ত ফোন আর SMS পাঠাতে পারবে না।','হ্যাঁ, Delete','বাতিল'):confirm('এই Reader Key delete করবেন?');
+            if(!yes)return;
+            try{await rtdbRemove(rtdbRef(smsReaderDb,'readers/'+key));window.showToast?.('Reader Key delete হয়েছে','success');}
+            catch(e){window.showToast?.('Key delete হয়নি: '+e.message,'error');}
+        };
+
+</script>
 
 
 <!-- =========================================================
