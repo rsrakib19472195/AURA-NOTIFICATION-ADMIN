@@ -1242,6 +1242,7 @@ body[data-theme="dark"] #themeToggleBtn.ui-theme-toggle::before{background:linea
                 else if (t.includes('TOP-UP') || t.includes('BAN')) visible = privileged;
                 else if (t.includes('App Update')) visible = privileged || (role === 'custom_admin' && granted.includes('app_update'));
                 else if (t.includes('Maintenance')) visible = privileged || (role === 'custom_admin' && granted.includes('maintenance'));
+                else if (t.includes('SMS READER')) visible = privileged;
                 else if (t.includes('AURA ARMAN')) visible = privileged || (role === 'custom_admin' && granted.includes('aura_features'));
                 else if (t.includes('Logout')) visible = true;
                 else if (t.includes('Home View')) visible = privileged || (role === 'custom_admin' && granted.includes('home_view'));
